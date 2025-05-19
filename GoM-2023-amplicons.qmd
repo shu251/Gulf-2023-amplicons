@@ -1,0 +1,59 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+# Import GoM 2023 data
+
+```{r}
+library(tidyverse)
+```
+Make a list of files document so we can create a manifest file and import. I need to check total number of sequences per sample and the overall quality.
+
+```{r}
+seq_list <- read_delim(file = "list_of_files.txt", delim = "\t",col_names = F)
+head(seq_list)
+```
+
+```{r}
+length(seq_list$X1)
+length(unique(seq_list$X1))
+```
+
+
+### Make manifest file
+
+```{r}
+fullpath <- "/scratch/group/hu-lab/data/tag-seq-data/GoM-2023-18S_2025-05/"
+```
+
+Parse file names for sample IDs.
+```{r}
+parsed <- seq_list %>% 
+  separate(X1, into = c("Order", "gom", "stn", "niskin", "template", "DNA", "REP", "RUN", "suffix", "l", "r"), remove = FALSE) %>% 
+  mutate(`sample-id` = case_when(
+    RUN == "orig" ~ paste(gom, stn, niskin, template, REP, RUN, sep = "_"),
+    (RUN != "orig") ~ paste(gom, stn, niskin, template, REP, sep = "_"))) %>% 
+  mutate(READ = case_when(
+    (r == "R1" | r == "R2") ~ r,
+    (l == "R1" | l == "R2") ~ l,
+    (suffix == "R1" | suffix == "R2") ~ suffix
+  )) %>% 
+  select(`sample-id`, READ, X1)  %>% 
+  pivot_wider(names_from = READ, values_from = X1)
+```
+
+Make manifest
+```{r}
+manifest_gom23 <-parsed %>% 
+  mutate(`forward-absolute-filepath` = paste(fullpath, R1, sep = ""),
+         `reverse-absolute-filepath` = paste(fullpath, R2, sep = "")) %>% 
+  select(`sample-id`, `forward-absolute-filepath`, `reverse-absolute-filepath`)
+```
+
+```{r}
+# Write output as a manifest file
+write.table(manifest_gom23, file = "manifest-gom-2023", quote=FALSE,col.names=TRUE,row.names=FALSE,sep="\t")
+```
+
