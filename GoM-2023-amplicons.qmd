@@ -1,59 +1,147 @@
 ---
-title: "Untitled"
-format: html
-editor: visual
+title: "Microbial eukaryotic diversity in the Gulf"
+format:
+  html:
+    theme: flatly
+    toc: true
+    toc-location: left
+    number-sections: true
+    number-depth: 3
 ---
 
-# Import GoM 2023 data
+# Study introduction
 
+# 
+
+# Metabarcoding 
+
+See `scripts/` for QIIME2 commands used to process raw sequences.
+
+
+## Make manifest file
 ```{r}
+# | eval: false
 library(tidyverse)
 ```
 Make a list of files document so we can create a manifest file and import. I need to check total number of sequences per sample and the overall quality.
 
 ```{r}
-seq_list <- read_delim(file = "list_of_files.txt", delim = "\t",col_names = F)
-head(seq_list)
-```
-
-```{r}
+# | eval: false
+seq_list <- read_delim(file = "scripts/list_of_files.txt", delim = "\t",col_names = F)
 length(seq_list$X1)
 length(unique(seq_list$X1))
-```
-
-
-### Make manifest file
-
-```{r}
 fullpath <- "/scratch/group/hu-lab/data/tag-seq-data/GoM-2023-18S_2025-05/"
 ```
 
 Parse file names for sample IDs.
 ```{r}
-parsed <- seq_list %>% 
-  separate(X1, into = c("Order", "gom", "stn", "niskin", "template", "DNA", "REP", "RUN", "suffix", "l", "r"), remove = FALSE) %>% 
+# | eval: false
+parsed <- seq_list %>%
+  separate(X1, into = c("Order", "gom", "stn", "niskin", "template", "DNA", "REP", "RUN", "suffix", "l", "r"), remove = FALSE) %>%
   mutate(`sample-id` = case_when(
     RUN == "orig" ~ paste(gom, stn, niskin, template, REP, RUN, sep = "_"),
-    (RUN != "orig") ~ paste(gom, stn, niskin, template, REP, sep = "_"))) %>% 
+    (RUN != "orig") ~ paste(gom, stn, niskin, template, REP, sep = "_"))) %>%
   mutate(READ = case_when(
     (r == "R1" | r == "R2") ~ r,
     (l == "R1" | l == "R2") ~ l,
     (suffix == "R1" | suffix == "R2") ~ suffix
-  )) %>% 
-  select(`sample-id`, READ, X1)  %>% 
+  )) %>%
+  select(`sample-id`, READ, X1)  %>%
   pivot_wider(names_from = READ, values_from = X1)
 ```
 
-Make manifest
+
 ```{r}
-manifest_gom23 <-parsed %>% 
+# | eval: false
+manifest_gom23 <-parsed %>%
   mutate(`forward-absolute-filepath` = paste(fullpath, R1, sep = ""),
-         `reverse-absolute-filepath` = paste(fullpath, R2, sep = "")) %>% 
+         `reverse-absolute-filepath` = paste(fullpath, R2, sep = "")) %>%
   select(`sample-id`, `forward-absolute-filepath`, `reverse-absolute-filepath`)
 ```
 
+Write output as a manifest file
 ```{r}
-# Write output as a manifest file
+# | eval: false
 write.table(manifest_gom23, file = "manifest-gom-2023", quote=FALSE,col.names=TRUE,row.names=FALSE,sep="\t")
+```
+
+## Compile QIIME2 output files
+
+
+Import ASV table
+```{r}
+# | eval: false
+asvs <- read_delim(file = "input-data/gom-2023-18s-asv-table.tsv", delim = "\t", skip =1 ) %>% 
+  select(FeatureID = `#OTU ID`, starts_with("GOM"))
+# head(asvs)
+```
+Import taxonomy.
+```{r}
+# | eval: false
+tax <- read_delim("input-data/taxonomy.tsv", delim = "\t") %>% 
+  select(FeatureID = `Feature ID`, Taxon)
+# head(tax)
+```
+
+## Save
+```{r}
+# | eval: false
+asv_wtax_GoM23_062025 <- asvs %>% 
+  left_join(tax)
+
+save(asv_wtax_GoM23_062025, file =  "input-data/asv_wtax_GoM23_062025.RData")
+```
+
+
+## Align with metadata
+
+Abby & Meagan's code.
+
+```{r}
+metadata <- read_delim("GradGoM23_MasterSpreadsheet_9-26-23.xlsx - Master.csv") %>% 
+  mutate(Station = as.numeric(Station))
+# head(metadata)
+nuts <- read_delim("SHEETNutrients_MasterComps.csv", delim = ",", col_names = TRUE) %>% select(-`Bottle Depth (m)`)
+head(nuts)
+
+metadata_all <- metadata %>% 
+  select(Station, Niskin, DEPTH = `Bottle Depth (m)`, Latitude, Longitude, TEMP = `CTD temp`,  Date, Time_UTC = `Time (UTC)`, SALINITY = `Corrected CTD Sal 1`, OXYGEN = `Corrected CTD Oxy1`) %>% 
+  left_join(nuts)
+```
+
+```{r}
+head(metadata_all)
+str(metadata_all)
+```
+
+```{r}
+sample_wmetadata <- as.data.frame(colnames(asvs %>% select(-FeatureID))) %>% select(SAMPLES = `colnames(asvs %>% select(-FeatureID))`) %>% 
+  separate(SAMPLES, into = c("YEAR",
+                             "stn", "nisk", 
+                             "barcode", "rep"), remove = FALSE) %>% 
+  mutate(Station = as.numeric(str_replace(stn, "S", "")),
+         Niskin = as.numeric(str_replace(nisk, "N", ""))) %>% 
+  left_join(metadata_all)
+  
+# head(sample_wmetadata)
+# write.csv(sample_wmetadata, file = "input-data/metadata-gom-23.csv")
+```
+
+
+# Sequence analysis
+
+Set up R & import starting data
+```{r}
+library(tidyverse)
+load("input-data/asv_wtax_GoM23_062025.RData")
+metadata <- read.csv("input-data/metadata-gom-23.csv")
+```
+
+
+
+# Session Information
+
+```{r}
+sessionInfo()
 ```
 
