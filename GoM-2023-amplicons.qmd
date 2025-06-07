@@ -11,7 +11,7 @@ format:
 
 # Study introduction
 
-# 
+
 
 # Metabarcoding 
 
@@ -50,7 +50,6 @@ parsed <- seq_list %>%
   pivot_wider(names_from = READ, values_from = X1)
 ```
 
-
 ```{r}
 # | eval: false
 manifest_gom23 <-parsed %>%
@@ -67,7 +66,6 @@ write.table(manifest_gom23, file = "manifest-gom-2023", quote=FALSE,col.names=TR
 
 ## Compile QIIME2 output files
 
-
 Import ASV table
 ```{r}
 # | eval: false
@@ -83,13 +81,10 @@ tax <- read_delim("input-data/taxonomy.tsv", delim = "\t") %>%
 # head(tax)
 ```
 
-## Save
 ```{r}
 # | eval: false
-asv_wtax_GoM23_062025 <- asvs %>% 
-  left_join(tax)
-
-save(asv_wtax_GoM23_062025, file =  "input-data/asv_wtax_GoM23_062025.RData")
+# asv_wtax_GoM23_062025 <- asvs %>% 
+#   left_join(tax)
 ```
 
 
@@ -98,46 +93,412 @@ save(asv_wtax_GoM23_062025, file =  "input-data/asv_wtax_GoM23_062025.RData")
 Abby & Meagan's code.
 
 ```{r}
+# | eval: false
 metadata <- read_delim("GradGoM23_MasterSpreadsheet_9-26-23.xlsx - Master.csv") %>% 
   mutate(Station = as.numeric(Station))
-# head(metadata)
-nuts <- read_delim("SHEETNutrients_MasterComps.csv", delim = ",", col_names = TRUE) %>% select(-`Bottle Depth (m)`)
-head(nuts)
 
+nuts <- read_delim("SHEETNutrients_MasterComps.csv", delim = ",", col_names = TRUE) %>% select(-`Bottle Depth (m)`, -`Nutrient BTL #`, -`...11`, -`...12`, -`...13`, -`Lab Temp (°C)`) %>% 
+  pivot_longer(cols = -c(Station, Niskin), names_to = "Nutrients", values_to = "Conc") %>% 
+  group_by(Station, Niskin, Nutrients) %>% 
+    summarize(CONC = mean(Conc)) %>% 
+  pivot_wider(names_from = Nutrients, values_from = CONC) %>% 
+  select(Station, Niskin, NH4 = `NH₄ (µmol/L)`, NO2 = `NO₂ (µmol/L)`, NO3 = `NO₃ (µmol/L)`, PO4 = `PO₄ (µmol/L)`, SIL = `SIL (µmol/L)`)
+# colnames(nuts)
+#
 metadata_all <- metadata %>% 
   select(Station, Niskin, DEPTH = `Bottle Depth (m)`, Latitude, Longitude, TEMP = `CTD temp`,  Date, Time_UTC = `Time (UTC)`, SALINITY = `Corrected CTD Sal 1`, OXYGEN = `Corrected CTD Oxy1`) %>% 
-  left_join(nuts)
+  left_join(nuts) 
 ```
 
-```{r}
-head(metadata_all)
-str(metadata_all)
-```
+> All nutrients in µmol/L
 
 ```{r}
+# | eval: false
 sample_wmetadata <- as.data.frame(colnames(asvs %>% select(-FeatureID))) %>% select(SAMPLES = `colnames(asvs %>% select(-FeatureID))`) %>% 
+  mutate(Sample_Ctrl = case_when(
+    grepl("GOM23_S0_N0", SAMPLES) ~ "Control", 
+    TRUE ~ "Sample")) %>% 
   separate(SAMPLES, into = c("YEAR",
                              "stn", "nisk", 
                              "barcode", "rep"), remove = FALSE) %>% 
   mutate(Station = as.numeric(str_replace(stn, "S", "")),
          Niskin = as.numeric(str_replace(nisk, "N", ""))) %>% 
   left_join(metadata_all)
-  
-# head(sample_wmetadata)
-# write.csv(sample_wmetadata, file = "input-data/metadata-gom-23.csv")
+
+write.csv(sample_wmetadata, file = "input-data/metadata-gom-23.csv")
 ```
 
 
-# Sequence analysis
+## Sequence QC
 
 Set up R & import starting data
 ```{r}
-library(tidyverse)
-load("input-data/asv_wtax_GoM23_062025.RData")
-metadata <- read.csv("input-data/metadata-gom-23.csv")
+# | eval: false
+library(tidyverse);library(phyloseq); library(decontam)
+library(compositions); library(patchwork); 
+library(ggupset); library(gt)
+library(plotly); library(viridis); library(vegan)
+```
+
+```{r}
+# | eval: false
+env_info <- read.csv("input-data/metadata-gom-23.csv")
+```
+
+## Sequence quality control
+
+Import to Phyloseq.
+
+```{r}
+# | eval: false
+tax_mat <- asv_wtax_GoM23_062025 %>% 
+  select(FeatureID, Taxon) %>% 
+  separate(Taxon, c("Domain", "Supergroup", 
+                  "Division", "Subdivision","Class", "Order",
+                  "Family", "Genus", "Species"), sep = ";", remove = FALSE) %>% 
+  column_to_rownames(var = "FeatureID") %>% 
+  as.matrix
+
+asv_mat <- asv_wtax_GoM23_062025 %>% 
+  select(FeatureID, starts_with("GOM")) %>% 
+  column_to_rownames(var = "FeatureID") %>% 
+  as.matrix
+
+rownames(tax_mat) <- row.names(asv_mat)
+```
+```{r}
+row.names(env_info) <- env_info$SAMPLES
+length(env_info$SAMPLES)
+length(unique(env_info$SAMPLES))
+```
+## Phyloseq integration
+```{r}
+# | eval: false
+ASV = otu_table(asv_mat, taxa_are_rows = TRUE)
+TAX = tax_table(tax_mat)
+gom_phylo = phyloseq(ASV, TAX)
+```
+```{r}
+# | eval: false
+samplenames <- sample_data(env_info)
+gom_phylo_sample <- merge_phyloseq(gom_phylo, samplenames)
+gom_phylo_sample
+```
+
+## Decontam
+```{r}
+# | eval: false
+sample_data(gom_phylo_sample)$is.neg <- sample_data(gom_phylo_sample)$Sample_Ctrl  == "Control"
+```
+
+When "Control" appears in "Sample_or_Control column, this is a negative control"
+> 0.5 - this threshold will ID contaminants in all samples that are more prevalent in negative controls than in positive samples.
+
+```{r Identify contaminant ASVs}
+# | eval: false
+# ID contaminants using Prevalence information
+contam_prev <- isContaminant(gom_phylo_sample, 
+                               method="prevalence", 
+                               neg="is.neg", 
+                               threshold = 0.5, normalize = TRUE) 
+# ?isContaminant()
+# Report number of ASVs IDed as contaminants
+table(contam_prev$contaminant)
+```
+
+```{r}
+# | eval: false
+list <- filter(contam_prev, contaminant == TRUE)
+list_to_rm <- as.character(row.names(list))
 ```
 
 
+## Remove decontam ASVs and check stats
+
+Total number of sequences and ASVs.
+48,463,174 sequences
+61,813 ASVs
+
+766 ASVs to be removed.
+```{r}
+# | eval: false
+length(unique(asv_wtax_GoM23_062025$FeatureID))
+sum(asv_mat)
+length(list_to_rm)
+```
+
+
+```{r}
+# | eval: false
+cleaned <- as.data.frame(asv_mat) %>% 
+  rownames_to_column(var = "FeatureID") %>% 
+  filter(!(FeatureID %in% list_to_rm)) %>% 
+  column_to_rownames(var = "FeatureID") %>% 
+  as.matrix
+sum(cleaned)
+```
+After decontam
+42,775,994 sequences 
+766 ASVs
+
+Save cleaned ASV table files
+```{r}
+# | eval: false
+# glimpse(asv_wtax_GoM23_062025)
+
+asv_wtax_wide_062025 <- asv_wtax_GoM23_062025 %>% 
+  filter(!(FeatureID %in% list_to_rm)) %>% 
+  select(FeatureID, Taxon, starts_with("GOM"))
+
+asv_wtax_long_062025 <- asv_wtax_GoM23_062025 %>% 
+  filter(!(FeatureID %in% list_to_rm)) %>% 
+  pivot_longer(cols = -c(FeatureID, Taxon), names_to = "SAMPLES", values_to = "SEQUENCE_COUNT") %>% 
+  filter(SEQUENCE_COUNT > 0) %>% 
+  separate(Taxon, into = c("Domain", "Supergroup", "Division", "Subdivision", "Class", "Order", "Family", "Genus", "Species"), remove = FALSE)
+
+# length(unique(asv_wtax_wide_062025$FeatureID))
+```
+
+
+## Get sequence stats
+
+```{r}
+# | eval: false
+# unique(asv_wtax_long_062025$SAMPLES)
+head(asv_wtax_long_062025)
+asv_wtax_long_062025 %>% 
+  group_by(SAMPLES) %>% 
+    summarize(TOTAL_SEQ = sum(SEQUENCE_COUNT),
+              TOTAL_ASV = n()) %>% 
+  ggplot(aes(x = TOTAL_SEQ, y = TOTAL_ASV)) + 
+  geom_point(shape = 21, color = "black", fill = "grey20") +
+  theme_classic() +
+  theme(axis.text = element_text(color = "black"),
+      panel.grid.major = element_line()) +
+  labs(x = "Total sequences", y = "Total ASVs", title = "Distribtion of sequences and ASVs for all samples")
+
+```
+
+```{r, fig.height=20, fig.width=7}
+# | eval: false
+# unique(asv_wtax_long_062025$SAMPLES)
+# head(asv_wtax_long_062025)
+asv_wtax_long_062025 %>% 
+  group_by(SAMPLES, Domain) %>% 
+    summarize(TOTAL_SEQ = sum(SEQUENCE_COUNT),
+              TOTAL_ASV = n()) %>% 
+  ggplot(aes(y = SAMPLES, x = TOTAL_ASV, fill = Domain)) + 
+  geom_bar(stat = "identity", position = "stack", color = "black") +
+  theme_classic() +
+  theme(axis.text = element_text(color = "black"),
+      panel.grid.major = element_line()) +
+  labs(x = "Total sequences", y = "Total ASVs", title = "Distribtion of sequences and ASVs for all samples")
+```
+```{r}
+# | eval: false
+summary(asv_wtax_long_062025$SEQUENCE_COUNT)
+sample_count <- asv_wtax_long_062025 %>% 
+  group_by(SAMPLES) %>% 
+    summarize(TOTAL_SEQ = sum(SEQUENCE_COUNT),
+              TOTAL_ASV = n()) %>% 
+  # try removing some sequences
+  filter(TOTAL_SEQ > 40000)
+
+samples_too_low <- setdiff((unique(asv_wtax_long_062025$SAMPLES)), (unique(sample_count$SAMPLES)))
+
+samples_too_low
+
+ctrl_samples <- unique((env_info %>% filter(Sample_Ctrl == "Control"))$SAMPLES)
+
+```
+
+Remove control samples and samples with too few sequences.
+```{r}
+# | eval: false
+asv_long_cleaned <- asv_wtax_long_062025 %>% 
+  # Remove controls
+  filter(!SAMPLES %in% ctrl_samples) %>% 
+  # remove samples with too few sequences
+  filter(!SAMPLES %in% samples_too_low)
+```
+
+```{r}
+# | eval: false
+length(unique(asv_long_cleaned$FeatureID))
+sum(asv_long_cleaned$SEQUENCE_COUNT)
+```
+42,302,959 total sequences
+60044 total ASV
+
+```{r}
+# | eval: false
+table_seq_stats <- asv_long_cleaned %>% 
+  group_by(SAMPLES) %>% 
+  summarise(total_asvs = n(),
+            sequence_count = sum(SEQUENCE_COUNT))
+
+# write.csv(table_seq_stats, file = "output-tables/seq-asv-stats.csv")
+```
+
+```{r}
+# | eval: false
+# head(asv_wtax_wide_062025)
+# dim(asv_wtax_wide_062025)
+asv_wide_cleaned <- asv_wtax_wide_062025 %>% 
+  select(!(all_of(ctrl_samples)) & !(all_of(samples_too_low)))
+```
+
+
+### Save necessary files
+
+```{r}
+# | eval: false
+save(env_info, asv_wide_cleaned, asv_long_cleaned, file =  "input-data/asv_wtax_qc_GoM23_062025.RData")
+```
+
+# START HERE
+
+# Data analysis
+
+Set up R & import starting data
+```{r}
+# | eval: false
+library(tidyverse);library(phyloseq); library(decontam)
+library(compositions); library(patchwork); 
+library(ggupset); library(gt)
+library(plotly); library(viridis); library(vegan)
+# env_info <- read.csv("input-data/metadata-gom-23.csv")
+```
+
+
+```{r}
+load(file = "input-data/asv_wtax_qc_GoM23_062025.RData", verbose = TRUE)
+```
+
+Set up ordering of stations and locations. 
+```{r}
+# | eval: false
+offshore_on_shore_order <- c(1, 2, 3, 4, 5, 9, 8, 7, 6, 10, 11, 12, 13, 14, 15)
+transect_labels <- c("transect1", "transect1", "transect1", "transect1", "transect1", "transect2", "transect2", "transect2", "transect2", "transect3", "transect3", "transect3", "transect3", "transect3", "transect3")
+env_info_mod <- env_info %>% 
+  mutate(stn_order = factor(Station, levels = offshore_on_shore_order),
+         transect = factor(Station, levels = offshore_on_shore_order, transect_labels))
+# unique(env_info$Station)
+# unique(env_info$Niskin)
+# sort(unique(env_info$DEPTH))
+# hist(env_info$DEPTH)
+
+```
+
+```{r}
+head(asv_long_cleaned)
+unique(asv_long_cleaned$Domain) # take EUKS
+unique(asv_long_cleaned$Supergroup)
+unique(asv_long_cleaned$Division)
+# View(asv_long_cleaned %>% 
+#        select(Domain, Supergroup, Division, Subdivision, Class, Order, Family, Genus, Species) %>% distinct())
+```
+
+## Curate taxonomic assignment
+```{r}
+
+asv_long_clean_wtax <- asv_long_cleaned %>% 
+  filter(Domain == "Eukaryota") %>% 
+  filter(Supergroup != "nucl") %>% 
+  mutate(DIVISION = case_when(
+    Subdivision == "X" ~ "Unannotated",
+    is.na(Subdivision) ~ "Unannotated",
+    TRUE ~ Subdivision
+  )) %>% 
+  # Goal is to combine Subdivision-Class
+  mutate(SUPERGROUP_CLASS = case_when(
+    ## High level NAs at the supergroup and division level
+    (is.na(Division) & !is.na(Supergroup)) ~ paste(Supergroup, "Unannotated", sep = "-"),
+    (is.na(Division) & is.na(Supergroup)) ~ "Eukaryote-Unannotated",
+    (is.na(Subdivision)) ~ paste(Supergroup, "Unannotated", sep = "-"),
+    (is.na(Class) & !is.na(Subdivision)) ~ paste(Subdivision, "Unannotated", sep = "-"),
+    #
+    (Subdivision == "X") ~ paste(Division, "Unannotated", sep = "-"),
+    (Class == "X") ~ paste(Subdivision, "Unannotated", sep = "-"),
+    TRUE ~ paste(Subdivision, Class, sep = "-"))) %>% 
+  left_join(env_info_mod) 
+
+# 
+# sort(unique(tmp$DIVISION))
+# sort(unique(tmp$Subdivision))
+# unique(tmp$SUPERGROUP_CLASS)
+head(asv_long_clean_wtax)
+```
+## Normalization and averaging across replicates
+
+```{r}
+# unique(asv_long_clean_wtax$Domain)
+```
+
+
+```{r}
+asv_long_clean_wtax %>% 
+  # First average ASV sequence count across replicates
+  group_by(transect, FeatureID, stn_order, stn, nisk, Station, Niskin, DEPTH, TEMP, SALINITY, OXYGEN, NH4, NO2, NO3, PO4, SIL, Taxon, DIVISION, SUPERGROUP_CLASS) %>% 
+  summarise(MEAN_REPS_seq = mean(SEQUENCE_COUNT)) %>% 
+  ungroup() %>% 
+  # Sum by taxonomic groups
+  group_by(transect, stn_order,stn, nisk, Station, Niskin, DEPTH, TEMP, SALINITY, OXYGEN, NH4, NO2, NO3, PO4, SIL, DIVISION) %>% 
+  summarise(SUM_SEQ = sum(MEAN_REPS_seq),
+            ASV_COUNT = n()) %>% 
+  mutate(DEPTH_ORDER = factor(DEPTH, levels = rev(depth_order))) %>% 
+  unite(SAMPLE_ID, stn_order, nisk, sep = " ", remove = FALSE) %>% 
+```
+
+
+```{r}
+head(asv_long_clean_wtax)
+# unique(asv_long_clean_wtax$Supergroup)
+depth_order <- as.character(sort((unique(asv_long_clean_wtax$DEPTH))))
+```
+
+
+Low taxonomic resolution should be at DIVISION level. Then to SUPERGROUP_CLASS level. 
+```{r}
+
+  ggplot(aes(y = DEPTH_ORDER, x = SUM_SEQ, fill = DIVISION)) +
+    geom_bar(stat = "identity", position = "fill", color = "black") +
+  facet_wrap(vars(transect, stn_order), scales = "free_y")
+  # facet_grid(rows = vars(transect), cols = vars(stn_order), scales = "free", space = "free")
+# ?facet_wrap
+```
+
+## Taxonomic diversity
+
+
+```{r}
+
+```
+
+## Diversity indices
+
+
+```{r}
+
+```
+
+
+# Ordinations / dendrograms
+
+```{r}
+
+
+```
+
+RDA analysis
+```{r}
+
+```
+
+
+# Trends in diversity
+
+CLR, anomalized over time - changes with respect to average.. 
 
 # Session Information
 
