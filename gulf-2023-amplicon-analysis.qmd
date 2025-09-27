@@ -5,10 +5,10 @@ editor: visual
 
 # Contents & introduction
 
-
 # Set up R environment
 
 Set up R & import starting data
+
 ```{r}
 library(tidyverse);library(phyloseq); library(decontam)
 library(compositions); library(patchwork); 
@@ -16,25 +16,35 @@ library(ggupset); library(gt)
 library(plotly); library(viridis); library(vegan)
 ```
 
-
 # Import prior data
 
 From sequencing
+
 ```{r}
 # | eval: false
 # save(samples_too_low, env_info, asv_wide_cleaned, asv_long_cleaned, file =  "input-data/asv_wtax_qc_GoM23_062025.RData")
 ```
 
 Import sequence R objects
+
 ```{r}
 load(file = "input-data/asv_wtax_qc_GoM23_062025.RData", verbose = TRUE)
 # env_info <- read.csv("input-data/metadata-gom-23.csv")
-# head(env_info)
+tmp <- read.csv("cellcounts-sept22.csv")
+prok <- tmp %>% select(Station, Niskin, PROK_COUNT = `prok.count`)
+head(env_info)
+```
+
+```{r}
+# head(prok)
+env_info <- env_info %>% 
+  left_join(prok)
 ```
 
 ## Station information, ordering, location
 
 Distance from shore
+
 ```{r}
 library(geosphere)
 # Long, Lat order
@@ -44,8 +54,8 @@ outflow <- c(outflow_long, outflow_lat)
 outflow
 ```
 
+Set up ordering of stations and locations.
 
-Set up ordering of stations and locations. 
 ```{r}
 stn_info <- read.csv("input-data/manual_stn_classification.csv")
 
@@ -111,7 +121,10 @@ asv_long_clean_wtax <- asv_long_cleaned %>%
 # sort(unique(tmp$Subdivision))
 # unique(tmp$SUPERGROUP_CLASS)
 # head(asv_long_clean_wtax)
+tax_key <- asv_long_clean_wtax %>% 
+  select(FeatureID, Supergroup, Division, Subdivision, Class, Order, Family, Genus, Species) %>% distinct()
 ```
+
 ## Normalization and averaging across replicates
 
 ```{r}
@@ -122,12 +135,10 @@ colnames(asv_long_clean_wtax)
 range(asv_long_clean_wtax$DEPTH)
 ```
 
-
-
 ```{r}
 asv_long_avg_wtax <- asv_long_clean_wtax %>% 
   # First average ASV sequence count across replicates
-  group_by(TRANSECT, PROX_TOSHORE, STN_ORDER, STN_CATEGORY_3, STN_CATEGORY_4, DEPTH_ORDER, FeatureID, stn, nisk, Station, Niskin, DEPTH, TEMP, SALINITY, OXYGEN, NH4, NO2, NO3, PO4, SIL, Taxon, DIVISION, SUPERGROUP_CLASS, Supergroup_simplified, Supergroup, Division, Subdivision, Class) %>% 
+  group_by(TRANSECT, PROX_TOSHORE, STN_ORDER, STN_CATEGORY_3, STN_CATEGORY_4, DEPTH_ORDER, FeatureID, stn, nisk, Station, Niskin, DEPTH, TEMP, SALINITY, OXYGEN, NH4, NO2, NO3, PO4, SIL, PROK_COUNT, Taxon, DIVISION, SUPERGROUP_CLASS, Supergroup_simplified, Supergroup, Division, Subdivision, Class) %>% 
   summarise(MEAN_REPS_seq = mean(SEQUENCE_COUNT)) %>% 
   ungroup() %>% 
   unite(SAMPLE_ID, stn, nisk, sep = " ", remove = FALSE)
@@ -135,7 +146,8 @@ asv_long_avg_wtax <- asv_long_clean_wtax %>%
 head(asv_long_avg_wtax)
 unique(asv_long_avg_wtax$STN_CATEGORY_4)
 ```
-> Create a figure with data points for each station and depth. Size of data point = # of ASVs
+
+> Create a figure with data points for each station and depth. Size of data point = \# of ASVs
 
 ```{r, fig.height=10, fig.width=8}
 asv_long_avg_wtax %>% 
@@ -169,7 +181,8 @@ tax_simplified_list <- as.character((unique(asv_long_avg_wtax$Supergroup_simplif
 names(tax_color) <- tax_simplified_list
 ```
 
-Low taxonomic resolution should be at DIVISION level. Then to SUPERGROUP_CLASS level. 
+Low taxonomic resolution should be at DIVISION level. Then to SUPERGROUP_CLASS level.
+
 ```{r, fig.height=20, fig.width=7}
 # Sum by taxonomic groups
 asv_long_avg_wtax %>%
@@ -185,7 +198,6 @@ asv_long_avg_wtax %>%
     axis.text = element_text(color = "black")
   )
 ```
-
 
 ```{r, fig.width=4, fig.height=7}
 asv_long_avg_wtax %>%
@@ -216,7 +228,7 @@ asv_long_avg_wtax %>%
 
 ## Only surface parameters
 
-```{r, fig.width=10, fig.height=4}
+```{r, fig.width=8, fig.height=3}
 asv_long_avg_wtax %>%
   filter(DEPTH < 5) %>% 
   group_by(stn, STN_ORDER, Supergroup_simplified, TRANSECT) %>%
@@ -226,7 +238,7 @@ asv_long_avg_wtax %>%
   filter(Supergroup_simplified != "TSAR-NA") %>% 
   filter(Supergroup_simplified != "Obazoa-Metazoa") %>% 
   ggplot(aes(x = STN_ORDER, y = SUM_SEQ, fill = Supergroup_simplified)) +
-  geom_bar(stat = "identity", position = "fill", color = "black", width = 0.5) +
+  geom_bar(stat = "identity", position = "fill", color = "black", width = 0.6) +
   scale_fill_manual(values = tax_color) +
   scale_y_continuous(expand = c(0,0)) +
   facet_grid(cols = vars(TRANSECT), scales = "free", space = "free") +
@@ -243,7 +255,6 @@ asv_long_avg_wtax %>%
   # guides(fill = guide_legend(reverse = TRUE, ncol = 1)) +
   labs(x = "Station", y = "Relative Sequence Abundance")
 ```
-
 
 ```{r, fig.width=6, fig.height=18}
 # asv_long_avg_wtax %>%
@@ -276,14 +287,14 @@ asv_long_avg_wtax %>%
 #   labs(x = "Sequence Relative Abundace", y = "Depth (m)")
 ```
 
-
 # PCA analysis
 
 Create wide format matrix with sequence counts averaged across replicates (by ASV)
+
 ```{r}
 asv_wide_avg_reps_matrix <- asv_long_clean_wtax %>% 
   # First average ASV sequence count across replicates
-  group_by(TRANSECT, STN_ORDER, DEPTH_ORDER, FeatureID, stn, nisk, Station, Niskin, DEPTH, TEMP, SALINITY, OXYGEN, NH4, NO2, NO3, PO4, SIL, Taxon, DIVISION, SUPERGROUP_CLASS, Supergroup, Division, Subdivision, Class) %>% 
+  group_by(TRANSECT, STN_ORDER, DEPTH_ORDER, FeatureID, stn, nisk, Station, Niskin, DEPTH, TEMP, SALINITY, OXYGEN, NH4, NO2, NO3, PO4, SIL, PROK_COUNT, Taxon, DIVISION, SUPERGROUP_CLASS, Supergroup, Division, Subdivision, Class) %>% 
   summarise(MEAN_REPS_seq = mean(SEQUENCE_COUNT)) %>% 
   ungroup() %>% 
   unite(SAMPLE_NAME, STN_ORDER, DEPTH_ORDER, sep = "_") %>% 
@@ -305,6 +316,7 @@ barplot(variance_clr, main = "Log-Ratio PCA Screeplot", xlab = "PC Axis", ylab =
         cex.names = 1.5, cex.axis = 1.5, cex.lab = 1.5, cex.main = 1.5)
 
 ```
+
 ```{r, fig.height=5, fig.width=6}
 blues <- c("#d0d1e6","#a6bddb","#74a9cf","#3690c0", "#0570b0", "#045a8d", "#023858")
 
@@ -329,13 +341,14 @@ data.frame(pca_clr$x, SAMPLE = rownames(pca_clr$x)) %>%
   guides(shape = guide_legend(override.aes = list(fill = "black")))
 ```
 
-
 > PCA results to consider. Communities are more similar to one another at depth, surface samples are influenced by other parameters. Should do RDA with all data and then shallower than 500 meters.
 
 # RDA analysis
+
 RDA reveals relationships among the sites and the environmental parameters. We can explore the relationship among all ASV signatures by site, and then model the effect that each environmental parameter has on it.
 
 ### All samples
+
 ```{r}
 # | eval: false
 head(env_info_mod)
@@ -370,11 +383,12 @@ head(metadata_normalized)
 ```
 
 Isolate all samples from ASV data
+
 ```{r}
 # | eval: false
 asv_wide_avg_reps_matrix <- asv_long_clean_wtax %>% 
   # First average ASV sequence count across replicates
-  group_by(TRANSECT, STN_ORDER, DEPTH_ORDER, FeatureID, stn, nisk, Station, Niskin, DEPTH, TEMP, SALINITY, OXYGEN, NH4, NO2, NO3, PO4, SIL, Taxon, DIVISION, SUPERGROUP_CLASS, Supergroup, Division, Subdivision, Class) %>% 
+  group_by(TRANSECT, STN_ORDER, DEPTH_ORDER, FeatureID, stn, nisk, Station, Niskin, DEPTH, TEMP, SALINITY, OXYGEN, NH4, NO2, NO3, PO4, SIL, PROK_COUNT, Taxon, DIVISION, SUPERGROUP_CLASS, Supergroup, Division, Subdivision, Class) %>% 
   summarise(MEAN_REPS_seq = mean(SEQUENCE_COUNT)) %>% 
   ungroup() %>% 
   unite(SAMPLE_NAME, STN_ORDER, DEPTH_ORDER, sep = "_") %>% 
@@ -404,7 +418,8 @@ rownames(metadata_normalized)
 rda_all_gom <- rda(clr_asv_matrix ~ ., data = metadata_normalized, na.action = na.exclude)
 rda_all_gom
 ```
-22% of the environmental variables explained changes in community composition for all the samples. 
+
+22% of the environmental variables explained changes in community composition for all the samples.
 
 ```{r}
 # | eval: false
@@ -414,22 +429,21 @@ adj_rda_out
 anova.cca(rda_all_gom, step = 100, by = "term")
 ```
 
-> Model: rda(formula = clr_asv_matrix ~ TRANSECT + DEPTH + NH4 + NO2 + OXYGEN + PO4 + SALINITY + SIL + TEMP, data = metadata_normalized, na.action = na.exclude)
-         Df Variance      F Pr(>F)    
-TRANSECT  2    68.59 1.4530  0.003 ** 
-DEPTH     1   115.91 4.9113  0.001 ***
-NH4       1    27.20 1.1523  0.149    
-NO2       1    61.65 2.6121  0.002 ** 
-OXYGEN    1    52.45 2.2225  0.001 ***
-PO4       1    82.89 3.5120  0.001 ***
-SALINITY  1    50.12 2.1237  0.001 ***
-SIL       1    38.13 1.6155  0.011 *  
-TEMP      1    35.13 1.4886  0.019 *  
-Residual 79  1864.52                  
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> Model: rda(formula = clr_asv_matrix \~ TRANSECT + DEPTH + NH4 + NO2 + OXYGEN + PO4 + SALINITY + SIL + TEMP, data = metadata_normalized, na.action = na.exclude) 
+Df Variance F Pr(\>F)\
+> TRANSECT 2 68.59 1.4530 0.003 \*\* 
+DEPTH 1 115.91 4.9113 0.001 ***
+NH4 1 27.20 1.1523 0.149\
+> NO2 1 61.65 2.6121 0.002** 
+OXYGEN 1 52.45 2.2225 0.001* **
+PO4 1 82.89 3.5120 0.001** *
+SALINITY 1 50.12 2.1237 0.001* **
+SIL 1 38.13 1.6155 0.011 \*\
+> TEMP 1 35.13 1.4886 0.019 \*\
+> Residual 79 1864.52\
+> --- Signif. codes: 0 ‘**\*’ 0.001 ‘\*\*’ 0.01 ‘\*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-So many parameters are significant here. 
+So many parameters are significant here.
 
 ## Coastal and surface samples
 
@@ -451,7 +465,7 @@ metadata_for_rda_0_surface <- env_info_mod %>%
   filter(Sample_Ctrl == "Sample") %>% 
   filter(!(SAMPLES %in% samples_too_low)) %>% 
   unite(SAMPLE_NAME, STN_ORDER, DEPTH_ORDER, sep = "_") %>% 
-  select(SAMPLE_NAME, TEMP, SALINITY, OXYGEN, NH4, NO2, PO4, SIL, DIST_OUTFLOW) %>% distinct() %>% 
+  select(SAMPLE_NAME, TEMP, SALINITY, OXYGEN, NH4, NO2, PO4, SIL, PROK_COUNT,DIST_OUTFLOW) %>% distinct() %>% 
   pivot_longer(cols = -c(SAMPLE_NAME), names_to = "VARIABLES", values_to = "VALUE") %>% 
   group_by(SAMPLE_NAME, VARIABLES) %>% 
     summarise(MEAN_VAL = mean(VALUE)) %>% 
@@ -474,7 +488,6 @@ rownames(metadata_normalized_surf)
 subset_sample_surf <- as.character(unique(surf_categorical$SAMPLE_NAME))
 ```
 
-
 ```{r}
 # head(asv_wide_avg_reps_matrix)
 asv_wide_avg_rda_0_surf <- data.frame(t(asv_wide_avg_reps_matrix)) %>% 
@@ -494,6 +507,7 @@ rownames(metadata_normalized_surf)
 # rda_surf_gom <- rda(clr_asv_matrix_surf ~ ., data = metadata_normalized_surf, na.action = na.exclude)
 # rda_surf_gom
 ```
+
 60% of the environmental variables explained changes in community composition for the surface samples.
 
 ```{r}
@@ -501,8 +515,6 @@ rownames(metadata_normalized_surf)
 # adj_rda_surf
 # anova.cca(rda_surf_gom, step = 100, by = "term")
 ```
-
-
 
 # Map
 
@@ -518,9 +530,7 @@ world <- ne_countries(scale='medium',returnclass = 'sf')
 class(world)
 ```
 
-
 ## Map of whole Gulf region
-
 
 ```{r}
 ggulf <- ggplot(data = world) +
@@ -554,7 +564,6 @@ ggplot(data = world) +
         panel.border = element_rect(fill = NA))
 ```
 
-
 ```{r, fig.width=7, fig.height=7}
 # MAP
 # ggplot(data = world) +
@@ -574,7 +583,6 @@ ggplot(data = world) +
 #         panel.border = element_rect(fill = NA))
 ```
 
-
 # ODV plots in R
 
 Extract points you want and dimensions. Interpolate, subtract bathymetry if needed and move along from there.
@@ -587,6 +595,7 @@ ODV_colours <- c("#feb483", "#d31f2a", "#ffc000", "#27ab19", "#0db5e6", "#7139fe
 ## Surface
 
 ### Temperature & Long
+
 ```{r}
 head(asv_long_clean_wtax)
 ```
@@ -594,21 +603,25 @@ head(asv_long_clean_wtax)
 ```{r}
 temp_odv <- asv_long_clean_wtax %>% 
   select(Transect, TRANSECT, Station, DEPTH, stn, Latitude, Longitude, 
-         TEMP, SALINITY, OXYGEN, NH4, NO2, NO3, PO4, SIL) %>% 
+         TEMP, SALINITY, OXYGEN, NH4, NO2, NO3, PO4, SIL, PROK_COUNT) %>% 
   distinct()
 ```
 
 Non-interpolated scatterplot
+
 ```{r}
-# temp_odv %>% 
+# temp_odv %>%
 #   ggplot(aes(x = Longitude, y = DEPTH)) +
-#   geom_point(aes(color = TEMP), size = 2) +
+#   # geom_point(aes(color = TEMP), size = 2) +
+#   # geom_point(aes(color = PROK_COUNT), size = 2) +
 #   scale_colour_gradientn(colours = rev(ODV_colours)) +
 #   labs(y = "Depth (m)", x = "Longitude (°W)", colour = "Temperature (°C)") +
 #   scale_y_reverse() + scale_x_reverse() +
 #   theme_classic()
 ```
+
 Interpolate step
+
 ```{r}
 library(MBA)
 # ?mba.surf
@@ -618,6 +631,7 @@ temp_mba <- mba.surf(temp_odv[c("Longitude", "DEPTH", "TEMP")], no.X = 300, no.Y
 ```
 
 X, y, z are Longitude", "DEPTH", "TEMP"
+
 ```{r}
 dimnames(temp_mba$xyz.est$z) <- list(temp_mba$xyz.est$x, temp_mba$xyz.est$y)
 # head(temp_mba)
@@ -640,8 +654,8 @@ ggplot(data = temp_interpol, aes(x = LONGITUDE, y = DEPTH)) +
   coord_cartesian(expand = F)
 ```
 
-
 ### Surface params, lat, long
+
 ```{r}
 head(asv_long_clean_wtax)
 ```
@@ -660,6 +674,7 @@ surface_odv <- asv_long_clean_wtax %>%
 ```
 
 Non-interpolated scatterplot
+
 ```{r}
 surface_odv %>% 
   ggplot(aes(x = Longitude, y = Latitude)) +
@@ -669,7 +684,9 @@ surface_odv %>%
   scale_x_reverse() +
   theme_classic()
 ```
+
 Interpolate step
+
 ```{r}
 library(MBA)
 # ?mba.surf
@@ -681,6 +698,7 @@ temp_mba <- mba.surf(surface_odv[c("Longitude", "Latitude", "SURFACE_TEMP")],
 ```
 
 X, y, z are Longitude", "DEPTH", "TEMP"
+
 ```{r}
 dimnames(temp_mba$xyz.est$z) <- list(temp_mba$xyz.est$x, temp_mba$xyz.est$y)
 # head(temp_mba)
@@ -736,7 +754,6 @@ ggplot(data = (world %>% filter(subunit == "United States"))) +
 
 ```
 
-
 ##### Temperature Surface
 
 ```{r, fig.width=7, fig.height=7}
@@ -764,10 +781,10 @@ ggplot(data = (world %>% filter(subunit == "United States"))) +
 
 ```
 
-
 #### Fxn for ther surface params, lat, long
 
 Set up a data frame with all parameters as columns.
+
 ```{r}
 surface_odv <- asv_long_clean_wtax %>% 
   # Isolate surface & average across replicates
@@ -779,10 +796,11 @@ surface_odv <- asv_long_clean_wtax %>%
             SURFACE_NH4 = mean(NH4),
             SURFACE_NO2 = mean(NO2),
             SURFACE_PO4 = mean(PO4),
+            SURFACE_PROK = mean(PROK_COUNT),
             SURFACE_SEQ = mean(SEQUENCE_COUNT)) %>% 
   ungroup() %>% 
   # Get totals
-  group_by(stn, Station, Latitude, Longitude, SURFACE_TEMP, SURFACE_SAL, SURFACE_OXY, SURFACE_NH4, SURFACE_NO2, SURFACE_PO4, Transect, TRANSECT) %>%
+  group_by(stn, Station, Latitude, Longitude, SURFACE_TEMP, SURFACE_SAL, SURFACE_OXY, SURFACE_NH4, SURFACE_NO2, SURFACE_PO4, SURFACE_PROK, Transect, TRANSECT) %>%
   summarise(ASV_COUNT = n())
 ```
 
@@ -824,8 +842,7 @@ interpolate_lat_long_env <- function(df, PARAM, TITLE){
 }
 ```
 
-Parameters to use in function:
-SURFACE_TEMP, SURFACE_SAL, SURFACE_OXY, SURFACE_NH4, SURFACE_NO2, SURFACE_PO4
+Parameters to use in function: SURFACE_TEMP, SURFACE_SAL, SURFACE_OXY, SURFACE_NH4, SURFACE_NO2, SURFACE_PO4
 
 ```{r}
 surf_temp <- interpolate_lat_long_env(surface_odv, "SURFACE_TEMP", "Temperature (°C)")
@@ -842,12 +859,14 @@ surf_no2 <- interpolate_lat_long_env(surface_odv, "SURFACE_NO2", expression("NO"
 surf_po4 <- interpolate_lat_long_env(surface_odv, "SURFACE_PO4", expression("PO"["4"]))
 ```
 
+```{r}
+# surf_prok <- interpolate_lat_long_env(surface_odv, "SURFACE_PROK", expression("PO"["4"]))
+# surf_prok
+```
 
 ```{r, fig.height=12, fig.width=17}
 surf_temp + surf_sal + surf_oxy + surf_nh4 + surf_no2 + surf_po4 + plot_layout(guides = "collect")
 ```
-
-
 
 ```{r}
 # envs_surface_interpol <- reshape2::melt(temp_mba$xyz.est$z, varnames = c("Longitude", "Latitude"), value.name = 'VALUE') %>% 
@@ -873,8 +892,8 @@ surf_temp + surf_sal + surf_oxy + surf_nh4 + surf_no2 + surf_po4 + plot_layout(g
 # (class(envs_surface_interpol$VALUE))
 ```
 
-
 ## Repeat with ASV
+
 Surface lat/long
 
 ```{r}
@@ -894,6 +913,7 @@ surface_odv <- asv_long_clean_wtax %>%
   group_by(stn, Station, Latitude, Longitude, SURFACE_TEMP, SURFACE_SAL, SURFACE_OXY, SURFACE_NH4, SURFACE_NO2, SURFACE_PO4, Transect, TRANSECT) %>%
   summarise(ASV_COUNT = n())
 ```
+
 Interpolate function for ASVs:
 
 ```{r}
@@ -941,7 +961,6 @@ interpolate_lat_long_asv <- function(df, PARAM, TITLE){
 surf_all_asv<- interpolate_lat_long_asv(surface_odv, "ASV_COUNT", "Total ASVs")
 surf_all_asv
 ```
-
 
 ```{r}
 surface_odv_tax_simple <- asv_long_clean_wtax %>% 
@@ -1015,9 +1034,16 @@ interpolate_lat_long_asv((surface_odv_tax_class %>%
                          "ASV_COUNT", "Total Syndiniales ASVs")
 ```
 
+## Repeat with cell counts
+
+```{r}
+
+```
+
 ## Depth
 
 Depth params, lat, long
+
 ```{r}
 head(asv_long_clean_wtax)
 ```
@@ -1041,6 +1067,7 @@ head(depth_odv)
 ```
 
 Non-interpolated scatterplot
+
 ```{r}
 depth_odv %>% 
   filter(TRANSECT == "transect1") %>% 
@@ -1051,7 +1078,9 @@ depth_odv %>%
   scale_x_reverse() + scale_y_reverse() +
   theme_classic()
 ```
+
 Interpolate step
+
 ```{r}
 # library(MBA)
 # ?mba.surf
@@ -1072,6 +1101,7 @@ max_depth <- max(one$DEPTH)
 ```
 
 X, y, z are Longitude", "DEPTH", "TEMP"
+
 ```{r}
 dimnames(trn1_mba$xyz.est$z) <- list(trn1_mba$xyz.est$x, trn1_mba$xyz.est$y)
 # head(temp_mba)
@@ -1084,8 +1114,6 @@ temp_trn1_interpol <- reshape2::melt(trn1_mba$xyz.est$z, varnames = c("Longitude
 # head(temp_trn1_interpol)
 # range(temp_trn1_interpol$Depth)
 ```
-
-
 
 ```{r}
 temp_trn1_interpol %>% 
@@ -1111,7 +1139,6 @@ temp_trn1_interpol %>%
 ```{r}
 
 ```
-
 
 ```{r}
 # df_all <- depth_odv
@@ -1164,8 +1191,7 @@ interpolate_depth_long_env <- function(df_all, transect, PARAM, TITLE){
   }
 ```
 
-Parameters to use in function:
-SURFACE_TEMP, SURFACE_SAL, SURFACE_OXY, SURFACE_NH4, SURFACE_NO2, SURFACE_PO4
+Parameters to use in function: SURFACE_TEMP, SURFACE_SAL, SURFACE_OXY, SURFACE_NH4, SURFACE_NO2, SURFACE_PO4
 
 df_all, transect, PARAM, TITLE
 
@@ -1175,6 +1201,7 @@ unique(depth_odv$TRANSECT)
 ```
 
 Transect 1
+
 ```{r, fig.height=12, fig.width=17}
 (interpolate_depth_long_env(depth_odv, "transect1","TEMP", "Temperature (°C)")) +
   (interpolate_depth_long_env(depth_odv, "transect1","SAL", "Salinity")) +
@@ -1187,6 +1214,7 @@ Transect 1
 ```
 
 Transect 2
+
 ```{r, fig.height=12, fig.width=17}
 (interpolate_depth_long_env(depth_odv, "transect2","TEMP", "Temperature (°C)")) +
   (interpolate_depth_long_env(depth_odv, "transect2","SAL", "Salinity")) +
@@ -1198,7 +1226,6 @@ Transect 2
     plot_layout(guides = "collect")
 ```
 
-
 ### Repeat for upper water column
 
 ```{r}
@@ -1209,6 +1236,7 @@ shallow <- depth_odv %>%
 ```
 
 Transect 1
+
 ```{r, fig.height=12, fig.width=17}
 (interpolate_depth_long_env(shallow, "transect1","TEMP", "Temperature (°C)")) +
   (interpolate_depth_long_env(shallow, "transect1","SAL", "Salinity")) +
@@ -1220,7 +1248,9 @@ Transect 1
     plot_layout(guides = "collect")
 
 ```
+
 Transect 2
+
 ```{r, fig.height=12, fig.width=17}
 (interpolate_depth_long_env(shallow, "transect2","TEMP", "Temperature (°C)")) +
   (interpolate_depth_long_env(shallow, "transect2","SAL", "Salinity")) +
@@ -1282,10 +1312,13 @@ interpolate_depth_long_asv <- function(df_all, transect, PARAM, TITLE){
 ```
 
 Transect 1 with all ASVs
+
 ```{r}
 interpolate_depth_long_asv(depth_odv, "transect1","ASV_COUNT", "Total ASVs")
 ```
+
 Transects
+
 ```{r, fig.width=16, fig.height=7}
 interpolate_depth_long_asv(depth_odv, "transect1","ASV_COUNT", "Total ASVs") +
 interpolate_depth_long_asv(depth_odv, "transect2","ASV_COUNT", "Total ASVs") + 
@@ -1293,7 +1326,6 @@ interpolate_depth_long_asv(depth_odv, "transect2","ASV_COUNT", "Total ASVs") +
   plot_layout(nrow = 1)
 
 ```
-
 
 ```{r}
 depth_odv_tax_simple <- asv_long_clean_wtax %>% 
@@ -1329,57 +1361,200 @@ interpolate_depth_long_asv((depth_odv_tax_simple %>%
                          "ASV_COUNT", "Haptista") + plot_layout()
 ```
 
-
-
-# Spatial analysis of diversity
+# Identify ASVs with highest number of sequences throughout data
 
 ```{r}
-head(asv_long_clean_wtax)
+dominant_taxa <- asv_long_avg_wtax %>% 
+  group_by(Taxon, Supergroup_simplified, DEPTH_ORDER) %>% 
+  summarise(SUM_SEQS = sum(MEAN_REPS_seq)) %>% 
+  ungroup() %>% 
+  group_by(Supergroup_simplified) %>% 
+  slice_max(order_by = SUM_SEQS, n = 15)
+
 ```
 
-x = lat
-y = long
-fill/contour value = number of ASVs total.
+# Shannon Diversity
+
+Surface stations only
+
 ```{r}
-contour_df <- asv_long_clean_wtax %>% 
-  # Average across replicates
-  group_by(FeatureID, Taxon, SUPERGROUP_CLASS, Supergroup_simplified, stn, Station, DEPTH, Latitude, Longitude, DIST_OUTFLOW) %>% 
-  summarise(AVG_SEQ = mean(SEQUENCE_COUNT)) %>% 
+asv_wide_surf_matrix <- asv_long_clean_wtax %>%
+  filter(DEPTH < 5) %>% 
+  unite(SAMPLE_NAME, STN_ORDER, DEPTH_ORDER, sep = "_") %>%
+  # First average ASV sequence count across replicates
+  group_by(FeatureID, SAMPLE_NAME) %>%
+  summarise(MEAN_REPS_seq = mean(SEQUENCE_COUNT)) %>%
   ungroup() %>%
-  # Get totals
-  group_by(stn, Station, DEPTH, Latitude, Longitude, DIST_OUTFLOW) %>%
-  summarise(ASV_COUNT = n())
+  select(FeatureID, SAMPLE_NAME, MEAN_REPS_seq) %>%
+  pivot_wider(names_from = SAMPLE_NAME, values_from = MEAN_REPS_seq, values_fn = mean, values_fill = 0) %>%
+  column_to_rownames(var = "FeatureID") %>%
+  as.matrix()
+
+asv_wide_all_matrix <- asv_long_clean_wtax %>%
+  unite(SAMPLE_NAME, STN_ORDER, DEPTH_ORDER, sep = "_") %>%
+  # First average ASV sequence count across replicates
+  group_by(FeatureID, SAMPLE_NAME) %>%
+  summarise(MEAN_REPS_seq = mean(SEQUENCE_COUNT)) %>%
+  ungroup() %>%
+  select(FeatureID, SAMPLE_NAME, MEAN_REPS_seq) %>%
+  pivot_wider(names_from = SAMPLE_NAME, values_from = MEAN_REPS_seq, values_fn = mean, values_fill = 0) %>%
+  column_to_rownames(var = "FeatureID") %>%
+  as.matrix()
+```
+
+Calculate Shannon diversity
+
+```{r, fig.width=5, fig.height=3}
+# ?diversity()
+surface_shannon <- diversity(asv_wide_surf_matrix, index = "shannon", MARGIN = 2)
+data.frame(surface_shannon) %>% 
+  rownames_to_column(var = "stn_niskin") %>% 
+  separate(stn_niskin, into = c("STN", "NISKIN"), remove = FALSE) %>% 
+  mutate(STN_ORDER = factor(STN, levels = offshore_on_shore_order),
+         TRANSECT = factor(STN, levels = offshore_on_shore_order, labels = transect_labels)) %>% 
+  ggplot(aes(x = STN_ORDER, y = surface_shannon)) +
+  geom_point(shape = 21, fill = "grey30", color = "black", size = 3) +
+  facet_grid(cols = vars(TRANSECT), scales = "free", space = "free") +
+  theme_classic() + 
+  theme(
+    legend.position = "none",
+    legend.title = element_blank(),
+    legend.text = element_text(color = "black", face = "bold"),
+    strip.background = element_blank(),
+    panel.background = element_rect(color = "grey80"),
+    strip.text.y = element_text(angle = 0, color = "black", face = "bold"),
+    axis.title = element_text(color = "black", face = "bold"),
+    axis.text.y = element_text(color = "black", face = "bold"),
+    axis.text.x = element_text(color = "black", face = "bold")) +
+    labs(x = "Station", y = "Shannon Diversity")
+  
   
 ```
 
-Isolate surface samples
+# Targeted CLR for taxonomic groups
+
 ```{r}
-surface_only <- contour_df %>% 
-  group_by(stn, Station, Latitude, Longitude, DIST_OUTFLOW) %>% 
-  slice_min(order_by = DEPTH, n = 1)
-# ?slice_min()
+head(asv_long_avg_wtax)
+unique(asv_long_avg_wtax$Supergroup_simplified)
 ```
 
 
+Make matrix:
+TSAR-Gyrista
+TSAR-Radiolaria
 ```{r}
-surface_only %>% 
-  ggplot(aes(x = Longitude, y = Latitude)) +
-  geom_raster(aes(fill = ASV_COUNT)) +
-  geom_contour(aes(z = ASV_COUNT, binwidth = 2, colour = "black", alpha = 0.2)) +
-  geom_contour(aes(z = ASV_COUNT), breaks = 20, colour = "black") +
-  # scale_fill_gradientn(colours = rev(ODV_colours)) +
-  # labs(y = "depth (m)", x = "longitude (°E)", fill = "temp. (°C)") +
-  coord_cartesian(expand = F)
+asv_wide_gyrista_matrix <- asv_long_avg_wtax %>%
+  filter(MEAN_REPS_seq >= 150) %>% 
+  filter(Supergroup_simplified == "TSAR-Gyrista") %>% 
+  filter(TRANSECT == "transect1") %>% 
+  unite(SAMPLE_NAME, STN_ORDER, DEPTH_ORDER, sep = "_") %>%
+  group_by(FeatureID, SAMPLE_NAME, Supergroup_simplified) %>%
+  summarise(SUM_SEQ = sum(MEAN_REPS_seq)) %>%
+  ungroup() %>%
+  select(FeatureID, SAMPLE_NAME, SUM_SEQ) %>%
+  pivot_wider(names_from = SAMPLE_NAME, values_from = SUM_SEQ, values_fn = mean, values_fill = 0) %>%
+  column_to_rownames(var = "FeatureID") %>% 
+  as.matrix
 
 
-# surface_only %>% 
-#   ggplot(aes(x = Longitude, y = Latitude)) +
-#   stat_density(
-#     aes(fill = after_stat(count)),ß
-#     geom = "raster",
-#     position = "identity"
-#    )
+asv_wide_radio_matrix <- asv_long_avg_wtax %>%
+  filter(MEAN_REPS_seq >= 500 ) %>% 
+  filter(Supergroup_simplified == "TSAR-Radiolaria") %>% 
+  filter(TRANSECT == "transect1") %>% 
+  unite(SAMPLE_NAME, STN_ORDER, DEPTH_ORDER, sep = "_") %>%
+  group_by(FeatureID, SAMPLE_NAME, Supergroup_simplified) %>%
+  summarise(SUM_SEQ = sum(MEAN_REPS_seq)) %>%
+  ungroup() %>%
+  select(FeatureID, SAMPLE_NAME, SUM_SEQ) %>%
+  pivot_wider(names_from = SAMPLE_NAME, values_from = SUM_SEQ, values_fn = mean, values_fill = 0) %>%
+  column_to_rownames(var = "FeatureID") %>% 
+  as.matrix
+# head(asv_wide_gyrista_matrix)
 ```
+```{r}
+clr_gyrista <- vegan::decostand(asv_wide_gyrista_matrix, MARGIN = 2, method = "rclr")
+colnames(clr_gyrista) <- colnames(asv_wide_gyrista_matrix)
+rownames(clr_gyrista) <- rownames(asv_wide_gyrista_matrix)
+
+clr_radio <- vegan::decostand(asv_wide_radio_matrix, MARGIN = 2, method = "rclr")
+colnames(clr_radio) <- colnames(asv_wide_radio_matrix)
+rownames(clr_radio) <- rownames(asv_wide_radio_matrix)
+
+colnames(asv_long_avg_wtax)
+```
+
+```{r}
+head(env_info_mod)
+```
+
+CLR plot
+```{r}
+clr_radio_df <- data.frame(clr_radio) %>% 
+  rownames_to_column(var = "FeatureID") %>% 
+  pivot_longer(cols = -c(FeatureID), names_to = "STN_NI", values_to = "CLR") %>% 
+  separate(STN_NI, into = c("STN", "DEPTH_ORDER"), remove = FALSE) %>% 
+  left_join(tax_key) %>% distinct()
+# unique(clr_radio_df$Family)
+   
+dim(clr_radio);dim(clr_radio_df)
+
+clr_gyrista_df <- data.frame(clr_gyrista) %>% 
+  rownames_to_column(var = "FeatureID") %>% 
+  pivot_longer(cols = -c(FeatureID), names_to = "STN_NI", values_to = "CLR") %>% 
+  separate(STN_NI, into = c("STN", "DEPTH_ORDER"), remove = FALSE) %>% 
+  left_join(tax_key) %>% distinct() %>% 
+  filter(!is.na(Class))
+  
+dim(clr_gyrista);dim(clr_gyrista_df)
+head(clr_gyrista_df)
+unique(clr_gyrista_df$Class)
+```
+
+```{r, fig.height=5, fig.width=12}
+depth_order <- as.character(unique(sort(as.numeric(clr_gyrista_df$DEPTH_ORDER))))
+# View(clr_gyrista_df)
+unique(clr_gyrista_df$Class)
+rm <- c("Hyphochytriomyceta","MOCH","Pinguiophyceae","Pelagophyceae")
+clr_gyrista_df %>% 
+  filter(!(Class %in% rm)) %>% 
+  # left_join(env_info_mod) %>% 
+  # filter(TRANSECT == "transect1") %>% 
+  mutate(depth = factor(DEPTH_ORDER, levels = rev(depth_order))) %>%
+  ggplot(aes(x = depth, y = FeatureID, fill = CLR)) +
+  geom_tile(color = "white") +
+  facet_grid(rows = vars(STN), cols = vars(Class), space = "free", scale = "free") +
+  theme(axis.text.x = element_blank()) +
+  scale_fill_fermenter(type = "div", palette = 4) +
+  coord_flip() +
+  theme(axis.ticks = element_blank(),
+        strip.background = element_blank()) +
+  labs(x = "Depth (m)", y = "")
+
+```
+
+```{r, fig.height=5, fig.width=13}
+depth_order <- as.character(unique(sort(as.numeric(clr_radio_df$DEPTH_ORDER))))
+
+unique(clr_radio_df$Class)
+# View(clr_radio_df)
+clr_radio_df %>% 
+  # left_join(env_info_mod) %>% 
+  # filter(TRANSECT == "transect1") %>% 
+  filter(Class != "RAD") %>% 
+  filter(Class != "Radiolaria") %>% 
+  mutate(depth = factor(DEPTH_ORDER, levels = rev(depth_order))) %>%
+  ggplot(aes(x = depth, y = FeatureID, fill = CLR)) +
+  geom_tile(color = "white") +
+  facet_grid(rows = vars(STN), cols = vars(Class), space = "free", scale = "free") +
+  theme(axis.text.x = element_blank()) +
+  scale_fill_fermenter(type = "div", palette = 4) +
+  coord_flip() +
+  theme(axis.ticks = element_blank(),
+        strip.background = element_blank()) +
+  labs(x = "Depth (m)", y = "")
+
+```
+
 
 # Indicator Species
 
@@ -1390,6 +1565,7 @@ library(indicspecies)
 ```
 
 Format input table
+
 ```{r}
 head(asv_long_avg_wtax)
 ```
@@ -1397,33 +1573,203 @@ head(asv_long_avg_wtax)
 ```{r}
 # save(asv_long_avg_wtax, file = "asv_gom_input_indicator.RData")
 head(asv_long_avg_wtax)
+# hist(asv_long_avg_wtax$MEAN_REPS_seq)
+```
+
+Below is taking much too long on the HPRC and not working.
+
+```{r}
+
 ```
 
 
 ```{r}
 indic_input <- asv_long_avg_wtax %>%
   # filter(DEPTH < 5) %>%
-  filter(MEAN_REPS_seq > 5) %>% 
-  filter(TRANSECT == "transect1") %>% 
+  filter(MEAN_REPS_seq > 5) %>%
+  filter(TRANSECT == "transect1") %>%
   # filter(stn == "S1" | stn == "S2") %>% #TESTING
   select(SAMPLE_ID, DEPTH_ORDER, TEMP, SALINITY, MEAN_REPS_seq, FeatureID) %>%
   distinct() %>%
   pivot_wider(names_from = FeatureID, values_from = MEAN_REPS_seq, values_fill = 0)
-# head(indic_input)
+head(indic_input)
+```
+
+Try paring down the data more.
+
+```{r}
+indic_input <- asv_long_avg_wtax %>%
+  filter(DEPTH < 500) %>% # Surface only
+  filter(MEAN_REPS_seq >= 10) %>% # Subset of tASVs
+  filter(TRANSECT == "transect1") %>% # Only the 1 transect
+  # filter(stn == "S1" | stn == "S2") %>% #TESTING
+  select(SAMPLE_ID, DEPTH, TEMP, SALINITY, MEAN_REPS_seq, FeatureID) %>%
+  distinct() %>%
+  pivot_wider(names_from = FeatureID, values_from = MEAN_REPS_seq, values_fill = 0)
+head(indic_input)
+# ?multipatt
+```
+
+```{r}
+# | eval: false
+head(asv_wide_avg_reps_matrix)
+asv_wide_avg_rda_0 <- data.frame(t(asv_wide_avg_reps_matrix)) %>%
+  rownames_to_column(var = "SAMPLE_NAME") %>%
+  arrange(SAMPLE_NAME) %>%
+  column_to_rownames(var = "SAMPLE_NAME") %>%
+  as.matrix
+
+clr_asv_matrix <- data.frame(compositions::clr(asv_wide_avg_rda_0))
+# 
+rownames(clr_asv_matrix)
+rownames(metadata_normalized)
+head(clr_asv_matrix)
+```
+
+```{r}
+
+# clr_asv_matrix
+# data = metadata_normalized, na.action = na.exclude)
 ```
 
 ```{r}
 asv_abun <- indic_input %>%
-  select(-SAMPLE_ID, -DEPTH_ORDER, -TEMP, -SALINITY)
+  select(-SAMPLE_ID, -DEPTH, -TEMP, -SALINITY)
+# head(asv_abun)
 
-inc_sampleid <- multipatt(asv_abun, indic_input$TEMP, func = "IndVal.g", control = how(nperm = 10))
-# inc_sampleid <- multipatt(asv_abun, indic_input$TEMP, func = "r.g", control = how(nperm = 100))
+head(clr_asv_matrix)
+head(metadata_normalized)
+tmp_100_asv <- clr_asv_matrix %>% select(1:50)
+tmp_100_meta <- metadata_normalized
+
+# inc_sampleid <- multipatt(tmp_100_asv, tmp_100_meta$DEPTH, func = "r.g", control = how(nperm = 10))
+# # inc_sampleid <- multipatt(asv_abun, indic_input$DEPTH_ORDER, func = "IndVal.g", control = how(nperm = 10))
+# # inc_sampleid <- multipatt(asv_abun, indic_input$TEMP, func = "r.g", control = how(nperm = 100))
+# 
+# summary(inc_sampleid)
+```
+
+```{r}
+# library(stats)
+# output_stats <- as.data.frame(inc_sampleid$sign, keep.rownames = TRUE)
+# # Add adj p-values
+# output_stats[ ,p.value.bh = p.adjust(p.value, method="BH")]
+# # range(output_stats$p.value)
+# ??p.adjust()
 ```
 
 `r.g` - indicator species test called a "point biserial correlation coefficient". It measures the correlation between two binary vectors.
 
 ```{r}
-summary(inc_sampleid)
+#extract table of stats
+# indisp.sign<-as.data.table(indisp$sign, keep.rownames=TRUE)
+# #add adjusted p-value
+# indisp.sign[ ,p.value.bh:=p.adjust(p.value, method="BH")]
+# #now can select only the indicators with adjusted significant p-values
+# indisp.sign[p.value.bh<=0.05, ]
+```
+
+# Linear Discriminent Analysis Effect Size (LDA-LEfSe)
+
+-   https://www.bioconductor.org/packages/release/bioc/vignettes/lefser/inst/doc/lefser.html
+
+-   chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://www.bioconductor.org/packages/release/bioc/manuals/lefser/man/lefser.pdf
+
+```{r}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("lefser")
+library(lefser)
+
+```
+
+# CRT
+
+```{r}
+# install.packages("tree")
+library(rpart)
+library(tree)
+```
+
+```{r}
+data("iris")
+head(iris)
+iris_df <- iris
+colnames(iris_df) <- c("sepall", "sepalw", "petall", "petalw", "class")
+```
+
+
+CRT, on the other side, focuses on creating predictive models for classifying and prioritizing data as “key indicator variables”. CRT employs a decision tree approach, partitioning the dataset based on informative environmental variables to create a hierarchical structure of decision rules (Alkhasawneh et al., 2014). We used CRT to identify specific taxonomic groups as “key indicator variables” that show ability to indicate different DLs.
+
+```{r}
+xtabs( ~ class, data = iris_df)
+```
+
+```{r}
+# execute tree classification
+iris.tree <- tree::tree(class ~ ., data = iris_df)
+# ?tree()
+head(iris_df)
+```
+
+Above step fits a classification or regression tree with data. 
+
+```{r}
+summary(iris.tree)
+# Only 3 of 4 variables were used for the tree.
+# misclassification error rate? 
+```
+
+```{r}
+plot(iris.tree); text(iris.tree, all = T)
+```
+For this classification tree, petall has a value < 2.45, therefore suggesting it has a more important classification. 
+Sepall <5.15 indicates that is has a less important criterion
+
+Next we "prune" the tree to reduce complexity. For this, we use a function to identify the number of significant notes. The cross validation will find the number of misclassifications.
+
+```{r}
+tree::cv.tree(iris.tree)
+```
+
+We prune the small branches. Therefore, we want to remove the "Branches" from the tree with the fewest data points. Therefore, we look at the output values of k and see when the values start to really increase. In this example, it is 3. A tree size of 3 is therefore suitable. THe _K_ is considered the "cost-complexity parameter" (which is the "Best" number of nodes/branches to include. )
+
+Pruning the tree:
+```{r}
+iris.tree.prune <- prune.misclass(iris.tree, best = 3)
+summary(iris.tree.prune)
+```
+```{r}
+plot(iris.tree.prune);text(iris.tree.prune, all = T)
+```
+The tree is much less complex. 
+
+### CRT all samples
+
+```{r}
+# head(asv_long_avg_wtax)
+```
+
+
+```{r}
+# | eval: false
+# input_CRT <- asv_long_avg_wtax %>% 
+#   select(FeatureID, DEPTH, TEMP, SALINITY, OXYGEN, NH4, MEAN_REPS_seq) %>% distinct()
+# 
+# toy_input_CRT <- input_CRT %>% 
+#   sample_n(1000)
+# 
+# test_tree <- tree(FeatureID ~ , toy_input_CRT)
+# summary(test_tree)
+
+# test_tree$frame
+# plot(test_tree); text(test_tree, all = T)
+```
+
+```{r}
+# install.packages("devtools")
+# require("devtools")
+# devtools::install_github(repo = 'zellerlab/siamcat')
 ```
 
 
@@ -1432,8 +1778,3 @@ summary(inc_sampleid)
 ```{r}
 sessionInfo()
 ```
-
-
-
-
-
