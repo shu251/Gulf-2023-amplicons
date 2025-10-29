@@ -1,5 +1,8 @@
 ---
 title: "Processing metabarcoding results"
+editor: source
+execute: 
+  eval: false
 format:
   html:
     theme: flatly
@@ -81,53 +84,53 @@ tax <- read_delim("input-data/taxonomy.tsv", delim = "\t") %>%
 
 ```{r}
 # | eval: false
-# asv_wtax_GoM23_062025 <- asvs %>% 
-#   left_join(tax)
+asv_wtax_GoM23_062025 <- asvs %>%
+  left_join(tax)
 ```
 
 
-## Align with metadata
+<!-- ## Align with metadata -->
 
-Abby & Meagan's code.
+<!-- Abby & Meagan's code. -->
 
-```{r}
-# | eval: false
-metadata <- read_delim("GradGoM23_MasterSpreadsheet_9-26-23.xlsx - Master.csv") %>% 
-  mutate(Station = as.numeric(Station))
+<!-- ```{r} -->
+<!-- # | eval: false -->
+<!-- metadata <- read_delim("GradGoM23_MasterSpreadsheet_9-26-23.xlsx - Master.csv") %>%  -->
+<!--   mutate(Station = as.numeric(Station)) -->
 
-nuts <- read_delim("SHEETNutrients_MasterComps.csv", delim = ",", col_names = TRUE) %>% select(-`Bottle Depth (m)`, -`Nutrient BTL #`, -`...11`, -`...12`, -`...13`, -`Lab Temp (°C)`) %>% 
-  pivot_longer(cols = -c(Station, Niskin), names_to = "Nutrients", values_to = "Conc") %>% 
-  group_by(Station, Niskin, Nutrients) %>% 
-    summarize(CONC = mean(Conc)) %>% 
-  pivot_wider(names_from = Nutrients, values_from = CONC) %>% 
-  select(Station, Niskin, NH4 = `NH₄ (µmol/L)`, NO2 = `NO₂ (µmol/L)`, NO3 = `NO₃ (µmol/L)`, PO4 = `PO₄ (µmol/L)`, SIL = `SIL (µmol/L)`)
-# colnames(nuts)
-#
-metadata_all <- metadata %>% 
-  select(Station, Niskin, DEPTH = `Bottle Depth (m)`, Latitude, Longitude, TEMP = `CTD temp`,  Date, Time_UTC = `Time (UTC)`, SALINITY = `Corrected CTD Sal 1`, OXYGEN = `Corrected CTD Oxy1`) %>% 
-  left_join(nuts) 
-```
+<!-- nuts <- read_delim("SHEETNutrients_MasterComps.csv", delim = ",", col_names = TRUE) %>% select(-`Bottle Depth (m)`, -`Nutrient BTL #`, -`...11`, -`...12`, -`...13`, -`Lab Temp (°C)`) %>%  -->
+<!--   pivot_longer(cols = -c(Station, Niskin), names_to = "Nutrients", values_to = "Conc") %>%  -->
+<!--   group_by(Station, Niskin, Nutrients) %>%  -->
+<!--     summarize(CONC = mean(Conc)) %>%  -->
+<!--   pivot_wider(names_from = Nutrients, values_from = CONC) %>%  -->
+<!--   select(Station, Niskin, NH4 = `NH₄ (µmol/L)`, NO2 = `NO₂ (µmol/L)`, NO3 = `NO₃ (µmol/L)`, PO4 = `PO₄ (µmol/L)`, SIL = `SIL (µmol/L)`) -->
+<!-- # colnames(nuts) -->
+<!-- # -->
+<!-- metadata_all <- metadata %>%  -->
+<!--   select(Station, Niskin, DEPTH = `Bottle Depth (m)`, Latitude, Longitude, TEMP = `CTD temp`,  Date, Time_UTC = `Time (UTC)`, SALINITY = `Corrected CTD Sal 1`, OXYGEN = `Corrected CTD Oxy1`) %>%  -->
+<!--   left_join(nuts)  -->
+<!-- ``` -->
 
-> All nutrients in µmol/L
+<!-- > All nutrients in µmol/L -->
 
-```{r}
-# | eval: false
-sample_wmetadata <- as.data.frame(colnames(asvs %>% select(-FeatureID))) %>% select(SAMPLES = `colnames(asvs %>% select(-FeatureID))`) %>% 
-  mutate(Sample_Ctrl = case_when(
-    grepl("GOM23_S0_N0", SAMPLES) ~ "Control", 
-    TRUE ~ "Sample")) %>% 
-  separate(SAMPLES, into = c("YEAR",
-                             "stn", "nisk", 
-                             "barcode", "rep"), remove = FALSE) %>% 
-  mutate(Station = as.numeric(str_replace(stn, "S", "")),
-         Niskin = as.numeric(str_replace(nisk, "N", ""))) %>% 
-  left_join(metadata_all)
+<!-- ```{r} -->
+<!-- # | eval: false -->
+<!-- sample_wmetadata <- as.data.frame(colnames(asvs %>% select(-FeatureID))) %>% select(SAMPLES = `colnames(asvs %>% select(-FeatureID))`) %>%  -->
+<!--   mutate(Sample_Ctrl = case_when( -->
+<!--     grepl("GOM23_S0_N0", SAMPLES) ~ "Control",  -->
+<!--     TRUE ~ "Sample")) %>%  -->
+<!--   separate(SAMPLES, into = c("YEAR", -->
+<!--                              "stn", "nisk",  -->
+<!--                              "barcode", "rep"), remove = FALSE) %>%  -->
+<!--   mutate(Station = as.numeric(str_replace(stn, "S", "")), -->
+<!--          Niskin = as.numeric(str_replace(nisk, "N", ""))) %>%  -->
+<!--   left_join(metadata_all) -->
 
-write.csv(sample_wmetadata, file = "input-data/metadata-gom-23.csv")
-```
+<!-- # write.csv(sample_wmetadata, file = "input-data/metadata-gom-23.csv") -->
+<!-- ``` -->
 
 
-## Sequence QC
+# Sequence QC
 
 Set up R & import starting data
 ```{r}
@@ -252,7 +255,7 @@ asv_wtax_long_062025 <- asv_wtax_GoM23_062025 %>%
   filter(!(FeatureID %in% list_to_rm)) %>% 
   pivot_longer(cols = -c(FeatureID, Taxon), names_to = "SAMPLES", values_to = "SEQUENCE_COUNT") %>% 
   filter(SEQUENCE_COUNT > 0) %>% 
-  separate(Taxon, into = c("Domain", "Supergroup", "Division", "Subdivision", "Class", "Order", "Family", "Genus", "Species"), remove = FALSE)
+  separate(Taxon, into = c("Domain", "Supergroup", "Division", "Subdivision", "Class", "Order", "Family", "Genus", "Species"), sep = ";", remove = FALSE)
 
 # length(unique(asv_wtax_wide_062025$FeatureID))
 ```
@@ -272,7 +275,7 @@ asv_wtax_long_062025 %>%
   geom_point(shape = 21, color = "black", fill = "grey20") +
   theme_classic() +
   theme(axis.text = element_text(color = "black"),
-      panel.grid.major = element_line()) +
+      panel.grid.major = element_line(color = "grey90")) +
   labs(x = "Total sequences", y = "Total ASVs", title = "Distribtion of sequences and ASVs for all samples")
 
 ```
@@ -351,7 +354,7 @@ asv_wide_cleaned <- asv_wtax_wide_062025 %>%
 
 ```{r}
 # | eval: false
-# save(samples_too_low, env_info, asv_wide_cleaned, asv_long_cleaned, file =  "input-data/asv_wtax_qc_GoM23_062025.RData")
+save(samples_too_low, asv_wide_cleaned, asv_long_cleaned, file =  "input-data/asv_wtax_qc_GoM23_102025.RData")
 ```
 
 # Session Information

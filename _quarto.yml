@@ -1,0 +1,36 @@
+project:
+  type: website
+  output-dir: docs
+  render:
+    - GoM-2023-amplicons.qmd
+    - gulf-2023-amplicon-analysis.qmd
+    - gulf-data-analysis_2023.qmd
+    - gulf-map-physical_2023.qmd
+
+execute:
+  eval: true
+
+website:
+  title: "Diversity of microeukaryotes in the Gulf"
+  navbar:
+    left:
+      - href: GoM-2023-amplicons.qmd
+        text: Sequence analysis
+      - href: gulf-2023-amplicon-analysis.qmd
+        text: Data analysis (part I)
+      - href: gulf-map-physical_2023.qmd
+        text: Spatial analysis
+      - href: gulf-data-analysis_2023.qmd
+        text: ASV analysis
+
+format:
+  html:
+    theme: flatly
+    toc: true
+    toc-location: left
+    number-sections: true
+    number-depth: 3
+    
+
+
+
