@@ -216,7 +216,7 @@ asv_long_avg_wtax <- asv_long_wenv_wtax %>%
  filter(STN_NISKIN != "S12_N10") |>
   ungroup()
 
-head(asv_long_avg_wtax)
+# head(asv_long_avg_wtax)
 # unique(asv_long_avg_wtax$STN_CATEGORY_4)
 ```
 
@@ -226,12 +226,11 @@ Central data frames:
 
 -   `asv_long_wenv_wtax`
 -   `tax_key`
--   `env_info_mod`
 -   `env_metadata_toplot`
 -   `asv_long_avg_wtax`
 
 ```{r}
-# save(asv_long_wenv_wtax, tax_key, env_metadata_toplot, asv_long_avg_wtax, file = "input-data/gulf-2023-sequence-analysis_10252025.RData")
+# save(asv_long_wenv_wtax, tax_key, table1, env_metadata_toplot, asv_long_avg_wtax, file = "input-data/gulf-2023-sequence-analysis_10252025.RData")
 ```
 
 # Sample comparison & taxonomic classification
@@ -280,10 +279,12 @@ barplot(variance_clr, main = "Log-Ratio PCA Screeplot", xlab = "PC Axis", ylab =
 
 #### Plot PCA
 
-```{r, fig.height=5, fig.width=6}
+```{r, fig.height=5, fig.width=5.5}
 blues <- c("#dde4f0","#b7cae8","#96b3e3",
            "#6b94d6","#3473d9", "#0b4fbd",
            "#0b429c", "#07214a", "#081730")
+
+names(blues) <- depth_bin
 
 PCA_PLOT <- data.frame(pca_clr$x, STN_NISKIN = rownames(pca_clr$x)) %>% 
   select(PC1, PC2, PC3, STN_NISKIN) %>% 
@@ -304,6 +305,7 @@ PCA_PLOT <- data.frame(pca_clr$x, STN_NISKIN = rownames(pca_clr$x)) %>%
   theme_bw() +
   theme(axis.text = element_text(color="black", size=12),
         legend.title = element_blank(),
+        panel.grid.major = element_line(color = "grey90", linetype = "dotted"),
         axis.title = element_text(color="black", size= 12),
         legend.text = element_text(color = "black", size = 8, face = "bold"),
         plot.margin = margin(2, 1, 2, 1, "cm")) +
@@ -315,6 +317,7 @@ PCA_PLOT <- data.frame(pca_clr$x, STN_NISKIN = rownames(pca_clr$x)) %>%
     color = "black", 
     size = 5)))
 PCA_PLOT
+# ggsave("figures/pca-plot.svg", width = 5.5, height = 5, device = "svg", limitsize = FALSE)
 ```
 
 ## Combined dendrogram
@@ -334,11 +337,12 @@ gom_dendro_plot <- ggplot(segment(gom_dendro)) +
     yend = yend)) + 
   coord_flip() + 
   scale_y_reverse(expand = c(0.2, 0.5), breaks = c(0, 0.2, 0.4, 0.6, 0.8)) +
-  geom_text(aes(x = x, y = y, label = label, angle = 0, hjust = 0), data = label(gom_dendro)) +
+  geom_text(size = 3, aes(x = x, y = y, label = label, angle = 0, hjust = 0), data = label(gom_dendro)) +
   theme_dendro() + labs(y = "Dissimilarity") +
-    theme(axis.text.x = element_text(color = "black", size = 14), axis.line.x = element_line(color = "#252525"), 
+    theme(axis.text.x = element_text(color = "black", size = 10),
+          axis.line.x = element_line(color = "#252525"), 
         axis.ticks.x = element_line(), axis.title.x = element_text(color = "black", 
-            size = 14))
+            size = 10))
 # svg('figs/SUPPLEMENTARY-dendrogram-wreps.svg', w = 10, h = 8)
 gom_dendro_plot
 ```
@@ -359,6 +363,7 @@ blues <- c("#dde4f0","#b7cae8","#96b3e3",
            "#6b94d6","#3473d9", "#0b4fbd",
            "#0b429c", "#07214a", "#081730")
 
+names(blues) <- depth_bin
 
 DEPTH <- stn_depth_info %>%
   mutate(label_order = factor(STN_NISKIN, levels = labels_for_dendro)) %>% 
@@ -401,7 +406,42 @@ DIST <- stn_depth_info %>%
   guides(fill = guide_legend(reverse = TRUE, ncol = 1)) +
   labs(x = "x10^3 km", y = "")
 DIST
+
 ```
+dendrogram annotation with DCM, O2, and Salt max
+```{r}
+feature_profiles <- read.csv("input-data/feature_profiles_depth.csv")
+```
+
+```{r, fig.height=12, fig.width=2}
+PROFILES <- stn_depth_info %>%
+  ungroup() %>% 
+  mutate(label_order = factor(STN_NISKIN, levels = labels_for_dendro)) %>% 
+  left_join(feature_profiles) %>% 
+  select(STN_NISKIN, label_order, Station, Niskin, Depth, FEATURE) %>% distinct() %>%
+  mutate(VAL = case_when(
+    !is.na(FEATURE) ~ 1,
+    TRUE ~ 0
+  )) %>%
+  ggplot(aes(y = label_order, x = FEATURE, fill = 1)) +
+    geom_tile(color = "black") +
+  coord_fixed(ratio = 1) +
+  theme_void() + theme(
+    legend.position = "none",
+    legend.title = element_blank(),
+    legend.text = element_text(color = "black"),
+    strip.background = element_blank(),
+    panel.grid.major = element_line(color = "grey90", linetype = "dotted"),
+    axis.ticks = element_blank(),
+    axis.title = element_text(color = "black"),
+    axis.text.y = element_text(color = "black"),
+    axis.text.x = element_text(color = "black", angle = 90, hjust = 1, vjust = 0, size = 5)) +
+  # guides(fill = guide_legend(reverse = TRUE, ncol = 1)) +
+  labs(x = "", y = "")
+PROFILES
+
+```
+
 
 ```{r, fig.height=12, fig.width=4}
 TRANSECT <- stn_depth_info %>%
@@ -465,7 +505,7 @@ asv_long_avg_wtax %>%
   theme(
     axis.text.x = element_text(color = "black", size = 14),
     axis.text.y = element_text(color = "black", size = 14),
-    panel.grid.major = element_line()
+    panel.grid.major = element_line(color = "grey90", linetype = "dotted")
   ) +
   labs(x = "", y = "Depth (m)")
 ```
@@ -490,15 +530,20 @@ Low taxonomic resolution should be at DIVISION level. Then to SUPERGROUP_CLASS l
 ```{r, fig.height=20, fig.width=7}
 # Sum by taxonomic groups
 TAX <- asv_long_avg_wtax %>%
+   filter(STN_NISKIN != "S12_N10") %>% 
+  filter(Supergroup_simplified != "Eukaryota") %>% 
+  filter(Supergroup_simplified != "TSAR-NA") %>% 
+  filter(Supergroup_simplified != "Obazoa-Metazoa") %>% 
   group_by(STN_NISKIN, Station, Niskin, Depth, DEPTH_BIN,
            DEPTH_ORDER, Supergroup_simplified) |> 
   summarise(SUM_SEQ = sum(MEAN_REPS_seq),
             ASV_COUNT = n()) %>%
   # Factoring and ordering
   mutate(label_order = factor(STN_NISKIN, levels = labels_for_dendro)) %>% 
-  mutate(label_order = str_remove(label_order, "_")) |> 
+  # mutate(label_order = str_remove(label_order, "_")) |> 
   ggplot(aes(y = (label_order), x = SUM_SEQ, fill = Supergroup_simplified)) +
-    geom_bar(stat = "identity", position = "fill", color = "white", width = 0.9) +
+    geom_bar(stat = "identity", position = "fill", 
+             color = "grey20", width = 0.8, linewidth = 0.5) +
   scale_fill_manual(values = tax_color) +
   scale_y_discrete(position = "right") +
   theme_void() + theme(
@@ -506,10 +551,11 @@ TAX <- asv_long_avg_wtax %>%
     legend.title = element_blank(),
     legend.text = element_text(color = "black"),
     strip.background = element_blank(),
-    axis.ticks = element_blank(),
+    axis.line.x = element_line(),
+    
     axis.title = element_text(color = "black"),
     axis.text.y = element_text(color = "black", vjust = 0.5, hjust = 0, size = 10),
-    axis.text.x = element_blank()) +
+    axis.text.x = element_text(color = "black", size = 8)) +
   guides(fill = guide_legend(reverse = TRUE, ncol = 1)) +
   labs(x = "", y = "")
 TAX
@@ -563,7 +609,7 @@ SHANNON <- data.frame(shannon_all) %>%
   left_join(stn_depth_info) |> 
   mutate(label_order = factor(STN_NISKIN, levels = labels_for_dendro)) %>% 
   ggplot(aes(x = shannon_all, y = label_order)) +
-  geom_point(shape = 21, fill = "grey30", color = "black", size = 2) +
+  geom_point(shape = 21, fill = "grey30", color = "black", size = 2, stroke = 1) +
   theme_classic() + theme(
     legend.position = "right",
     legend.title = element_blank(),
@@ -572,7 +618,7 @@ SHANNON <- data.frame(shannon_all) %>%
     # axis.ticks = element_blank(),
     axis.title = element_text(color = "black", size = 8),
     axis.text.y = element_text(color = "black", vjust = 0.5, hjust = 0, size = 10),
-    panel.grid.major = element_line(color = "grey95")) +
+    panel.grid.major = element_line(color = "grey90", linetype = "dotted")) +
   guides(fill = guide_legend(reverse = TRUE, ncol = 1)) +
     labs(x = "Shannon Diversity", y = "")
 ```
@@ -588,7 +634,7 @@ INVSIMP <- data.frame(invsimp_all) %>%
   left_join(stn_depth_info) |> 
   mutate(label_order = factor(STN_NISKIN, levels = labels_for_dendro)) %>% 
   ggplot(aes(x = invsimp_all, y = label_order)) +
-  geom_point(shape = 21, fill = "grey80", color = "black", size = 2) +
+  geom_point(shape = 21, fill = "grey80", color = "black", size = 2, stroke = 1) +
   theme_classic() + theme(
     legend.position = "right",
     legend.title = element_blank(),
@@ -597,7 +643,7 @@ INVSIMP <- data.frame(invsimp_all) %>%
     # axis.ticks = element_blank(),
     axis.title = element_text(color = "black", size = 8),
     axis.text.y = element_text(color = "black", vjust = 0.5, hjust = 0, size = 10),
-    panel.grid.major = element_line(color = "grey95")) +
+    panel.grid.major = element_line(color = "grey90", linetype = "dotted")) +
   guides(fill = guide_legend(reverse = TRUE, ncol = 1)) +
     labs(x = "Inverse Simpson", y = "")
 INVSIMP
@@ -606,39 +652,39 @@ INVSIMP
 ## Plot Dendrogram compilation
 
 ```{r, fig.height=13, fig.width=22}
-gom_dendro_plot + DEPTH + DIST + TRANSECT + PROK + SHANNON + INVSIMP + TAX +
+gom_dendro_plot + DEPTH + PROFILES + DIST + TRANSECT + PROK + SHANNON + INVSIMP + TAX +
   plot_layout(nrow = 1, 
-              widths = c(1.3, 0.5, 0.5, 0.5, 0.5, 
+              widths = c(1.3, 0.5, 0.5, 0.5, 0.5, 0.5, 
                          0.4, 0.4, 0.7))
+# ggsave("figures/dendrogram-compiled.svg", width = 22, height = 13, device = "svg", limitsize = FALSE)
 ```
 
-> Next add depth of DCM with above and below, same for salt max and o2 min.
-
-# Taxa and depth?
+# Taxa and depth
 
 ```{r}
 # head(asv_long_avg_wtax)
-# asv_long_avg_wtax %>% 
-#   filter(Supergroup_simplified == "TSAR-Ciliophora") %>% 
-#   group_by(Class, Depth) %>% 
-#   summarise(ASV_COUNT = n()) %>% 
-#   ggplot(aes(x = ASV_COUNT, y = Depth, fill = Class)) +
-#   geom_point(stat = "identity", shape = 21, color = "black") +
-#   scale_y_reverse() +
-#   theme_classic()
+asv_long_avg_wtax %>%
+  filter(Supergroup_simplified == "TSAR-Ciliophora") %>%
+  group_by(Class, Depth) %>%
+  summarise(ASV_COUNT = n()) %>%
+  ggplot(aes(x = ASV_COUNT, y = Depth, fill = Class)) +
+  geom_point(stat = "identity", shape = 21, color = "black") +
+  scale_y_reverse() +
+  theme_classic()
 ```
 
 
 
 # CLR targets & plots
 
-TSAR-Radiolaria
 TSAR-Dinoflagellata
-TSAR-Bigyra
+TSAR-Radiolaria
+TSAR-Gyrista
+
 
 Confirming what core protistan groups are the most prominent members of the community across all of the samples. 
 ```{r}
-head(asv_long_avg_wtax)
+# head(asv_long_avg_wtax)
 top_taxa <- asv_long_avg_wtax %>% 
   filter(!(grepl("Obazoa", Supergroup_simplified))) %>% 
   group_by(Supergroup_simplified, STN_NISKIN) %>% 
@@ -648,44 +694,55 @@ top_taxa <- asv_long_avg_wtax %>%
   # Subset the top 2 groups with the highest ASV count
   group_by(STN_NISKIN) %>% 
   slice_max(order_by = ASV_COUNT, n = 3)
-
-unique(top_taxa$Supergroup_simplified)
+  # slice_max(order_by = SUM_SEQ, n = 3)
+# top_taxa
+list_top <- unique(top_taxa$Supergroup_simplified)
 ```
 
+```{r}
+head(asv_long_avg_wtax)
+```
+```{r}
+# View(asv_long_avg_wtax)
+list_top
+```
 
-Subset to top taxa for CLR
-```{r, fig.height=12, fig.width=9}
-clr_heat_plot <- function(df, TAXA){
-  clr_matrix <- df %>% 
-  filter(Supergroup_simplified == TAXA) %>% 
-  filter(MEAN_REPS_seq >= 50) %>% 
-  group_by(Family, Station, DEPTH_BIN) %>% 
+## Dinoflagellates
+```{r}
+class_dino_mat <- asv_long_avg_wtax %>% 
+  filter(STN_NISKIN != "S12_N10") %>% 
+  filter(Supergroup_simplified == "TSAR-Dinoflagellata") %>% 
+  ungroup() %>% 
+  mutate(CLASS = case_when(
+    is.na(Class) ~ "Dinoflagellata-Unannotated",
+         TRUE ~ Class)) %>% 
+  group_by(CLASS, Station, DEPTH_BIN) %>% 
   summarise(SUM_SEQ = sum(MEAN_REPS_seq)) %>%
   unite(SAMPLE, Station, DEPTH_BIN, sep = ";") %>% 
-  ungroup() %>%
-  pivot_wider(names_from = Family, values_from = SUM_SEQ, values_fn = mean, values_fill = 0) %>%
+  pivot_wider(names_from = CLASS, values_from = SUM_SEQ, values_fn = mean, values_fill = 0) %>% 
   column_to_rownames(var = "SAMPLE") %>%
   as.matrix
-# View(clr_matrix)
-# clr_matrix
-  clr_tax <- vegan::decostand(clr_matrix, MARGIN = 1, method = "rclr")
-  ##
-  colnames(clr_tax) <- colnames(clr_matrix)
-  rownames(clr_tax) <- rownames(clr_matrix)
-  ##
-  clr_tax_mod <- data.frame(clr_tax) %>% 
-    rownames_to_column(var = "SAMPLE") %>% 
-    pivot_longer(cols = -c(SAMPLE), names_to = "Family", values_to = "CLR") %>% 
-    separate(SAMPLE, into = c("Station", "DEPTH_BIN"), sep = ";") %>% 
-    mutate(stn = paste("S", Station, sep = "")) %>% 
-    mutate(STN_ORDER = factor(stn, levels = offshore_on_shore_order)) %>% 
-    mutate(DEPTH_BIN_ORDER = factor(DEPTH_BIN, levels = rev(depth_bin)))
-  ##
-  clr_tax_mod %>% 
-    ggplot(aes(y = DEPTH_BIN_ORDER, x = Family, fill = CLR)) +
-    geom_tile(color = "white") +
-    # facet_grid(rows = vars(Station), cols = vars(Family), space = "free", scale = "free") +
-    facet_grid(rows = vars(STN_ORDER), space = "free", scale = "free") +
+
+head(class_dino_mat)
+
+class_dino_clr <- vegan::decostand(class_dino_mat, MARGIN = 1, method = "rclr")
+##
+colnames(class_dino_clr) <- colnames(class_dino_mat)
+rownames(class_dino_clr) <- rownames(class_dino_mat)
+# data.frame(class_dino_clr)
+```
+
+```{r, fig.height=10, fig.width=3}
+plot_dino_clr <- data.frame(class_dino_clr) %>% 
+  rownames_to_column(var = "SAMPLE") %>% 
+  pivot_longer(cols = -c(SAMPLE), names_to = "Class", values_to = "CLR") %>% 
+  separate(SAMPLE, into = c("Station", "DEPTH_BIN"), sep = ";") %>% 
+  mutate(stn = paste("S", Station, sep = "")) %>% 
+  mutate(STN_ORDER = factor(stn, levels = offshore_on_shore_order)) %>% 
+  mutate(DEPTH_BIN_ORDER = factor(DEPTH_BIN, levels = rev(depth_bin))) %>% 
+    ggplot(aes(y = DEPTH_BIN_ORDER, x = Class, fill = CLR)) +
+    geom_tile(color = "grey30", linewidth = 0.4) +
+    facet_grid(rows = vars(STN_ORDER), space = "free_y", scale = "free_y") +
     scale_x_discrete(position = "top") +
     scale_fill_fermenter(type = "div", palette = 4) +
     theme_classic() +
@@ -696,13 +753,289 @@ clr_heat_plot <- function(df, TAXA){
           strip.text.y = element_text(color = "black", angle = 0),
           strip.background = element_blank()) +
     labs(x = "", y = "")
-}
 ```
 
-```{r, fig.height=12, fig.width=9}
-# top_taxa
-clr_heat_plot(asv_long_avg_wtax, "TSAR-Ciliophora")
+
+
+## Haptista
+```{r}
+# list_top
+
+class_hapto_mat <- asv_long_avg_wtax %>% 
+  filter(STN_NISKIN != "S12_N10") %>% 
+  filter(Supergroup_simplified == "Haptista") %>% 
+  ungroup() %>% 
+  mutate(CLASS = case_when(
+    is.na(Class) ~ "Haptista-Unannotated",
+    (is.na(Order) & Class == "X") ~ "Haptista-Unannotated",
+         TRUE ~ Order)) %>% 
+  group_by(CLASS, Station, DEPTH_BIN) %>% 
+  summarise(SUM_SEQ = sum(MEAN_REPS_seq)) %>%
+  unite(SAMPLE, Station, DEPTH_BIN, sep = ";") %>% 
+  pivot_wider(names_from = CLASS, values_from = SUM_SEQ, values_fn = mean, values_fill = 0) %>% 
+  column_to_rownames(var = "SAMPLE") %>%
+  as.matrix
+#
+head(class_hapto_mat)
+class_hapto_clr <- vegan::decostand(class_hapto_mat, MARGIN = 1, method = "rclr")
+##
+colnames(class_hapto_clr) <- colnames(class_hapto_mat)
+rownames(class_hapto_clr) <- rownames(class_hapto_mat)
+
+# data.frame(class_hapto_clr)
 ```
+
+```{r, fig.height=10, fig.width=3}
+plot_hapto_clr <- data.frame(class_hapto_clr) %>% 
+  rownames_to_column(var = "SAMPLE") %>% 
+  pivot_longer(cols = -c(SAMPLE), names_to = "Class", values_to = "CLR") %>% 
+  separate(SAMPLE, into = c("Station", "DEPTH_BIN"), sep = ";") %>% 
+  mutate(stn = paste("S", Station, sep = "")) %>% 
+  mutate(STN_ORDER = factor(stn, levels = offshore_on_shore_order)) %>% 
+  mutate(DEPTH_BIN_ORDER = factor(DEPTH_BIN, levels = rev(depth_bin))) %>% 
+    ggplot(aes(y = DEPTH_BIN_ORDER, x = Class, fill = CLR)) +
+    geom_tile(color = "grey30", linewidth = 0.4) +
+    facet_grid(rows = vars(STN_ORDER), space = "free_y", scale = "free_y") +
+    scale_x_discrete(position = "top") +
+    scale_fill_fermenter(type = "div", palette = 4) +
+    theme_classic() +
+    theme(axis.ticks = element_blank(),
+          axis.text.x = element_text(color = "black", angle = 45, size = 7,
+                                     hjust = 0, vjust = 0.5),
+          axis.text.y = element_text(color = "black"),
+          strip.text.y = element_text(color = "black", angle = 0),
+          strip.background = element_blank()) +
+    labs(x = "", y = "")
+```
+
+
+
+## Radiolaria
+```{r}
+list_top
+# tmp <- asv_long_avg_wtax %>% 
+  # filter(STN_NISKIN != "S12_N10") %>% 
+  # filter(Supergroup_simplified == "TSAR-Radiolaria"); unique(tmp$Class)
+  
+class_rad_mat <- asv_long_avg_wtax %>% 
+  filter(STN_NISKIN != "S12_N10") %>% 
+  filter(Supergroup_simplified == "TSAR-Radiolaria") %>% 
+  ungroup() %>% 
+  mutate(CLASS = case_when(
+    is.na(Class) ~ "Radiolaria-Unannotated",
+    (is.na(Order) & Class == "X") ~ "Radiolaria-Unannotated",
+         TRUE ~ Class)) %>% 
+  group_by(CLASS, Station, DEPTH_BIN) %>% 
+  summarise(SUM_SEQ = sum(MEAN_REPS_seq)) %>%
+  unite(SAMPLE, Station, DEPTH_BIN, sep = ";") %>% 
+  pivot_wider(names_from = CLASS, values_from = SUM_SEQ, values_fn = mean, values_fill = 0) %>% 
+  column_to_rownames(var = "SAMPLE") %>%
+  as.matrix
+#
+head(class_rad_mat)
+class_rad_clr <- vegan::decostand(class_rad_mat, MARGIN = 1, method = "rclr")
+##
+colnames(class_rad_clr) <- colnames(class_rad_mat)
+rownames(class_rad_clr) <- rownames(class_rad_mat)
+
+# data.frame(class_rad_clr)
+```
+
+```{r, fig.height=10, fig.width=3}
+plot_rad_clr <- data.frame(class_rad_clr) %>% 
+  rownames_to_column(var = "SAMPLE") %>% 
+  pivot_longer(cols = -c(SAMPLE), names_to = "Class", values_to = "CLR") %>% 
+  separate(SAMPLE, into = c("Station", "DEPTH_BIN"), sep = ";") %>% 
+  mutate(stn = paste("S", Station, sep = "")) %>% 
+  mutate(STN_ORDER = factor(stn, levels = offshore_on_shore_order)) %>% 
+  mutate(DEPTH_BIN_ORDER = factor(DEPTH_BIN, levels = rev(depth_bin))) %>% 
+    ggplot(aes(y = DEPTH_BIN_ORDER, x = Class, fill = CLR)) +
+    geom_tile(color = "grey30", linewidth = 0.4) +
+    facet_grid(rows = vars(STN_ORDER), space = "free_y", scale = "free_y") +
+    scale_x_discrete(position = "top") +
+    scale_fill_fermenter(type = "div", palette = 4) +
+    theme_classic() +
+    theme(axis.ticks = element_blank(),
+          axis.text.x = element_text(color = "black", angle = 45, size = 7,
+                                     hjust = 0, vjust = 0.5),
+          axis.text.y = element_text(color = "black"),
+          strip.text.y = element_text(color = "black", angle = 0),
+          strip.background = element_blank()) +
+    labs(x = "", y = "")
+```
+
+
+
+## Ciliate
+```{r}
+list_top
+tmp <- asv_long_avg_wtax %>%
+filter(STN_NISKIN != "S12_N10") %>%
+filter(Supergroup_simplified == "TSAR-Ciliophora"); unique(tmp$Class)
+  
+class_cil_mat <- asv_long_avg_wtax %>% 
+  filter(STN_NISKIN != "S12_N10") %>% 
+  filter(Supergroup_simplified == "TSAR-Ciliophora") %>% 
+  ungroup() %>% 
+  mutate(CLASS = case_when(
+    is.na(Class) ~ "Ciliophora-Unannotated",
+    (is.na(Order) & Class == "X") ~ "Ciliophora-Unannotated",
+         TRUE ~ Class)) %>% 
+  group_by(CLASS, Station, DEPTH_BIN) %>% 
+  summarise(SUM_SEQ = sum(MEAN_REPS_seq)) %>%
+  unite(SAMPLE, Station, DEPTH_BIN, sep = ";") %>% 
+  pivot_wider(names_from = CLASS, values_from = SUM_SEQ, values_fn = mean, values_fill = 0) %>% 
+  column_to_rownames(var = "SAMPLE") %>%
+  as.matrix
+#
+head(class_cil_mat)
+class_cil_clr <- vegan::decostand(class_cil_mat, MARGIN = 1, method = "rclr")
+##
+colnames(class_cil_clr) <- colnames(class_cil_mat)
+rownames(class_cil_clr) <- rownames(class_cil_mat)
+
+# data.frame(class_rad_clr)
+```
+
+```{r, fig.height=13, fig.width=5}
+plot_cil_clr <- data.frame(class_cil_clr) %>% 
+  rownames_to_column(var = "SAMPLE") %>% 
+  pivot_longer(cols = -c(SAMPLE), names_to = "Class", values_to = "CLR") %>% 
+  separate(SAMPLE, into = c("Station", "DEPTH_BIN"), sep = ";") %>% 
+  mutate(stn = paste("S", Station, sep = "")) %>% 
+  mutate(STN_ORDER = factor(stn, levels = offshore_on_shore_order)) %>% 
+  mutate(DEPTH_BIN_ORDER = factor(DEPTH_BIN, levels = rev(depth_bin))) %>% 
+    ggplot(aes(y = DEPTH_BIN_ORDER, x = Class, fill = CLR)) +
+    geom_tile(color = "grey30", linewidth = 0.4) +
+    facet_grid(rows = vars(STN_ORDER), space = "free_y", scale = "free_y") +
+    scale_x_discrete(position = "top") +
+    scale_fill_fermenter(type = "div", palette = 4) +
+    theme_classic() +
+    theme(axis.ticks = element_blank(),
+          axis.text.x = element_text(color = "black", angle = 45, size = 7,
+                                     hjust = 0, vjust = 0.5),
+          axis.text.y = element_text(color = "black"),
+          strip.text.y = element_text(color = "black", angle = 0),
+          strip.background = element_blank()) +
+    labs(x = "", y = "")
+```
+
+
+
+
+## Gyrista
+```{r}
+list_top
+tmp <- asv_long_avg_wtax %>%
+filter(STN_NISKIN != "S12_N10") %>%
+filter(Supergroup_simplified == "TSAR-Gyrista"); unique(tmp$Class)
+  
+class_gyrista_mat <- asv_long_avg_wtax %>% 
+  filter(STN_NISKIN != "S12_N10") %>% 
+  filter(Supergroup_simplified == "TSAR-Gyrista") %>% 
+  ungroup() %>% 
+  mutate(CLASS = case_when(
+    is.na(Class) ~ "Gyrista-Unannotated",
+    (is.na(Order) & Class == "X") ~ "Gyrista-Unannotated",
+         TRUE ~ Class)) %>% 
+  group_by(CLASS, Station, DEPTH_BIN) %>% 
+  summarise(SUM_SEQ = sum(MEAN_REPS_seq)) %>%
+  unite(SAMPLE, Station, DEPTH_BIN, sep = ";") %>% 
+  pivot_wider(names_from = CLASS, values_from = SUM_SEQ, values_fn = mean, values_fill = 0) %>% 
+  column_to_rownames(var = "SAMPLE") %>%
+  as.matrix
+#
+head(class_gyrista_mat)
+class_gyrista_clr <- vegan::decostand(class_gyrista_mat, MARGIN = 1, method = "rclr")
+##
+colnames(class_gyrista_clr) <- colnames(class_gyrista_mat)
+rownames(class_gyrista_clr) <- rownames(class_gyrista_mat)
+```
+
+```{r, fig.height=13, fig.width=5}
+plot_gyrista_clr <- data.frame(class_gyrista_clr) %>% 
+  rownames_to_column(var = "SAMPLE") %>% 
+  pivot_longer(cols = -c(SAMPLE), names_to = "Class", values_to = "CLR") %>% 
+  separate(SAMPLE, into = c("Station", "DEPTH_BIN"), sep = ";") %>% 
+  mutate(stn = paste("S", Station, sep = "")) %>% 
+  mutate(STN_ORDER = factor(stn, levels = offshore_on_shore_order)) %>% 
+  mutate(DEPTH_BIN_ORDER = factor(DEPTH_BIN, levels = rev(depth_bin))) %>% 
+    ggplot(aes(y = DEPTH_BIN_ORDER, x = Class, fill = CLR)) +
+    geom_tile(color = "grey30", linewidth = 0.4) +
+    facet_grid(rows = vars(STN_ORDER), space = "free_y", scale = "free_y") +
+    scale_x_discrete(position = "top") +
+    scale_fill_fermenter(type = "div", palette = 4) +
+    theme_classic() +
+    theme(axis.ticks = element_blank(),
+          axis.text.x = element_text(color = "black", angle = 45, size = 7,
+                                     hjust = 0, vjust = 0.5),
+          axis.text.y = element_text(color = "black"),
+          strip.text.y = element_text(color = "black", angle = 0),
+          strip.background = element_blank()) +
+    labs(x = "", y = "")
+```
+
+
+
+
+
+## Bigyra
+```{r}
+list_top
+tmp <- asv_long_avg_wtax %>%
+filter(STN_NISKIN != "S12_N10") %>%
+filter(Supergroup_simplified == "TSAR-Bigyra"); unique(tmp$Class)
+  
+class_bigyra_mat <- asv_long_avg_wtax %>% 
+  filter(STN_NISKIN != "S12_N10") %>% 
+  filter(Supergroup_simplified == "TSAR-Bigyra") %>% 
+  ungroup() %>% 
+  mutate(CLASS = case_when(
+    is.na(Class) ~ "Bigyra-Unannotated",
+    (is.na(Order) & Class == "X") ~ "Bigyra-Unannotated",
+         TRUE ~ Class)) %>% 
+  group_by(CLASS, Station, DEPTH_BIN) %>% 
+  summarise(SUM_SEQ = sum(MEAN_REPS_seq)) %>%
+  unite(SAMPLE, Station, DEPTH_BIN, sep = ";") %>% 
+  pivot_wider(names_from = CLASS, values_from = SUM_SEQ, values_fn = mean, values_fill = 0) %>% 
+  column_to_rownames(var = "SAMPLE") %>%
+  as.matrix
+#
+head(class_bigyra_mat)
+class_bigyra_clr <- vegan::decostand(class_bigyra_mat, MARGIN = 1, method = "rclr")
+##
+colnames(class_bigyra_clr) <- colnames(class_bigyra_mat)
+rownames(class_bigyra_clr) <- rownames(class_bigyra_mat)
+```
+
+```{r, fig.height=13, fig.width=3}
+plot_bigya_clr <- data.frame(class_bigyra_clr) %>% 
+  rownames_to_column(var = "SAMPLE") %>% 
+  pivot_longer(cols = -c(SAMPLE), names_to = "Class", values_to = "CLR") %>% 
+  separate(SAMPLE, into = c("Station", "DEPTH_BIN"), sep = ";") %>% 
+  mutate(stn = paste("S", Station, sep = "")) %>% 
+  mutate(STN_ORDER = factor(stn, levels = offshore_on_shore_order)) %>% 
+  mutate(DEPTH_BIN_ORDER = factor(DEPTH_BIN, levels = rev(depth_bin))) %>% 
+    ggplot(aes(y = DEPTH_BIN_ORDER, x = Class, fill = CLR)) +
+    geom_tile(color = "grey30", linewidth = 0.4) +
+    facet_grid(rows = vars(STN_ORDER), space = "free_y", scale = "free_y") +
+    scale_x_discrete(position = "top") +
+    scale_fill_fermenter(type = "div", palette = 4) +
+    theme_classic() +
+    theme(axis.ticks = element_blank(),
+          axis.text.x = element_text(color = "black", angle = 45, size = 7,
+                                     hjust = 0, vjust = 0.5),
+          axis.text.y = element_text(color = "black"),
+          strip.text.y = element_text(color = "black", angle = 0),
+          strip.background = element_blank()) +
+    labs(x = "", y = "")
+```
+
+## Compile taxa CLR plots
+```{r, fig.width=20, fig.height=11}
+plot_dino_clr + plot_hapto_clr + plot_rad_clr + plot_cil_clr + plot_gyrista_clr + plot_bigya_clr + plot_layout(nrow = 1, widths = c(0.5, 0.55, 0.4, 1, 1.5, 0.4))
+```
+
 
 
 # Linear regression
@@ -715,6 +1048,7 @@ head(asv_long_avg_wtax)
 ```{r}
 library(broom)
 regression_gom_tmp <- asv_long_avg_wtax %>%
+  filter(STN_NISKIN != "S12_N10") %>%
   select(Supergroup_simplified, MEAN_REPS_seq, Station, Niskin, DIST_OUTFLOW, Depth, Temperature, Salinity, Oxygen, NH4, NO2, NO3, PO4, SIL) %>% 
   group_by(Station, Niskin, Supergroup_simplified, DIST_OUTFLOW, Depth, Temperature, Salinity, Oxygen, NH4, NO2, NO3, PO4, SIL) %>% 
 summarise(seq_sum = sum(MEAN_REPS_seq),
@@ -941,7 +1275,376 @@ lm_gom((asv_long_avg_wtax %>%
 
 # RDA analysis
 
+RDA reveals relationships among the sites and the environmental parameters. We can explore the relationship among all ASV signatures by site, and then model the effect that each environmental parameter has on it.
+
+> This is where we can add future oil spill work
+
+```{r}
+set.seed(1234)
+head(table1)
+```
+
+```{r}
+features <- read.csv(file = "input-data/feature_profiles_depth.csv")
+head(features)
+# table(features %>% select(FEATURE, Station))
+features %>% select(-X, -Niskin) %>% 
+  pivot_wider(names_from = FEATURE, values_from = Depth)
+
+table1_wfeature <- table1 %>% select(-depth_feature) %>% 
+  left_join((features %>% select(-X, -Niskin) %>% 
+  pivot_wider(names_from = FEATURE, values_from = Depth))) %>% 
+  mutate(SALT_MAX = case_when(
+    Depth >= `Salinity maximum` ~ "Below salinity maximum", #At and below the salinity maximum
+    Depth < `Salinity maximum` ~ "Above salinity maximum",
+  )) %>% 
+  mutate(DCM = case_when(
+    Depth > DCM ~ "Below DCM",
+    Depth <= DCM ~ "Above DCM", #At and above the DCM
+  )) %>% 
+  mutate(O2_MIN = case_when(
+    Depth > `Oxygen minimum` ~ "Below oxygen minimum",
+    Depth <= `Oxygen minimum` ~ "Above oxygen minimum", #At and above the O2 minimum
+  )) %>% 
+  select(-`Oxygen minimum`, -`Salinity maximum`)
+
+```
+
+## All
+
+```{r}
+# Make categorical data table from metadata (Table 1)
+categorical <- table1_wfeature %>% 
+  filter(STN_NISKIN != "S12_N10") |> 
+  select(STN_NISKIN, Transect, DCM, O2_MIN, SALT_MAX) %>% distinct()
+
+# Generate a matrix of numerical data from metadata
+metadata_for_rda_0 <- table1_wfeature %>% 
+  filter(STN_NISKIN != "S12_N10") |> 
+  select(STN_NISKIN, DIST_OUTFLOW, Depth, NH4, NO2, NO3, Oxygen, PO4, SIL, Salinity, Temperature) %>% distinct() %>% 
+  pivot_longer(cols = -c(STN_NISKIN), names_to = "VARIABLES", values_to = "VALUE") %>% 
+  group_by(STN_NISKIN, VARIABLES) %>% 
+    summarise(MEAN_VAL = mean(VALUE)) %>% 
+  pivot_wider(names_from = VARIABLES, values_from = MEAN_VAL) %>% 
+  arrange(STN_NISKIN) %>% 
+  column_to_rownames(var = "STN_NISKIN") %>%
+  as.matrix
+```
+
+Normalize matrix of numeric metadata.
+```{r}
+standarize_metadata <- decostand(metadata_for_rda_0, MARGIN = 2, method = "standardize")
+
+# Combine normalized metadata with categorical data
+metadata_normalized <- categorical %>% 
+  filter(STN_NISKIN != "S12_N10") |> 
+  right_join(as.data.frame(standarize_metadata) %>% rownames_to_column(var = "STN_NISKIN")) %>%
+  arrange(STN_NISKIN) %>% 
+  column_to_rownames(var = "STN_NISKIN")
+# head(metadata_normalized)
+rownames(metadata_normalized) # Output from here should be the same rownames for ASV table below.
+```
+Generate a matrix from ASV counts
+```{r}
+# head(asv_long_avg_wtax)
+# hist(asv_long_avg_wtax$MEAN_REPS_seq)
+asv_wide_avg_reps_matrix <- asv_long_avg_wtax %>% 
+  filter(STN_NISKIN != "S12_N10") |> 
+  # Filter low abundance ASVs
+  filter(MEAN_REPS_seq >= 50) %>% 
+  ungroup() %>%  
+  select(FeatureID, STN_NISKIN, MEAN_REPS_seq) %>% 
+  pivot_wider(names_from = STN_NISKIN, values_from = MEAN_REPS_seq, values_fn = mean, values_fill = 0) %>% 
+  column_to_rownames(var = "FeatureID") %>% 
+  as.matrix()
+# colnames(asv_wide_avg_reps_matrix)
+```
+
+```{r}
+asv_wide_avg_rda_0 <- data.frame(t(asv_wide_avg_reps_matrix)) %>% 
+  rownames_to_column(var = "STN_NISKIN") %>% 
+  arrange(STN_NISKIN) %>% 
+  column_to_rownames(var = "STN_NISKIN") %>% 
+  as.matrix
+
+clr_asv_matrix <- data.frame(compositions::clr(asv_wide_avg_rda_0))
+
+# Confirm that all 
+asv_list <- rownames(asv_wide_avg_rda_0)
+meta_list <- rownames(metadata_normalized)
+clr_list <- rownames(clr_asv_matrix)
+# asv_list %in% meta_list
+# meta_list %in% clr_list
+# setdiff(meta_list, clr_list)
+```
+Run RDA analysis
+```{r}
+# | eval: false
+rda_all_gom <- rda(clr_asv_matrix ~ ., data = metadata_normalized, na.action = na.exclude)
+rda_all_gom
+```
+```{r}
+# | eval: false
+adj_rda_out <- RsquareAdj(rda_all_gom)$adj.r.squared
+# RsquareAdj(rda_all_gom)
+adj_rda_out
+anova.cca(rda_all_gom, step = 100, by = "term")
+```
+
+### RDA function
+First create a function for running RDA analysis.
+
+```{r}
+# table1
+# asv_long_avg_wtax
+
+# How to use:
+## Modify and subsame table1 or asv_long_avg_wtax completely before use.
+## Check to make sure the same STN_NISKIN IDs are present in both.
+run_rda <- function(mod_metadata, mod_asv_long, CATEGORIES){
+  # Select categorical data
+  # mod_metadata <- surf_table
+  # mod_asv_long <- surf_asv
+  # CATEGORIES <- c("Transect") #Character list
+  categorical <- mod_metadata %>% 
+    select(STN_NISKIN, all_of(CATEGORIES)) %>% distinct()
+  # Isolate numerical data as matrix
+  metadata_for_rda_0 <- mod_metadata %>% 
+    select(STN_NISKIN, DIST_OUTFLOW, Depth, NH4, NO2, NO3, Oxygen, PO4, SIL, Salinity, Temperature) %>% distinct() %>% 
+    pivot_longer(cols = -c(STN_NISKIN), names_to = "VARIABLES", values_to = "VALUE") %>% 
+    group_by(STN_NISKIN, VARIABLES) %>% 
+      summarise(MEAN_VAL = mean(VALUE)) %>% 
+    pivot_wider(names_from = VARIABLES, values_from = MEAN_VAL) %>% 
+    arrange(STN_NISKIN) %>% 
+    column_to_rownames(var = "STN_NISKIN") %>% as.matrix
+  # Normalize
+  standarize_metadata <- decostand(metadata_for_rda_0, MARGIN = 2, method = "standardize")
+  # Combine normalized numerical data with categorical
+  metadata_normalized <- categorical %>% 
+    right_join(as.data.frame(standarize_metadata) %>% rownames_to_column(var = "STN_NISKIN")) %>%
+    arrange(STN_NISKIN) %>% 
+    column_to_rownames(var = "STN_NISKIN")
+  #
+  ## Prepare ASV data
+  asv_wide_avg_reps_matrix <- mod_asv_long %>% 
+    ungroup() %>%  
+  select(FeatureID, STN_NISKIN, MEAN_REPS_seq) %>% 
+  pivot_wider(names_from = STN_NISKIN, values_from = MEAN_REPS_seq, values_fn = mean, values_fill = 0) %>% 
+  column_to_rownames(var = "FeatureID") %>% 
+  as.matrix()
+  # Transform
+  asv_wide_avg_rda_0 <- data.frame(t(asv_wide_avg_reps_matrix)) %>% 
+  rownames_to_column(var = "STN_NISKIN") %>% 
+  arrange(STN_NISKIN) %>% 
+  column_to_rownames(var = "STN_NISKIN") %>% 
+  as.matrix
+  #
+  # CLR normalization
+  clr_asv_matrix <- data.frame(compositions::clr(asv_wide_avg_rda_0))
+  #
+  # setdiff(rownames(metadata_normalized), (rownames(clr_asv_matrix)))
+  # RDA step
+  rda_output <- rda(clr_asv_matrix ~ ., data = metadata_normalized, na.action = na.exclude)
+  rda_output
+  return(rda_output)
+}
+```
+
+
+### Above DCM 
+
+Generate a matrix from ASV counts
+```{r}
+surf_table <- table1_wfeature %>% 
+  filter(STN_NISKIN != "S12_N10") |> 
+  # Filter low abundance ASVs
+  filter(DCM == "Above DCM") %>% ungroup()
+
+surf_subset <- as.character(unique(surf_table$STN_NISKIN))
+# surf_subset
+
+surf_asv <- asv_long_avg_wtax %>%
+  filter(MEAN_REPS_seq >= 50) %>% 
+  filter(STN_NISKIN %in% surf_subset) %>% ungroup()
+
+# How to use:
+## Modify and subsame table1 or asv_long_avg_wtax completely before use.
+## Check to make sure the same STN_NISKIN IDs are present in both.
+above_DCM <- c("Transect")
+above_dcm_rda <- run_rda(surf_table, surf_asv, above_DCM)
+```
+
+```{r}
+RsquareAdj(above_dcm_rda)$adj.r.squared
+anova.cca(above_dcm_rda, step = 100, by = "term")
+```
+
+## Dinoflagellates, Diatoms, other abundant?
+
+# Dinoflagellate functional traits
+
+```{r}
+dino_fxn <- read.csv("input-data/dino_fxn_trait.csv")
+# head(dino_fxn)
+dino_trait_asv <- asv_long_avg_wtax %>% 
+  filter(STN_NISKIN != "S12_N10") %>% 
+  filter(Supergroup_simplified == "TSAR-Dinoflagellata") %>% 
+  left_join(dino_fxn) %>% 
+  select(-starts_with("X"), -depth_feature)
+glimpse(dino_trait_asv)
+```
+```{r, fig.height=5, fig.width=8}
+# unique(dino_trait_asv$Feeding.Mode)
+# unique(dino_trait_asv$Morphotype)
+
+dino_trait_asv %>% 
+  ungroup() %>% 
+  filter(!is.na(Feeding.Mode)) %>% 
+  group_by(STN_NISKIN, Station, Depth, DEPTH_BIN, Feeding.Mode, Morphotype) %>% 
+  summarise(ASV_TOTAL = n(),
+            SEQ_SUM = sum(MEAN_REPS_seq)) %>% 
+  ggplot(aes(x = ASV_TOTAL, y = Depth, fill = Feeding.Mode, size = SEQ_SUM)) +
+    geom_jitter(stat = "identity", shape = 21, width = 0.9) +
+  facet_grid(cols = vars(Feeding.Mode), space = "free_x") +
+
+  scale_y_reverse() +
+  scale_fill_manual(values = c("#6edb8f", "#ab70e6", "#ebb923")) +
+  scale_size(range=c(2,7), guide="legend") +
+  theme_classic() +
+  theme(
+    axis.text.x = element_text(color = "black", size = 12),
+    axis.text.y = element_text(color = "black", size = 12),
+    panel.grid.major = element_line(color = "grey90", linetype = "dotted"),
+    strip.background = element_blank(),
+    strip.text.x = element_text(color = "black", size = 12)
+  ) +
+  labs(x = "Total ASVs", y = "Depth (m)")
+```
+
+```{r}
+head(dino_trait_asv)
+```
+
+
+```{r, fig.height=3, fig.width=8}
+dino_trait_asv %>% 
+  ungroup() %>% 
+  filter(!is.na(Feeding.Mode)) %>%
+  filter(!is.na(Order)) %>%
+  unite(DINO_TAX, Class, Order, sep = "; ") %>% 
+  group_by(DINO_TAX, Feeding.Mode, Morphotype) %>% 
+  summarise(ASV_TOTAL = n(),
+            SEQ_SUM = sum(MEAN_REPS_seq)) %>% 
+  ggplot(aes(x = Morphotype, y = DINO_TAX, size = ASV_TOTAL, fill = Feeding.Mode)) +
+    geom_point(shape = 21) +
+    facet_grid(cols = vars(Feeding.Mode), space = "free", scale = "free") +
+  scale_x_discrete(position = "top") +
+  scale_fill_manual(values = c("#6edb8f", "#ab70e6", "#ebb923")) +
+  scale_size(range=c(2,7), guide="legend") +
+  theme_classic() +
+  theme(
+    axis.text.x = element_text(color = "black", size = 10),
+    axis.text.y = element_text(color = "black", size = 10),
+    panel.grid.major = element_line(color = "grey90", linetype = "dotted"),
+    strip.background = element_blank(),
+    strip.placement = "outside",
+    strip.text.x = element_text(color = "black", size = 10)
+  ) + labs(x = "", y = "")
+```
+
+
 # Indicator Species
+
+# CRT
+
+```{r}
+# install.packages("tree")
+library(rpart)
+library(tree)
+```
+
+```{r}
+data("iris")
+head(iris)
+iris_df <- iris
+colnames(iris_df) <- c("sepall", "sepalw", "petall", "petalw", "class")
+```
+
+CRT, on the other side, focuses on creating predictive models for classifying and prioritizing data as “key indicator variables”. CRT employs a decision tree approach, partitioning the dataset based on informative environmental variables to create a hierarchical structure of decision rules (Alkhasawneh et al., 2014). We used CRT to identify specific taxonomic groups as “key indicator variables” that show ability to indicate different DLs.
+
+```{r}
+xtabs( ~ class, data = iris_df)
+```
+
+```{r}
+# execute tree classification
+iris.tree <- tree::tree(class ~ ., data = iris_df)
+# ?tree()
+head(iris_df)
+```
+
+Above step fits a classification or regression tree with data.
+
+```{r}
+summary(iris.tree)
+# Only 3 of 4 variables were used for the tree.
+# misclassification error rate? 
+```
+
+```{r}
+plot(iris.tree); text(iris.tree, all = T)
+```
+
+For this classification tree, petall has a value \< 2.45, therefore suggesting it has a more important classification. Sepall \<5.15 indicates that is has a less important criterion
+
+Next we "prune" the tree to reduce complexity. For this, we use a function to identify the number of significant notes. The cross validation will find the number of misclassifications.
+
+```{r}
+tree::cv.tree(iris.tree)
+```
+
+We prune the small branches. Therefore, we want to remove the "Branches" from the tree with the fewest data points. Therefore, we look at the output values of k and see when the values start to really increase. In this example, it is 3. A tree size of 3 is therefore suitable. THe *K* is considered the "cost-complexity parameter" (which is the "Best" number of nodes/branches to include. )
+
+Pruning the tree:
+
+```{r}
+iris.tree.prune <- prune.misclass(iris.tree, best = 3)
+summary(iris.tree.prune)
+```
+
+```{r}
+plot(iris.tree.prune);text(iris.tree.prune, all = T)
+```
+
+The tree is much less complex.
+
+### CRT all samples
+
+```{r}
+# head(asv_long_avg_wtax)
+```
+
+```{r}
+# | eval: false
+# input_CRT <- asv_long_avg_wtax %>% 
+#   select(FeatureID, DEPTH, TEMP, SALINITY, OXYGEN, NH4, MEAN_REPS_seq) %>% distinct()
+# 
+# toy_input_CRT <- input_CRT %>% 
+#   sample_n(1000)
+# 
+# test_tree <- tree(FeatureID ~ , toy_input_CRT)
+# summary(test_tree)
+
+# test_tree$frame
+# plot(test_tree); text(test_tree, all = T)
+```
+
+```{r}
+# install.packages("devtools")
+# require("devtools")
+# devtools::install_github(repo = 'zellerlab/siamcat')
+```
+
 
 # Session information
 

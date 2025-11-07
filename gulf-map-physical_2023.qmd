@@ -23,6 +23,7 @@ library(plotly); library(viridis); library(vegan)
 
 ```{r}
 load(file = "input-data/gulf-2023-sequence-analysis_10192025.RData", verbose = TRUE)
+stn_info <- read.csv("input-data/manual_stn_classification.csv")
 ```
 
 ```{r}
@@ -44,6 +45,7 @@ glimpse(env_metadata_toplot)
 # Northern Gulf region map
 
 > See work from Meagan.
+
 
 # Map
 
@@ -149,6 +151,7 @@ Map to save
 ```{r, fig.width=8, fig.height=8}
 # Left, bottom, right, top
 INSET + inset_element(LARGE, 0.4, 0.4, 1.2, 1, align_to = "plot", clip = FALSE)
+# ggsave("figures/map_overview.svg", width = 8, height = 8, device = "svg", limitsize = FALSE)
 ```
 
 # ODV plots in R
@@ -645,9 +648,9 @@ surf_temp +
   (interpolate_depth_long_env(depth_odv, 2, "Temperature", 2, 32, "Temperature (°C)")) +
   (interpolate_depth_long_env(depth_odv, 3, "Temperature", 2, 32, "Temperature (°C)")) +
 surf_sal + 
-  (interpolate_depth_long_env(depth_odv, 1, "Salinity",25, 27, "Salinity")) +
-  (interpolate_depth_long_env(depth_odv, 2, "Salinity", 25, 27, "Salinity")) +
-  (interpolate_depth_long_env(depth_odv, 3, "Salinity", 25, 27, "Salinity")) +
+  (interpolate_depth_long_env(depth_odv, 1, "Salinity", 25, 37, "Salinity")) +
+  (interpolate_depth_long_env(depth_odv, 2, "Salinity", 25, 37, "Salinity")) +
+  (interpolate_depth_long_env(depth_odv, 3, "Salinity", 25, 37, "Salinity")) +
 surf_oxy +
   (interpolate_depth_long_env(depth_odv, 1, "Oxygen", 2, 5, (expression(bold(O[2]*" "*"ml/L"))))) +
   (interpolate_depth_long_env(depth_odv, 2, "Oxygen", 2, 5, (expression(bold(O[2]*" "*"ml/L"))))) +
@@ -656,8 +659,9 @@ surf_sil +
   (interpolate_depth_long_env(depth_odv, 1, "SIL", 1, 28, expression(bold("SiO" ["4"] ^"2-"*" µmol/L")))) +
   (interpolate_depth_long_env(depth_odv, 2, "SIL", 1, 28, expression(bold("SiO" ["4"] ^"2-"*" µmol/L")))) +
   (interpolate_depth_long_env(depth_odv, 3, "SIL", 1, 28, expression(bold("SiO" ["4"] ^"2-"*" µmol/L")))) +
-  plot_annotation(tag_levels = "A", title = "") +
+  plot_annotation(tag_levels = "a", title = "") +
   plot_layout(ncol = 4)
+# ggsave("figures/env-profiles-all.svg", width = 20, height = 20, device = "svg", limitsize = FALSE)
 ```
 
 ```{r, fig.width=20, fig.height=20, warning=FALSE, message=FALSE}
@@ -677,17 +681,146 @@ surf_sil +
   (interpolate_depth_long_env(depth_odv, 3, "NO2", 0, 0.5, expression(bold("NO"["2"]*" µmol/L")))) +
   #
   surf_po4 + 
-  (interpolate_depth_long_env(depth_odv, 1, "PO4", 0, 2.5, expression(bold("PO"["4"]*" µmol/L")))) +
-  (interpolate_depth_long_env(depth_odv, 2, "PO4", 0, 2.5, expression(bold("PO"["4"]*" µmol/L")))) +
-  (interpolate_depth_long_env(depth_odv, 3, "PO4", 0, 2.5, expression(bold("PO"["4"]*" µmol/L")))) +
+  (interpolate_depth_long_env(depth_odv, 1, "PO4", 0, 2.8, expression(bold("PO"["4"]*" µmol/L")))) +
+  (interpolate_depth_long_env(depth_odv, 2, "PO4", 0, 2.8, expression(bold("PO"["4"]*" µmol/L")))) +
+  (interpolate_depth_long_env(depth_odv, 3, "PO4", 0, 2.8, expression(bold("PO"["4"]*" µmol/L")))) +
   #
-  plot_annotation(tag_levels = "A", title = "Transect 1") +
+  plot_annotation(tag_levels = "a") +
   plot_layout(ncol = 4)
+# ggsave("figures/nutrient-profiles-all.svg", width = 20, height = 20, device = "svg", limitsize = FALSE)
 ```
+
+# Determine depth features
+
+```{r}
+tmp <- read.csv("GradGoM23_MasterSpreadsheet_9-26-23.xlsx - Master.csv")
+colnames(tmp)
+# head(env_metadata_toplot)
+```
+
+```{r}
+raw_env_data <- tmp %>% 
+  select(Station, Niskin, Depth = `Bottle.Depth..m.`, Latitude, Longitude, Date, Time_UTC = `Time..UTC.`, value = `Fluorescence.CTD`) %>% 
+  mutate(Station = as.integer(Station),
+         Depth = as.numeric(Depth),
+         value = as.numeric(value)) %>% 
+  add_column(ENV_VARIABLE = "Fluorescence",
+             depth_feature = "")
+# colnames(raw_env_data)
+# colnames(env_metadata_toplot)
+
+
+stn_list <- as.character(unique(stn_info$Station))
+
+env_metadata_toplot_flor <- rbind(env_metadata_toplot, raw_env_data) %>% 
+  filter(Station %in% stn_list)
+# glimpse(raw_env_data)
+# glimpse(env_metadata_toplot)
+```
+
+```{r}
+head(env_metadata_toplot_flor)
+unique(env_metadata_toplot_flor$Station)
+length(unique(env_metadata_toplot_flor$Station))
+```
+
+## O2 min
+
+Assign oxygen mininum as the depth with the lowest oxygen below 30 meters.
+```{r}
+o2_min <- env_metadata_toplot_flor %>% 
+  filter(ENV_VARIABLE == "Oxygen") %>% 
+  filter(Depth > 30) %>% 
+  group_by(Station) %>% 
+  mutate(MIN = min(value)) %>% 
+  filter(MIN == value) %>% 
+  select(-MIN) %>% 
+  add_column(FEATURE = "Oxygen minimum")
+head(o2_min)
+```
+
+## DCM
+```{r}
+unique(env_metadata_toplot_flor$ENV_VARIABLE)
+```
+
+Assign oxygen minimum as the depth with the lowest oxygen below 30 meters.
+```{r}
+dcm <- env_metadata_toplot_flor %>% 
+  filter(ENV_VARIABLE == "Fluorescence") %>% 
+  group_by(Station) %>% 
+  mutate(MAX = max(value)) %>% 
+  filter(MAX == value) %>%
+  select(-MAX) %>% 
+  add_column(FEATURE = "DCM")
+# head(o2_min)
+```
+
+## Salt max
+
+```{r}
+sal_max <- env_metadata_toplot_flor %>% 
+  filter(ENV_VARIABLE == "Salinity") %>% 
+  group_by(Station) %>% 
+  mutate(MAX = max(value)) %>% 
+  filter(MAX == value) %>%
+  select(-MAX) %>% 
+  add_column(FEATURE = "Salinity maximum")
+```
+
+## Depth profiles across transects
+
+
+```{r}
+feature_profiles <- rbind(sal_max, o2_min, dcm) %>% 
+  select(FEATURE, Station, Niskin, Depth) %>% drop_na()
+
+# Any duplicates?
+length(feature_profiles$Depth)
+length(unique(feature_profiles$Depth))
+# feature_profiles
+# write.csv(feature_profiles, file = "input-data/feature_profiles_depth.csv")
+```
+
+
+```{r}
+# dim(env_metadata_toplot_flor)
+# head(env_metadata_toplot_flor)
+env_metadata_mod <- env_metadata_toplot_flor %>% 
+  ungroup() %>% 
+  select(-depth_feature) %>% 
+  left_join(feature_profiles) %>% 
+  left_join(stn_info)
+# dim(env_metadata_mod)  
+head(env_metadata_mod)
+```
+```{r, fig.height=3, fig.width=8}
+env_metadata_mod %>% 
+  ungroup() %>% 
+  filter(!is.na(FEATURE)) %>% 
+  select(FEATURE, Station, Depth, Transect) %>% 
+  distinct() %>% 
+  ggplot(aes(x = Station, y = Depth, fill = FEATURE, shape = FEATURE, color = FEATURE)) +
+  geom_jitter(size = 2, width = 0.1) +
+  scale_color_manual(values = c("#18545e", "#603655", "#c49235")) +
+  geom_line() +
+  scale_y_reverse() +
+  facet_grid(cols = vars(Transect), scales = "free", space = "free") +
+  theme_classic() +
+    theme(axis.text = element_text(size = 10, colour="black"),
+          panel.border = element_rect(fill = NA),
+          legend.background = element_blank(),
+          panel.grid.major = element_line(color = "grey90", linetype = "dotdash"),
+        legend.text = element_text(size = 10, colour="black", face = "bold"),
+        legend.title = element_blank())
+# ggsave("figures/depth_profiles.svg", width = 8, height = 3, device = "svg", limitsize = FALSE)
+```
+
 
 # ASVs on map
 
 ```{r}
+load("input-data/gulf-2023-sequence-analysis_10252025.RData", verbose = TRUE)
 head(asv_long_avg_wtax)
 ```
 
@@ -712,7 +845,7 @@ Interpolate function for ASVs:
 # TITLE <- "Total ASVs"
 
 # Put PARAM in quotes
-interpolate_lat_long_asv <- function(df, PARAM, TITLE){
+interpolate_lat_long_asv <- function(df, PARAM, min, max, TITLE){
   # Interpolate
   output_mba <- mba.surf(df[c("Longitude", "Latitude", PARAM)],
                      no.X = 150, no.Y = 150, extend = F)
@@ -739,7 +872,9 @@ head(envs_interpol)
                              aes(x = Longitude, y = Latitude, label = Station),
                              direction = "y", nudge_x = 0.1, nudge_y = 0) +
     geom_point(data = surf_labels, aes(x = Longitude, y = Latitude)) +
-    scale_fill_fermenter(type = "seq", palette = "Reds", direction = 1, na.value = NA) +
+    scale_fill_fermenter(type = "seq", palette = "Reds", 
+                         direction = 1, na.value = NA,
+                         limits = c(min, max)) +
     # scale_fill_gradientn(colours = rev(ODV_colours), na.value=NA) +
     labs(y = "Latitude (°N)", x = "Longitude (°W)", fill = TITLE) +
   scale_x_reverse() +
@@ -760,7 +895,7 @@ head(envs_interpol)
 ### Total ASVs
 
 ```{r, fig.height=4, fig.width=4, warning=FALSE}
-surf_all_asv <- interpolate_lat_long_asv(surface_asv_odv, "ASV_COUNT", "Total ASVs")
+surf_all_asv <- interpolate_lat_long_asv(surface_asv_odv, "ASV_COUNT", 1000, 3000, "Total ASVs")
 surf_all_asv
 ```
 
@@ -880,16 +1015,18 @@ interpolate_depth_long_asv <- function(df_all, transect, PARAM, min, max, TITLE)
         legend.position=c(0.2,0.35))
 }
 
-# interpolate_depth_long_asv(depth_asv_odv, "transect1","ASV_COUNT", 1000, 3000,"Total ASVs")
+interpolate_depth_long_asv(depth_asv_odv, "transect1","ASV_COUNT", 1000, 3000,"Total ASVs")
 ```
 
 ### Total ASVs
-Transects with all ASVs
-```{r, fig.height=4, fig.width=10, warning=FALSE}
+
+```{r, fig.height=5, fig.width=15, warning=FALSE}
+interpolate_lat_long_asv(surface_asv_odv, "ASV_COUNT", 1000, 3000, "Total ASVs") +
 interpolate_depth_long_asv(depth_asv_odv, "transect1","ASV_COUNT", 1000, 3000,"Total ASVs") +
   interpolate_depth_long_asv(depth_asv_odv, "transect2","ASV_COUNT", 1000, 3000, "Total ASVs") +
   interpolate_depth_long_asv(depth_asv_odv, "transect3","ASV_COUNT", 1000, 3000, "Total ASVs") +
-  plot_layout(nrow = 1)
+  plot_layout(nrow = 1) + plot_annotation(tag_levels = c("a"))
+# ggsave("figures/asv-map-all.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
 ```
 ### Taxa by ASVs
 
@@ -909,14 +1046,117 @@ interpolate_depth_long_asv((bytaxa_depth_asvs %>%
   "transect1", "ASV_COUNT",
   100, 1500, "Syndiniales ASVs")
 ```
+## ASV profiles by taxa
+```{r}
+# df_surf <- (bytaxa_surface_asvs %>% 
+#   filter(SUPERGROUP_CLASS == "Dinoflagellata-Syndiniales"))
+# 
+# df <- (bytaxa_depth_asvs %>% 
+#   filter(SUPERGROUP_CLASS == "Dinoflagellata-Syndiniales"))
+```
 
-# Determine depth features
 
-## O2 min
+```{r, fig.height=5, fig.width=17, warning=FALSE}
 
-## DCM
+tax_whole_asv_profile <- function(SUBSET, MIN, MAX, TITLE){
+interpolate_lat_long_asv((bytaxa_surface_asvs %>% 
+  filter(SUPERGROUP_CLASS == SUBSET)), "ASV_COUNT", MIN, MAX, TITLE) +
+interpolate_depth_long_asv((bytaxa_depth_asvs %>% 
+  filter(SUPERGROUP_CLASS == SUBSET)), "transect1","ASV_COUNT", MIN, MAX, TITLE) +
+  interpolate_depth_long_asv((bytaxa_depth_asvs %>% 
+  filter(SUPERGROUP_CLASS == SUBSET)), "transect2","ASV_COUNT", MIN, MAX, TITLE) +
+  interpolate_depth_long_asv((bytaxa_depth_asvs %>% 
+  filter(SUPERGROUP_CLASS == SUBSET)), "transect3","ASV_COUNT", MIN, MAX, TITLE) +
+  plot_layout(nrow = 1, guides = "collect") + plot_annotation(tag_levels = c("a"))
+}
+```
 
-## Salt max
+## Dinoflagellate ASV profiles
+   
+"Dinoflagellata-Syndiniales"          
+```{r, fig.height=5, fig.width=17, warning=FALSE}
+tax_whole_asv_profile("Dinoflagellata-Syndiniales", 100, 2000, "Dinoflagellata-Syndiniales")
+```
+            
+"Dinoflagellata-Noctilucophyceae"      
+```{r, fig.height=5, fig.width=17, warning=FALSE}
+# unique(bytaxa_surface_asvs$SUPERGROUP_CLASS)
+tax_whole_asv_profile("Dinoflagellata-Noctilucophyceae", 0, 10, "Dinoflagellata-Noctilucophyceae")
+```
+
+"Dinoflagellata-Dinophyceae"
+```{r, fig.height=5, fig.width=17, warning=FALSE}
+# unique(bytaxa_surface_asvs$SUPERGROUP_CLASS)
+tax_whole_asv_profile("Dinoflagellata-Dinophyceae", 50, 500, "Dinoflagellata-Dinophyceae")
+```
+"Dinoflagellata-Dinophyta_X"  
+```{r, fig.height=5, fig.width=17, warning=FALSE}
+# unique(bytaxa_surface_asvs$SUPERGROUP_CLASS)
+tax_whole_asv_profile("Dinoflagellata-Dinophyta_X", 0, 10, "Dinoflagellata-Dinophyta_X"  )
+```
+
+## Radiolaria ASV profiles
+
+```{r}
+# unique(bytaxa_surface_asvs$SUPERGROUP_CLASS)
+colnames(asv_long_avg_wtax)
+asv_long_avg_wtax %>% 
+  filter(grepl("Radiolaria", SUPERGROUP_CLASS)) %>% 
+  ungroup() %>% 
+  group_by(SUPERGROUP_CLASS) %>% 
+  summarise(ASV = n())
+  
+```
+
+"Radiolaria-Polycystinea"
+```{r, fig.height=5, fig.width=17, warning=FALSE}
+tax_whole_asv_profile("Radiolaria-Polycystinea", 10, 200, "Radiolaria-Polycystinea")
+```
+"Radiolaria-Acantharea"
+```{r, fig.height=5, fig.width=17, warning=FALSE}
+tax_whole_asv_profile("Radiolaria-Acantharea", 10, 200, "Radiolaria-Acantharea")
+```
+"Radiolaria-RAD-A"
+"Radiolaria-RAD-B"
+"Radiolaria-RAD-C"
+```{r, fig.height=5, fig.width=17, warning=FALSE}
+tax_whole_asv_profile("Radiolaria-RAD-A", 10, 70, "Radiolaria-RAD-A")
+tax_whole_asv_profile("Radiolaria-RAD-B", 10, 70, "Radiolaria-RAD-B")
+tax_whole_asv_profile("Radiolaria-RAD-C", 10, 70, "Radiolaria-RAD-C")
+```
+
+## Gyrista ASV profiles
+
+```{r}
+# unique(bytaxa_surface_asvs$SUPERGROUP_CLASS)
+colnames(asv_long_avg_wtax)
+asv_long_avg_wtax %>% 
+  filter(grepl("Gyrista", SUPERGROUP_CLASS)) %>% 
+  ungroup() %>% 
+  group_by(SUPERGROUP_CLASS) %>% 
+  summarise(ASV = n())
+  
+```
+
+"Gyrista-Chrysophyceae"
+```{r, fig.height=5, fig.width=17, warning=FALSE}
+tax_whole_asv_profile("Gyrista-Chrysophyceae", 0, 20, "Gyrista-Chrysophyceae")
+```
+
+"Gyrista-Bacillariophyceae"
+```{r, fig.height=5, fig.width=17, warning=FALSE}
+tax_whole_asv_profile("Gyrista-Bacillariophyceae", 0, 20, "Gyrista-Bacillariophyceae")
+```
+
+"Gyrista-Coscinodiscophyceae"
+```{r, fig.height=5, fig.width=17, warning=FALSE}
+tax_whole_asv_profile("Gyrista-Coscinodiscophyceae", 0, 20, "Gyrista-Coscinodiscophyceae")
+```
+
+"Gyrista-Dictyochophyceae"
+```{r, fig.height=5, fig.width=17, warning=FALSE}
+tax_whole_asv_profile("Gyrista-Dictyochophyceae", 0, 20, "Gyrista-Dictyochophyceae")
+```
 
 # Session Information
 
