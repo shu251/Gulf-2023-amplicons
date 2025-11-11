@@ -6,6 +6,8 @@ project:
     - gulf-2023-amplicon-analysis.qmd
     - gulf-data-analysis_2023.qmd
     - gulf-map-physical_2023.qmd
+    - Fxn_trait_classification.qmd
+    - GOM23_OilHW_Analysis.Rmd
 
 execute:
   eval: true
@@ -22,6 +24,10 @@ website:
         text: Spatial analysis
       - href: gulf-data-analysis_2023.qmd
         text: ASV analysis
+      - href: Fxn_trait_classification.qmd
+        text: Assign functional traits
+      - href: GOM23_OilHW_Analysis.Rmd
+        text: Oil Rig analysis
 
 format:
   html:
