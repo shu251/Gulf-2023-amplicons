@@ -1282,18 +1282,22 @@ RDA reveals relationships among the sites and the environmental parameters. We c
 ```{r}
 set.seed(1234)
 head(table1)
+buffer_counts <- read.csv("input-data/OilRig_BufferCount - Sheet1.csv")
+head(buffer_counts)
+features <- read.csv(file = "input-data/feature_profiles_depth.csv")
+head(features)
 ```
 
 ```{r}
-features <- read.csv(file = "input-data/feature_profiles_depth.csv")
-head(features)
 # table(features %>% select(FEATURE, Station))
 features %>% select(-X, -Niskin) %>% 
-  pivot_wider(names_from = FEATURE, values_from = Depth)
+  pivot_wider(names_from = FEATURE, values_from = Depth) %>% 
+  left_join(buffer_counts)
 
 table1_wfeature <- table1 %>% select(-depth_feature) %>% 
   left_join((features %>% select(-X, -Niskin) %>% 
   pivot_wider(names_from = FEATURE, values_from = Depth))) %>% 
+  left_join(buffer_counts) %>% 
   mutate(SALT_MAX = case_when(
     Depth >= `Salinity maximum` ~ "Below salinity maximum", #At and below the salinity maximum
     Depth < `Salinity maximum` ~ "Above salinity maximum",
@@ -1316,8 +1320,8 @@ table1_wfeature <- table1 %>% select(-depth_feature) %>%
 # Make categorical data table from metadata (Table 1)
 categorical <- table1_wfeature %>% 
   filter(STN_NISKIN != "S12_N10") |> 
-  select(STN_NISKIN, Transect, DCM, O2_MIN, SALT_MAX) %>% distinct()
-
+  select(STN_NISKIN, Transect, OilRig_Count) %>% distinct()
+# str(categorical)
 # Generate a matrix of numerical data from metadata
 metadata_for_rda_0 <- table1_wfeature %>% 
   filter(STN_NISKIN != "S12_N10") |> 
@@ -1373,8 +1377,6 @@ clr_asv_matrix <- data.frame(compositions::clr(asv_wide_avg_rda_0))
 asv_list <- rownames(asv_wide_avg_rda_0)
 meta_list <- rownames(metadata_normalized)
 clr_list <- rownames(clr_asv_matrix)
-# asv_list %in% meta_list
-# meta_list %in% clr_list
 # setdiff(meta_list, clr_list)
 ```
 Run RDA analysis
@@ -1401,13 +1403,14 @@ First create a function for running RDA analysis.
 # How to use:
 ## Modify and subsame table1 or asv_long_avg_wtax completely before use.
 ## Check to make sure the same STN_NISKIN IDs are present in both.
-run_rda <- function(mod_metadata, mod_asv_long, CATEGORIES){
+run_rda <- function(mod_metadata, mod_asv_long){
   # Select categorical data
   # mod_metadata <- surf_table
   # mod_asv_long <- surf_asv
+  # 
   # CATEGORIES <- c("Transect") #Character list
   categorical <- mod_metadata %>% 
-    select(STN_NISKIN, all_of(CATEGORIES)) %>% distinct()
+    select(STN_NISKIN, Transect, OilRig_Count) %>% distinct()
   # Isolate numerical data as matrix
   metadata_for_rda_0 <- mod_metadata %>% 
     select(STN_NISKIN, DIST_OUTFLOW, Depth, NH4, NO2, NO3, Oxygen, PO4, SIL, Salinity, Temperature) %>% distinct() %>% 
@@ -1451,7 +1454,7 @@ run_rda <- function(mod_metadata, mod_asv_long, CATEGORIES){
 ```
 
 
-### Above DCM 
+### Above | Below DCM 
 
 Generate a matrix from ASV counts
 ```{r}
@@ -1470,16 +1473,116 @@ surf_asv <- asv_long_avg_wtax %>%
 # How to use:
 ## Modify and subsame table1 or asv_long_avg_wtax completely before use.
 ## Check to make sure the same STN_NISKIN IDs are present in both.
-above_DCM <- c("Transect")
-above_dcm_rda <- run_rda(surf_table, surf_asv, above_DCM)
-```
-
-```{r}
+above_dcm_rda <- run_rda(surf_table, surf_asv); above_dcm_rda
+# above_dcm_rda
 RsquareAdj(above_dcm_rda)$adj.r.squared
 anova.cca(above_dcm_rda, step = 100, by = "term")
 ```
+```{r}
+below_table <- table1_wfeature %>% 
+  filter(STN_NISKIN != "S12_N10") |> 
+  # Filter low abundance ASVs
+  filter(DCM != "Above DCM") %>% ungroup()
 
-## Dinoflagellates, Diatoms, other abundant?
+below_subset <- as.character(unique(below_table$STN_NISKIN))
+# surf_subset
+
+below_asv <- asv_long_avg_wtax %>%
+  filter(MEAN_REPS_seq >= 50) %>% 
+  filter(STN_NISKIN %in% below_subset) %>% ungroup()
+
+below_dcm_rda <- run_rda(below_table, below_asv); below_dcm_rda
+
+RsquareAdj(below_dcm_rda)$adj.r.squared
+anova.cca(below_dcm_rda, step = 100, by = "term")
+```
+
+
+### Above | Below O2 minimum
+
+```{r}
+# head(table1_wfeature)
+below_02_table <- table1_wfeature %>% 
+  filter(STN_NISKIN != "S12_N10") |> 
+  # Filter low abundance ASVs
+  filter(O2_MIN == "Below oxygen minimum") %>% ungroup()
+
+below_02_subset <- as.character(unique(below_02_table$STN_NISKIN))
+# surf_subset
+
+below_02_asv <- asv_long_avg_wtax %>%
+  filter(MEAN_REPS_seq >= 50) %>% 
+  filter(STN_NISKIN %in% below_02_subset) %>% ungroup()
+
+below_02_rda <- run_rda(below_02_table, below_02_asv); below_02_rda
+
+RsquareAdj(below_02_rda)$adj.r.squared
+anova.cca(below_02_rda, step = 100, by = "term")
+```
+
+```{r}
+# head(table1_wfeature)
+above_02_table <- table1_wfeature %>% 
+  filter(STN_NISKIN != "S12_N10") |> 
+  # Filter low abundance ASVs
+  filter(O2_MIN != "Below oxygen minimum") %>% ungroup()
+
+above_02_subset <- as.character(unique(above_02_table$STN_NISKIN))
+# surf_subset
+
+above_02_asv <- asv_long_avg_wtax %>%
+  filter(MEAN_REPS_seq >= 50) %>% 
+  filter(STN_NISKIN %in% above_02_subset) %>% ungroup()
+
+above_02_rda <- run_rda(above_02_table, above_02_asv); above_02_rda
+
+RsquareAdj(above_02_rda)$adj.r.squared
+anova.cca(above_02_rda, step = 100, by = "term")
+```
+
+## RDA with taxa
+
+
+### Dinoflagellates
+
+```{r}
+dino_table <- table1_wfeature %>% 
+  filter(STN_NISKIN != "S12_N10") %>% 
+  ungroup()
+
+dino_subset <- as.character(unique(dino_table$STN_NISKIN))
+
+dino_asv <- asv_long_avg_wtax %>%
+  filter(Supergroup_simplified == "TSAR-Dinoflagellata") %>% 
+  filter(MEAN_REPS_seq >= 50) %>% 
+  filter(STN_NISKIN %in% dino_subset) %>% ungroup()
+
+dino_rda <- run_rda(dino_table, dino_asv); dino_rda
+
+RsquareAdj(dino_rda)$adj.r.squared
+anova.cca(dino_rda, step = 100, by = "term")
+```
+
+### Syndiniales
+
+```{r}
+syn_table <- table1_wfeature %>% 
+  filter(STN_NISKIN != "S12_N10") %>% 
+  ungroup()
+
+syn_subset <- as.character(unique(syn_table$STN_NISKIN))
+
+syn_asv <- asv_long_avg_wtax %>%
+  filter(Class == "Syndiniales") %>% 
+  filter(MEAN_REPS_seq >= 50) %>%
+  filter(STN_NISKIN %in% syn_subset) %>% ungroup()
+
+syn_rda <- run_rda(syn_table, syn_asv); syn_rda
+
+RsquareAdj(syn_rda)$adj.r.squared
+anova.cca(syn_rda, step = 100, by = "term")
+```
+
 
 # Dinoflagellate functional traits
 
@@ -1491,22 +1594,22 @@ dino_trait_asv <- asv_long_avg_wtax %>%
   filter(Supergroup_simplified == "TSAR-Dinoflagellata") %>% 
   left_join(dino_fxn) %>% 
   select(-starts_with("X"), -depth_feature)
-glimpse(dino_trait_asv)
+# glimpse(dino_trait_asv)
 ```
-```{r, fig.height=5, fig.width=8}
+
+```{r, fig.height=4, fig.width=10}
 # unique(dino_trait_asv$Feeding.Mode)
 # unique(dino_trait_asv$Morphotype)
 
 dino_trait_asv %>% 
   ungroup() %>% 
-  filter(!is.na(Feeding.Mode)) %>% 
+  # filter(!is.na(Feeding.Mode)) %>% 
   group_by(STN_NISKIN, Station, Depth, DEPTH_BIN, Feeding.Mode, Morphotype) %>% 
   summarise(ASV_TOTAL = n(),
             SEQ_SUM = sum(MEAN_REPS_seq)) %>% 
   ggplot(aes(x = ASV_TOTAL, y = Depth, fill = Feeding.Mode, size = SEQ_SUM)) +
     geom_jitter(stat = "identity", shape = 21, width = 0.9) +
-  facet_grid(cols = vars(Feeding.Mode), space = "free_x") +
-
+  facet_grid(cols = vars(Feeding.Mode),  scale = "free") +
   scale_y_reverse() +
   scale_fill_manual(values = c("#6edb8f", "#ab70e6", "#ebb923")) +
   scale_size(range=c(2,7), guide="legend") +
@@ -1551,98 +1654,274 @@ dino_trait_asv %>%
     strip.text.x = element_text(color = "black", size = 10)
   ) + labs(x = "", y = "")
 ```
+### Gymnodiniales & Peridiniales
 
+4% of all Gymnodiniales ASVs and 5.5% of all sequences.
+
+```{r}
+head(dino_trait_asv)
+total_dino_asvs <- length(unique(dino_trait_asv$FeatureID))
+total_dino_seqs <- sum(dino_trait_asv$MEAN_REPS_seq)
+gymnod <- dino_trait_asv %>% 
+  filter(Order == "Gymnodiniales")
+(length(unique(gymnod$FeatureID)) / total_dino_asvs) * 100
+((sum(gymnod$MEAN_REPS_seq)) / total_dino_seqs) * 100
+
+
+```
+
+```{r}
+perid <- dino_trait_asv %>% 
+  filter(Order == "Peridiniales")
+(length(unique(perid$FeatureID)) / total_dino_asvs) * 100
+((sum(perid$MEAN_REPS_seq)) / total_dino_seqs) * 100
+"Peridiniales" #Order
+```
+
+```{r, fig.width=14, fig.height=4}
+dino_trait_asv %>% 
+  filter(Order == "Peridiniales" | Order == "Gymnodiniales") %>% 
+  filter(!is.na(Feeding.Mode)) %>% 
+  group_by(DEPTH_BIN, Order, Genus, Feeding.Mode, Morphotype) %>% 
+  summarise(SUM = sum(MEAN_REPS_seq),
+            ASV = n()) %>% 
+  mutate(DEPTH_BIN_ORDER = factor(DEPTH_BIN, levels = rev(depth_bin))) %>%
+  ggplot(aes(x = SUM, y = DEPTH_BIN_ORDER, fill = Genus)) +
+  geom_bar(stat = "identity", position = "fill", color = "black", width = 0.7) +
+  facet_grid(cols = vars(Order, Feeding.Mode, Morphotype), space = "free", scales = "free") +
+  theme_classic() +
+  theme(strip.background = element_blank(), 
+        strip.text = element_text(color = "black", face = "bold", hjust = 0),
+        axis.text = element_text(color = "black", face = "bold")) +
+  labs(x = "Proportion of sequences", y = "Depth (m)")
+```
+
+
+### Parasites
+```{r}
+dino_trait_asv %>% 
+  filter(Class == "Syndiniales") %>% 
+  # filter(!is.na(Feeding.Mode)) %>% 
+  group_by(DEPTH_BIN, Class, Order) %>% 
+  summarise(SUM = sum(MEAN_REPS_seq),
+            ASV = n()) %>% 
+  mutate(DEPTH_BIN_ORDER = factor(DEPTH_BIN, levels = rev(depth_bin))) %>%
+  ggplot(aes(x = SUM, y = DEPTH_BIN_ORDER, fill = Order)) +
+  geom_bar(stat = "identity", position = "fill", color = "black", width = 0.7) +
+  facet_grid(cols = vars(Class), space = "free", scales = "free") +
+  theme_classic() +
+  theme(strip.background = element_blank(), 
+        strip.text = element_text(color = "black", face = "bold", hjust = 0),
+        axis.text = element_text(color = "black", face = "bold")) +
+  labs(x = "Proportion of sequences", y = "Depth (m)")
+```
+```{r, fig.height=5, fig.width=18}
+dino_trait_asv %>% 
+  filter(Class == "Syndiniales") %>% 
+  # filter(!is.na(Feeding.Mode)) %>% 
+  filter(!is.na(Family)) %>% 
+  group_by(DEPTH_BIN, Order, Family) %>% 
+  summarise(SUM = sum(MEAN_REPS_seq),
+            ASV = n()) %>% 
+  mutate(DEPTH_BIN_ORDER = factor(DEPTH_BIN, levels = rev(depth_bin))) %>%
+  ggplot(aes(x = Family, y = DEPTH_BIN_ORDER, fill = log(SUM))) +
+  # geom_bar(stat = "identity", position = "fill", color = "black", width = 0.7) +
+  geom_tile(color = "black") +
+  scale_fill_fermenter(type = "seq", palette = 4, direction = 1) +
+  facet_grid(cols = vars(Order), space = "free", scales = "free") +
+  theme_classic() +
+  theme(strip.background = element_blank(), 
+        strip.text = element_text(color = "black", face = "bold", hjust = 0),
+        axis.text.y = element_text(color = "black", face = "bold"),
+        axis.text.x = element_text(color = "black", face = "bold", angle = 45, hjust = 1, vjust = 1)) +
+  labs(x = "Syndiniales Families", y = "Depth (m)")
+```
 
 # Indicator Species
 
-# CRT
+## indicspecies
+https://cran.r-project.org/web/packages/indicspecies/vignettes/IndicatorSpeciesAnalysis.html
 
 ```{r}
-# install.packages("tree")
-library(rpart)
-library(tree)
+library(indicspecies)
 ```
+
+multipatt is the name of the command from the indicspecies package. The mulitpatt command results in lists of species that are associated with a particular group of samples. If your group has more than 2 categories, multipatt will also identify species that are statistically more abundant in combinations of categories.
+
+The parameters for multipatt are as follows:
+
+the community abundance matrix:"abund"
+the vector that contains your sample grouping information: "time"
+the function that multipatt is using to identify indicator species: func = "r.g"
+the number of permutations used in the statistical test: control = how(nperm=9999)
+
+https://cran.r-universe.dev/indicspecies/doc/manual.html
 
 ```{r}
-data("iris")
-head(iris)
-iris_df <- iris
-colnames(iris_df) <- c("sepall", "sepalw", "petall", "petalw", "class")
+unique(asv_long_avg_wtax$Supergroup_simplified)
 ```
 
-CRT, on the other side, focuses on creating predictive models for classifying and prioritizing data as “key indicator variables”. CRT employs a decision tree approach, partitioning the dataset based on informative environmental variables to create a hierarchical structure of decision rules (Alkhasawneh et al., 2014). We used CRT to identify specific taxonomic groups as “key indicator variables” that show ability to indicate different DLs.
-
-```{r}
-xtabs( ~ class, data = iris_df)
-```
-
-```{r}
-# execute tree classification
-iris.tree <- tree::tree(class ~ ., data = iris_df)
-# ?tree()
-head(iris_df)
-```
-
-Above step fits a classification or regression tree with data.
-
-```{r}
-summary(iris.tree)
-# Only 3 of 4 variables were used for the tree.
-# misclassification error rate? 
-```
-
-```{r}
-plot(iris.tree); text(iris.tree, all = T)
-```
-
-For this classification tree, petall has a value \< 2.45, therefore suggesting it has a more important classification. Sepall \<5.15 indicates that is has a less important criterion
-
-Next we "prune" the tree to reduce complexity. For this, we use a function to identify the number of significant notes. The cross validation will find the number of misclassifications.
-
-```{r}
-tree::cv.tree(iris.tree)
-```
-
-We prune the small branches. Therefore, we want to remove the "Branches" from the tree with the fewest data points. Therefore, we look at the output values of k and see when the values start to really increase. In this example, it is 3. A tree size of 3 is therefore suitable. THe *K* is considered the "cost-complexity parameter" (which is the "Best" number of nodes/branches to include. )
-
-Pruning the tree:
-
-```{r}
-iris.tree.prune <- prune.misclass(iris.tree, best = 3)
-summary(iris.tree.prune)
-```
-
-```{r}
-plot(iris.tree.prune);text(iris.tree.prune, all = T)
-```
-
-The tree is much less complex.
-
-### CRT all samples
-
-```{r}
-# head(asv_long_avg_wtax)
-```
 
 ```{r}
 # | eval: false
-# input_CRT <- asv_long_avg_wtax %>% 
-#   select(FeatureID, DEPTH, TEMP, SALINITY, OXYGEN, NH4, MEAN_REPS_seq) %>% distinct()
-# 
-# toy_input_CRT <- input_CRT %>% 
-#   sample_n(1000)
-# 
-# test_tree <- tree(FeatureID ~ , toy_input_CRT)
-# summary(test_tree)
+# | echo: true
+indic_input <- asv_long_avg_wtax %>%
+  filter(STN_NISKIN != "S12_N10") %>% 
+  filter(Supergroup_simplified != "TSAR-NA") %>% 
+  filter(!grepl("_X", Supergroup_simplified)) %>%
+  left_join(table1_wfeature %>% select(STN_NISKIN, DCM, OilRig_Count, SALT_MAX, O2_MIN)) %>% 
+  filter(MEAN_REPS_seq >= 25) %>%
+  select(STN_NISKIN, DEPTH_BIN, NH4, NO2, NO3, Oxygen, PO4, SIL, Salinity, Temperature, DCM, OilRig_Count, SALT_MAX, O2_MIN, MEAN_REPS_seq, FeatureID) %>%
+  distinct() %>%
+  pivot_wider(names_from = FeatureID, values_from = MEAN_REPS_seq, values_fill = 0)
+  # select(-TEMP, -SALINITY)
+head(indic_input)
+```
 
-# test_tree$frame
-# plot(test_tree); text(test_tree, all = T)
+Ahead of determining indicator species, ASVs were filtered to only include those that had more than or equal to 25 sequences.
+
+## IndVal
+
+two species are not strongly correlated and their frequency in the data set is larger than the frequency of sites belonging to the site group, the joint occurrence of the two species has higher positive predictive value for the site group than the two species taken independently
+
+‘d’ of species as the product of the relative frequency and relative average abundance in clusters.
+
+```{r, eval=FALSE}
+# | eval: false
+# | echo: true
+# STN_NISKIN, DEPTH_BIN, NH4, NO2, NO3, Oxygen, PO4, SIL, Salinity, Temperature, DCM, OilRig_Count, SALT_MAX, O2_MIN, MEAN_REPS_seq, FeatureID
+
+# clust <- indic_input$DEPTH_BIN
+# clust <- indic_input$DCM
+clust <- indic_input$O2_MIN
+# clust <- indic_input$SALT_MAX
+
+abun <- indic_input %>% 
+  select(-DEPTH_BIN, -NH4, -NO2, -NO3, -Oxygen, -PO4, -SIL, -Salinity, -Temperature, -DCM, -OilRig_Count, -SALT_MAX, -O2_MIN) %>% 
+  column_to_rownames(var = "STN_NISKIN")
+```
+
+```{r, eval=FALSE}
+# | eval: false
+# | echo: true
+INV <- multipatt(abun, clust, func = "r.g", control = how(nperm = 99))
+summary(INV)
+
+# ?multipatt
+# depth_bin_result <- INV
+# dcm_result <- INV
+# o2_result <- INV
+# salt_result <- INV
+```
+
+```{r, eval=FALSE}
+# | eval: false
+# | echo: true
+process_inv_output <- function(INV){
+  A <- colnames(as.data.frame(INV$sign))[1]
+  B <- colnames(as.data.frame(INV$sign))[2]
+  # C <- colnames(as.data.frame(INV$sign))[3]
+  # D <- colnames(as.data.frame(INV$sign))[4]
+  # E <- colnames(as.data.frame(INV$sign))[5]
+  # F_ <- colnames(as.data.frame(INV$sign))[6]
+  # G <- colnames(as.data.frame(INV$sign))[7]
+  # H <- colnames(as.data.frame(INV$sign))[8]
+  # I <- colnames(as.data.frame(INV$sign))[9]
+  tmp_indv <- as.data.frame(INV$sign) %>% 
+  mutate(INV_SP_RESULT = case_when(
+    (.[[1]] == 1 & p.value <= 0.05) ~ A,
+    (.[[2]] == 1 & p.value <= 0.05) ~ B
+    # (.[[3]] == 1 & p.value <= 0.05) ~ C,
+    # (.[[4]] == 1 & p.value <= 0.05) ~ D,
+    # (.[[5]] == 1 & p.value <= 0.05) ~ E,
+    # (.[[6]] == 1 & p.value <= 0.05) ~ F_,
+    # (.[[7]] == 1 & p.value <= 0.05) ~ G,
+    # (.[[8]] == 1 & p.value <= 0.05) ~ H,
+    # (.[[9]] == 1 & p.value <= 0.05) ~ I
+  )) %>% 
+  rownames_to_column(var = "FeatureID") %>% 
+  select(FeatureID, p.value, INV_SP_RESULT) %>% 
+  pivot_wider(names_from = INV_SP_RESULT, values_from = p.value) %>% 
+    select(-`NA`)
+}
+# colnames(as.data.frame(depth_bin_result$sign))[1:9]
+depth_inv <- process_inv_output(depth_bin_result)
+dcm_inv <- process_inv_output(dcm_result)
+o2_inv <- process_inv_output(o2_result)
+salt_inv <- process_inv_output(salt_result)
+
+asv_list_feature <- asv_long_avg_wtax %>% 
+  select(FeatureID) %>% distinct() %>%
+  left_join(depth_inv) %>% 
+  left_join(dcm_inv) %>% 
+  left_join(o2_inv) %>% 
+  left_join(salt_inv) %>% 
+  pivot_longer(cols = starts_with("s."), names_to = "Indicative_of", values_to = "p_value") %>% 
+  filter(!is.na(p_value))
 ```
 
 ```{r}
-# install.packages("devtools")
-# require("devtools")
-# devtools::install_github(repo = 'zellerlab/siamcat')
+# save(asv_list_feature, file = "input-data/asv_list_feature.RData")
+load(file = "input-data/asv_list_feature.RData")
+head(asv_long_avg_wtax)
+```
+
+
+```{r, fig.height=20, fig.width=25}
+# Sum by taxonomic groups
+asv_long_avg_wtax %>%
+   filter(STN_NISKIN != "S12_N10") %>% 
+  filter(Supergroup_simplified != "Eukaryota") %>% 
+  filter(Supergroup_simplified != "TSAR-NA") %>% 
+  filter(Supergroup_simplified != "Obazoa-Metazoa") %>% 
+  left_join(asv_list_feature) %>% 
+  filter(!is.na(p_value)) %>% 
+  group_by(STN_NISKIN, Station, Niskin, Depth, DEPTH_BIN,
+           DEPTH_ORDER, Supergroup_simplified, Indicative_of) |> 
+  summarise(SUM_SEQ = sum(MEAN_REPS_seq),
+            ASV_COUNT = n()) %>%
+  # Factoring and ordering
+  mutate(label_order = factor(STN_NISKIN, levels = labels_for_dendro)) %>% 
+  # mutate(label_order = str_remove(label_order, "_")) |> 
+  ggplot(aes(y = (label_order), x = SUM_SEQ, fill = Supergroup_simplified)) +
+    geom_bar(stat = "identity", position = "fill", 
+             color = "grey20", width = 0.8, linewidth = 0.5) +
+  scale_fill_manual(values = tax_color) +
+  facet_grid(cols = vars(Indicative_of)) +
+  scale_y_discrete(position = "right") +
+  theme_void() + theme(
+    legend.position = "right",
+    legend.title = element_blank(),
+    legend.text = element_text(color = "black"),
+    strip.background = element_blank(),
+    axis.line.x = element_line(),
+    
+    axis.title = element_text(color = "black"),
+    axis.text.y = element_text(color = "black", vjust = 0.5, hjust = 0, size = 10),
+    axis.text.x = element_text(color = "black", size = 8)) +
+  guides(fill = guide_legend(reverse = TRUE, ncol = 1)) +
+  labs(x = "", y = "")
+
+```
+
+Table to demonstrate how many ASVs and what taxa could be indicator species. 
+```{r}
+total_seq <- sum(asv_long_avg_wtax$MEAN_REPS_seq)
+total_asv <- length(unique(asv_long_avg_wtax$FeatureID))
+
+table2 <- asv_long_avg_wtax %>%
+  filter(STN_NISKIN != "S12_N10") %>% 
+  left_join(asv_list_feature) %>% 
+  filter(!is.na(Indicative_of)) %>% 
+  group_by(Supergroup_simplified, Indicative_of) %>% 
+  summarise(SEQ_SUM = sum(MEAN_REPS_seq),
+            ASV_COUNT = n(),
+            SEQ_PERC = round((SEQ_SUM/total_seq)*100, digits = 1),
+            ASV_PERC = round((ASV_COUNT/total_asv)*100, digits = 1)) %>% 
+  select(Supergroup_simplified, Indicative_of, ASV_COUNT) %>% 
+  pivot_wider(names_from = "Supergroup_simplified", values_from = "ASV_COUNT")
+table2
+# write.csv(table2, file = "output-tables/table-indicator-spp.csv")
 ```
 
 

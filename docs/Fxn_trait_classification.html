@@ -143,6 +143,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="nav-link active" href="./Fxn_trait_classification.html" aria-current="page"> 
 <span class="menu-text">Assign functional traits</span></a>
   </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./GOM23_OilHW_Analysis.html"> 
+<span class="menu-text">Oil Rig analysis</span></a>
+  </li>  
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
@@ -154,7 +158,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
-    
+    <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#assign-functional-traits-based-on-jones-et-al.-2025." id="toc-assign-functional-traits-based-on-jones-et-al.-2025." class="nav-link active" data-scroll-target="#assign-functional-traits-based-on-jones-et-al.-2025."><span class="header-section-number">1</span> Assign functional traits based on Jones et al.&nbsp;2025.</a>
+  <ul class="collapse">
+  <li><a href="#import-dataframes-to-align." id="toc-import-dataframes-to-align." class="nav-link" data-scroll-target="#import-dataframes-to-align."><span class="header-section-number">1.1</span> Import dataframes to align.</a></li>
+  <li><a href="#explore-joined-table." id="toc-explore-joined-table." class="nav-link" data-scroll-target="#explore-joined-table."><span class="header-section-number">1.2</span> Explore joined table.</a></li>
+  <li><a href="#summary-of-feeding-modes-and-morphotypes" id="toc-summary-of-feeding-modes-and-morphotypes" class="nav-link" data-scroll-target="#summary-of-feeding-modes-and-morphotypes"><span class="header-section-number">1.3</span> Summary of feeding modes and morphotypes</a></li>
+  </ul></li>
+  </ul>
+</nav>
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
@@ -182,7 +197,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Assign functional traits based on Jones et al.&nbsp;2025.</p>
+<section id="assign-functional-traits-based-on-jones-et-al.-2025." class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Assign functional traits based on Jones et al.&nbsp;2025.</h1>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("stringdist")</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
@@ -190,7 +206,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(fuzzyjoin)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Import dataframes to align.</p>
+<section id="import-dataframes-to-align." class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="import-dataframes-to-align."><span class="header-section-number">1.1</span> Import dataframes to align.</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>jones <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"../tax_annotation_proj/TMDv1.1_Jones.csv"</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(<span class="st">`</span><span class="at">Grazer.Taxonomic.ID</span><span class="st">`</span>, <span class="at">into =</span> <span class="fu">c</span>(<span class="st">"GENUS"</span>, <span class="st">"SPECIES"</span>), <span class="at">sep =</span> <span class="st">" "</span>, <span class="at">remove =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span> </span>
@@ -230,7 +247,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co"># table(joined$GENUS_SPECIES.y)</span></span>
 <span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(joined<span class="sc">$</span>Morphotype)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Explore joined table.</p>
+</section>
+<section id="explore-joined-table." class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="explore-joined-table."><span class="header-section-number">1.2</span> Explore joined table.</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(joined)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -251,7 +270,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>           Subdivision <span class="sc">==</span> <span class="st">"Ciliophora"</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(FeatureID, Subdivision, Feeding.Mode, Morphotype, GENUS_SPECIES.x, GENUS_SPECIES.y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Summary of feeding modes and morphotypes</p>
+</section>
+<section id="summary-of-feeding-modes-and-morphotypes" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="summary-of-feeding-modes-and-morphotypes"><span class="header-section-number">1.3</span> Summary of feeding modes and morphotypes</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(result_joined <span class="sc">%&gt;%</span> <span class="fu">select</span>(Subdivision, Feeding.Mode))</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -279,6 +300,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 
 
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

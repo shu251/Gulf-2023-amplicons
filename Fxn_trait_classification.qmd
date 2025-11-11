@@ -1,0 +1,138 @@
+---
+title: "Functional traits"
+editor: source
+eval: false
+echo: true
+format:
+  html:
+    theme: flatly
+    toc: true
+    toc-location: left
+    number-sections: true
+    number-depth: 3
+---
+
+
+# Assign functional traits based on Jones et al. 2025. 
+
+```{r, message=FALSE, warning=FALSE}
+# install.packages("stringdist")
+library(tidyverse)
+library(stringdist)
+library(data.table)
+library(fuzzyjoin)
+```
+
+## Import dataframes to align.
+```{r}
+jones <- read.csv("../tax_annotation_proj/TMDv1.1_Jones.csv") %>% 
+  separate(`Grazer.Taxonomic.ID`, into = c("GENUS", "SPECIES"), sep = " ", remove = FALSE) %>% 
+  # separate_longer_delim(`Synonym.Basionym`, delim = ", ") %>% 
+  # separate(`Synonym.Basionym`, into = c("alt_genus", "alt_species"), sep = " ", remove = FALSE) %>% 
+  mutate(SPECIES = str_squish(SPECIES),
+         GENUS = str_squish(GENUS)) %>% 
+         # alt_species = str_squish(alt_species),
+         # alt_genus = str_squish(alt_genus)) %>% 
+  mutate(GENUS_SPECIES = paste(GENUS, SPECIES, sep = " "))
+         # genus_species = paste(alt_genus, alt_species, sep = " "))# %>% 
+  # select(Taxon = `Grazer.Taxonomic.ID`, GENUS_SPECIES, genus_species)
+  
+# head(jones)
+
+gom <- read.csv("../tax_annotation_proj/tax_to_annotate.csv") %>% 
+  # filter(grepl("Dinoflagellata|Ciliophora", Taxon)) %>% 
+  separate(Taxon, into = c("Domain", "Supergroup", "Division", "Subdivision", "Class", "Order", "Family", "Genus", "Species"), sep = ";", remove = FALSE) %>% 
+  separate(Species, into = c("GENUS", "SPECIES"), sep="_(?=[^_]+$)") %>% 
+  filter(SPECIES != "sp.") %>% 
+  unite(GENUS_SPECIES, GENUS, SPECIES, sep = " ")
+# head(gom)
+# unique(gom$Subdivision)
+```
+
+```{r}
+# library(fuzzyjoin)
+joined <- fuzzyjoin::stringdist_left_join(
+  gom, jones,
+  by = c("GENUS_SPECIES"),
+  distance_col = "DIST",
+  ignore_case = TRUE,
+  method = "lv"
+) %>% 
+  mutate(Morphotype = (str_replace_all(Morphotype, "eGNCM", "eSNCM"))) #revision based on Mitra et al. mixotrophy database
+
+head(joined)
+# table(joined$GENUS_SPECIES.y)
+unique(joined$Morphotype)
+```
+
+## Explore joined table.
+
+```{r}
+head(joined)
+```
+
+
+
+
+Jones et al. imported ciliate and dinoflagellate functional traits. Our Gulf data originally had how many ASVs associated with dinoflagellates or ciliates? and now how many have a functional trait?
+```{r}
+# Dino ASVs
+length(unique((joined %>% 
+  filter(Subdivision == "Dinoflagellata"))$FeatureID))
+
+# Cilite ASVs
+length(unique((joined %>% 
+  filter(Subdivision == "Ciliophora"))$FeatureID))
+```
+For dinoflagellates & ciliates, get list of what has been assigned.
+```{r}
+result_joined <- joined %>% 
+  filter(Subdivision == "Dinoflagellata" | 
+           Subdivision == "Ciliophora") %>% 
+  select(FeatureID, Subdivision, Feeding.Mode, Morphotype, GENUS_SPECIES.x, GENUS_SPECIES.y)
+```
+
+## Summary of feeding modes and morphotypes
+```{r}
+table(result_joined %>% select(Subdivision, Feeding.Mode))
+
+table(result_joined %>% select(Subdivision, Morphotype))
+```
+
+*CM*: Constitutive mixotroph
+*NCM*: non-constitutive mixotroph
+*GNCM*: generalist non-constitutive mixotroph
+*SNCM*: specialist non-constitutive mixotroph
+
+Functional type definitions (Mitra et al.:
+* _CM_: Constitutive mixotroph that has a natural ability to photosynthesize.
+* _CM*_: Evidence for constitutive mixotrophy, but not recorded
+* _eGNCM_: Acquires photosynthetic machinery from a variety of prey and retains as endosymbionts. 
+* _PA_: Photoautotroph
+* _pSNCM_: Mixotroph that steals photosynthetic machinery from a specific prey type. plastidic specialist non-constitutive mixotroph.
+* _SH_: Strict heterotrophy
+* _SH*_: Evidence for strict heterotroph, but not recorded
+
+```{r}
+# joined %>% 
+#   filter(Morphotype == "eSNCM")
+```
+
+
+```{r}
+result_joined %>% 
+  group_by(Subdivision) %>% 
+  summarise(total = n(),
+            No_assignment = sum(is.na(Feeding.Mode))) %>% 
+  mutate(Percent_wNone = (No_assignment/total)*100)
+```
+
+Will likely focus on dinoflagellates for this work, as 80% of ASVs have been assigned trophic mode. Make trophic mode key for this Gulf study.
+
+```{r}
+colnames(joined)
+dino_key <- joined %>% 
+  filter(Subdivision == "Dinoflagellata") %>% distinct()
+# write.csv(dino_key, file = "input-data/dino_fxn_trait.csv")
+```
+

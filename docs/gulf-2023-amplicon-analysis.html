@@ -139,6 +139,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="nav-link" href="./gulf-data-analysis_2023.html"> 
 <span class="menu-text">ASV analysis</span></a>
   </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./Fxn_trait_classification.html"> 
+<span class="menu-text">Assign functional traits</span></a>
+  </li>  
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
@@ -2389,55 +2393,41 @@ Residual 80 1903.02</p>
 </div>
 <p>Below is taking much too long on the HPRC and not working.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb140"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb140-1"><a href="#cb140-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(asv_long_avg_wtax)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb140"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb140-1"><a href="#cb140-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(asv_long_avg_wtax)</span>
+<span id="cb140-2"><a href="#cb140-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(table1_wfeature)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb141"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb141-1"><a href="#cb141-1" aria-hidden="true" tabindex="-1"></a>indic_input <span class="ot">&lt;-</span> asv_long_avg_wtax <span class="sc">%&gt;%</span></span>
-<span id="cb141-2"><a href="#cb141-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># filter(DIVISION == "Dinoflagellata") %&gt;%</span></span>
-<span id="cb141-3"><a href="#cb141-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># filter(DEPTH &lt; 5) %&gt;%</span></span>
-<span id="cb141-4"><a href="#cb141-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(MEAN_REPS_seq <span class="sc">&gt;</span> <span class="dv">5</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb141-5"><a href="#cb141-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># filter(TRANSECT == "transect1") %&gt;%</span></span>
-<span id="cb141-6"><a href="#cb141-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># filter(stn == "S1" | stn == "S2") %&gt;% #TESTING</span></span>
-<span id="cb141-7"><a href="#cb141-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(SAMPLE_ID, DEPTH, TEMP, SALINITY, MEAN_REPS_seq, FeatureID) <span class="sc">%&gt;%</span></span>
-<span id="cb141-8"><a href="#cb141-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb141-9"><a href="#cb141-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> FeatureID, <span class="at">values_from =</span> MEAN_REPS_seq, <span class="at">values_fill =</span> <span class="dv">0</span>)</span>
-<span id="cb141-10"><a href="#cb141-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># select(-TEMP, -SALINITY)</span></span>
-<span id="cb141-11"><a href="#cb141-11" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(indic_input)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb141-2"><a href="#cb141-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(table1_wfeature <span class="sc">%&gt;%</span> <span class="fu">select</span>(STN_NISKIN, DCM, OilRig_Count, SALT_MAX, O2_MIN)) <span class="sc">%&gt;%</span> </span>
+<span id="cb141-3"><a href="#cb141-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(MEAN_REPS_seq <span class="sc">&gt;=</span> <span class="dv">25</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb141-4"><a href="#cb141-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(STN_NISKIN, DEPTH_BIN, NH4, NO2, NO3, Oxygen, PO4, SIL, Salinity, Temperature, DCM, OilRig_Count, SALT_MAX, O2_MIN, MEAN_REPS_seq, FeatureID) <span class="sc">%&gt;%</span></span>
+<span id="cb141-5"><a href="#cb141-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb141-6"><a href="#cb141-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> FeatureID, <span class="at">values_from =</span> MEAN_REPS_seq, <span class="at">values_fill =</span> <span class="dv">0</span>)</span>
+<span id="cb141-7"><a href="#cb141-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># select(-TEMP, -SALINITY)</span></span>
+<span id="cb141-8"><a href="#cb141-8" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(indic_input)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="indval" class="level2" data-number="15.1">
 <h2 data-number="15.1" class="anchored" data-anchor-id="indval"><span class="header-section-number">15.1</span> IndVal</h2>
 <p>two species are not strongly correlated and their frequency in the data set is larger than the frequency of sites belonging to the site group, the joint occurrence of the two species has higher positive predictive value for the site group than the two species taken independently</p>
 <p>‘d’ of species as the product of the relative frequency and relative average abundance in clusters.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb142"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb142-1"><a href="#cb142-1" aria-hidden="true" tabindex="-1"></a><span class="co"># head(indic_input[,1])</span></span>
-<span id="cb142-2"><a href="#cb142-2" aria-hidden="true" tabindex="-1"></a><span class="co"># ?cut()</span></span>
-<span id="cb142-3"><a href="#cb142-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ?indval()</span></span>
-<span id="cb142-4"><a href="#cb142-4" aria-hidden="true" tabindex="-1"></a><span class="co"># params &lt;- indic_input %&gt;% </span></span>
-<span id="cb142-5"><a href="#cb142-5" aria-hidden="true" tabindex="-1"></a><span class="co">#   mutate(depth = as.numeric(DEPTH),</span></span>
-<span id="cb142-6"><a href="#cb142-6" aria-hidden="true" tabindex="-1"></a><span class="co">#   temp = as.numeric(TEMP),</span></span>
-<span id="cb142-7"><a href="#cb142-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   sal = as.numeric(SALINITY)) %&gt;%</span></span>
-<span id="cb142-8"><a href="#cb142-8" aria-hidden="true" tabindex="-1"></a><span class="co">#   select(SAMPLE_ID, depth, temp) %&gt;% </span></span>
-<span id="cb142-9"><a href="#cb142-9" aria-hidden="true" tabindex="-1"></a><span class="co">#   column_to_rownames(var = "SAMPLE_ID") %&gt;% </span></span>
-<span id="cb142-10"><a href="#cb142-10" aria-hidden="true" tabindex="-1"></a><span class="co">#   as.matrix</span></span>
+<div class="sourceCode cell-code" id="cb142"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb142-1"><a href="#cb142-1" aria-hidden="true" tabindex="-1"></a><span class="co"># STN_NISKIN, DEPTH_BIN, NH4, NO2, NO3, Oxygen, PO4, SIL, Salinity, Temperature, DCM, OilRig_Count, SALT_MAX, O2_MIN, MEAN_REPS_seq, FeatureID</span></span>
+<span id="cb142-2"><a href="#cb142-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb142-3"><a href="#cb142-3" aria-hidden="true" tabindex="-1"></a><span class="co"># clust &lt;- cut(indic_input$TEMP, 5, labels = FALSE)</span></span>
+<span id="cb142-4"><a href="#cb142-4" aria-hidden="true" tabindex="-1"></a><span class="co"># ?cut()</span></span>
+<span id="cb142-5"><a href="#cb142-5" aria-hidden="true" tabindex="-1"></a><span class="co"># clust &lt;- (indic_input$DEPTH_BIN)</span></span>
+<span id="cb142-6"><a href="#cb142-6" aria-hidden="true" tabindex="-1"></a>clust <span class="ot">&lt;-</span> indic_input <span class="sc">%&gt;%</span> <span class="fu">select</span>(DEPTH_BIN, Temperature)</span>
+<span id="cb142-7"><a href="#cb142-7" aria-hidden="true" tabindex="-1"></a>abun <span class="ot">&lt;-</span> indic_input <span class="sc">%&gt;%</span> </span>
+<span id="cb142-8"><a href="#cb142-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>DEPTH_BIN, <span class="sc">-</span>NH4, <span class="sc">-</span>NO2, <span class="sc">-</span>NO3, <span class="sc">-</span>Oxygen, <span class="sc">-</span>PO4, <span class="sc">-</span>SIL, <span class="sc">-</span>Salinity, <span class="sc">-</span>Temperature, <span class="sc">-</span>DCM, <span class="sc">-</span>OilRig_Count, <span class="sc">-</span>SALT_MAX, <span class="sc">-</span>O2_MIN) <span class="sc">%&gt;%</span> </span>
+<span id="cb142-9"><a href="#cb142-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">column_to_rownames</span>(<span class="at">var =</span> <span class="st">"STN_NISKIN"</span>)</span>
+<span id="cb142-10"><a href="#cb142-10" aria-hidden="true" tabindex="-1"></a><span class="co"># head(abun)</span></span>
 <span id="cb142-11"><a href="#cb142-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb142-12"><a href="#cb142-12" aria-hidden="true" tabindex="-1"></a>clust <span class="ot">&lt;-</span> <span class="fu">cut</span>(indic_input<span class="sc">$</span>TEMP, <span class="dv">5</span>, <span class="at">labels =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb142-13"><a href="#cb142-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb142-14"><a href="#cb142-14" aria-hidden="true" tabindex="-1"></a>abun <span class="ot">&lt;-</span> indic_input <span class="sc">%&gt;%</span> </span>
-<span id="cb142-15"><a href="#cb142-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>DEPTH, <span class="sc">-</span>TEMP, <span class="sc">-</span>SALINITY) <span class="sc">%&gt;%</span> </span>
-<span id="cb142-16"><a href="#cb142-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">column_to_rownames</span>(<span class="at">var =</span> <span class="st">"SAMPLE_ID"</span>)</span>
-<span id="cb142-17"><a href="#cb142-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb142-18"><a href="#cb142-18" aria-hidden="true" tabindex="-1"></a>dino_surf <span class="ot">&lt;-</span> <span class="fu">indval</span>(<span class="at">x =</span> abun, <span class="at">clustering =</span> clust, <span class="at">comm =</span> abun)</span>
-<span id="cb142-19"><a href="#cb142-19" aria-hidden="true" tabindex="-1"></a><span class="co"># View(dino_surf$indval)</span></span>
-<span id="cb142-20"><a href="#cb142-20" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(dino_surf)</span>
-<span id="cb142-21"><a href="#cb142-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb142-22"><a href="#cb142-22" aria-hidden="true" tabindex="-1"></a><span class="co"># head(dino_surf$indval)</span></span>
-<span id="cb142-23"><a href="#cb142-23" aria-hidden="true" tabindex="-1"></a>tmp_out <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(dino_surf<span class="sc">$</span>indval) <span class="sc">%&gt;%</span> </span>
-<span id="cb142-24"><a href="#cb142-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rownames_to_column</span>(<span class="at">var =</span> <span class="st">"FeatureID"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb142-25"><a href="#cb142-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(tax_key) <span class="sc">%&gt;%</span> </span>
-<span id="cb142-26"><a href="#cb142-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(X1)</span>
-<span id="cb142-27"><a href="#cb142-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb142-28"><a href="#cb142-28" aria-hidden="true" tabindex="-1"></a><span class="co"># range(tmp_out$X1)</span></span>
-<span id="cb142-29"><a href="#cb142-29" aria-hidden="true" tabindex="-1"></a><span class="co"># View(tmp_out)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb142-12"><a href="#cb142-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb142-13"><a href="#cb142-13" aria-hidden="true" tabindex="-1"></a>INV <span class="ot">&lt;-</span> <span class="fu">multipatt</span>(abun, clust, <span class="at">func =</span> <span class="st">"r.g"</span>, <span class="at">control =</span> <span class="fu">how</span>(<span class="at">nperm =</span> <span class="dv">99</span>))</span>
+<span id="cb142-14"><a href="#cb142-14" aria-hidden="true" tabindex="-1"></a>INV</span>
+<span id="cb142-15"><a href="#cb142-15" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(INV)</span>
+<span id="cb142-16"><a href="#cb142-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb142-17"><a href="#cb142-17" aria-hidden="true" tabindex="-1"></a>depth_bin_result <span class="ot">&lt;-</span> INV</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Try paring down the data more.</p>
 <div class="cell">

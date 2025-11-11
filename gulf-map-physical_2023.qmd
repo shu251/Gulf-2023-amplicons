@@ -914,7 +914,7 @@ bytaxa_surface_asvs <- asv_long_avg_wtax %>%
 ```{r, fig.height=4, fig.width=4, warning=FALSE}
 # Dinoflagellata-Syndiniales
 interpolate_lat_long_asv((bytaxa_surface_asvs %>% 
-  filter(SUPERGROUP_CLASS == "Dinoflagellata-Syndiniales")), "ASV_COUNT", "Syndiniales ASVs")
+  filter(SUPERGROUP_CLASS == "Dinoflagellata-Syndiniales")), "ASV_COUNT", 400, 1600, "Syndiniales ASVs")
 ```
 
 
@@ -922,15 +922,15 @@ interpolate_lat_long_asv((bytaxa_surface_asvs %>%
 # unique(bytaxa_surface_asvs$SUPERGROUP_CLASS)
 # Dinoflagellata-Syndiniales
 interpolate_lat_long_asv((bytaxa_surface_asvs %>% 
-  filter(SUPERGROUP_CLASS == "Gyrista-Bacillariophyceae")), "ASV_COUNT", "Diatom ASVs")
+  filter(SUPERGROUP_CLASS == "Gyrista-Bacillariophyceae")), "ASV_COUNT", 5, 25,"Diatom ASVs")
 
 
 interpolate_lat_long_asv((bytaxa_surface_asvs %>% 
-  filter(SUPERGROUP_CLASS == "Gyrista-Chrysophyceae")), "ASV_COUNT", "Chrysophyte ASVs")
+  filter(SUPERGROUP_CLASS == "Gyrista-Chrysophyceae")), "ASV_COUNT", 4, 16,"Chrysophyte ASVs")
 
 
 interpolate_lat_long_asv((bytaxa_surface_asvs %>% 
-  filter(SUPERGROUP_CLASS == "Gyrista-Pelagophyceae")), "ASV_COUNT", "Pelagophyceae ASVs")
+  filter(SUPERGROUP_CLASS == "Gyrista-Pelagophyceae")), "ASV_COUNT", 2, 10,"Pelagophyceae ASVs")
 
 ```
              
@@ -939,13 +939,13 @@ interpolate_lat_long_asv((bytaxa_surface_asvs %>%
 "Radiolaria-Radiolaria"   
 ```{r, fig.height=4, fig.width=4, warning=FALSE}
 interpolate_lat_long_asv((bytaxa_surface_asvs %>% 
-  filter(SUPERGROUP_CLASS == "Radiolaria-Acantharea")), "ASV_COUNT", "Acantharea ASVs")
+  filter(SUPERGROUP_CLASS == "Radiolaria-Acantharea")), "ASV_COUNT", 0, 100, "Acantharea ASVs")
 
 interpolate_lat_long_asv((bytaxa_surface_asvs %>% 
-  filter(SUPERGROUP_CLASS == "Radiolaria-Polycystinea")), "ASV_COUNT", "Polycystinea ASVs")
+  filter(SUPERGROUP_CLASS == "Radiolaria-Polycystinea")), "ASV_COUNT", 0, 300, "Polycystinea ASVs")
 
-interpolate_lat_long_asv((bytaxa_surface_asvs %>% 
-  filter(SUPERGROUP_CLASS == "Radiolaria-RAD")), "ASV_COUNT", "RAD ASVs")
+# interpolate_lat_long_asv((bytaxa_surface_asvs %>% 
+#   filter(SUPERGROUP_CLASS == "Radiolaria-RAD")), "ASV_COUNT", 0, 10, "RAD ASVs")
 
 # interpolate_lat_long_asv((bytaxa_surface_asvs %>% 
   # filter(SUPERGROUP_CLASS == "Radiolaria-Radiolaria")), "ASV_COUNT", "Radiolaria ASVs")
@@ -1072,7 +1072,7 @@ interpolate_depth_long_asv((bytaxa_depth_asvs %>%
 ```
 
 ## Dinoflagellate ASV profiles
-   
+
 "Dinoflagellata-Syndiniales"          
 ```{r, fig.height=5, fig.width=17, warning=FALSE}
 tax_whole_asv_profile("Dinoflagellata-Syndiniales", 100, 2000, "Dinoflagellata-Syndiniales")
