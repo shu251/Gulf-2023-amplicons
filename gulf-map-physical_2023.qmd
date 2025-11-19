@@ -22,7 +22,7 @@ library(plotly); library(viridis); library(vegan)
 ```
 
 ```{r}
-load(file = "input-data/gulf-2023-sequence-analysis_10192025.RData", verbose = TRUE)
+load(file = "input-data/gulf-2023-sequence-analysis_11192025.RData", verbose = TRUE)
 stn_info <- read.csv("input-data/manual_stn_classification.csv")
 ```
 
@@ -688,132 +688,6 @@ surf_sil +
   plot_annotation(tag_levels = "a") +
   plot_layout(ncol = 4)
 # ggsave("figures/nutrient-profiles-all.svg", width = 20, height = 20, device = "svg", limitsize = FALSE)
-```
-
-# Determine depth features
-
-```{r}
-tmp <- read.csv("GradGoM23_MasterSpreadsheet_9-26-23.xlsx - Master.csv")
-colnames(tmp)
-# head(env_metadata_toplot)
-```
-
-```{r}
-raw_env_data <- tmp %>% 
-  select(Station, Niskin, Depth = `Bottle.Depth..m.`, Latitude, Longitude, Date, Time_UTC = `Time..UTC.`, value = `Fluorescence.CTD`) %>% 
-  mutate(Station = as.integer(Station),
-         Depth = as.numeric(Depth),
-         value = as.numeric(value)) %>% 
-  add_column(ENV_VARIABLE = "Fluorescence",
-             depth_feature = "")
-# colnames(raw_env_data)
-# colnames(env_metadata_toplot)
-
-
-stn_list <- as.character(unique(stn_info$Station))
-
-env_metadata_toplot_flor <- rbind(env_metadata_toplot, raw_env_data) %>% 
-  filter(Station %in% stn_list)
-# glimpse(raw_env_data)
-# glimpse(env_metadata_toplot)
-```
-
-```{r}
-head(env_metadata_toplot_flor)
-unique(env_metadata_toplot_flor$Station)
-length(unique(env_metadata_toplot_flor$Station))
-```
-
-## O2 min
-
-Assign oxygen mininum as the depth with the lowest oxygen below 30 meters.
-```{r}
-o2_min <- env_metadata_toplot_flor %>% 
-  filter(ENV_VARIABLE == "Oxygen") %>% 
-  filter(Depth > 30) %>% 
-  group_by(Station) %>% 
-  mutate(MIN = min(value)) %>% 
-  filter(MIN == value) %>% 
-  select(-MIN) %>% 
-  add_column(FEATURE = "Oxygen minimum")
-head(o2_min)
-```
-
-## DCM
-```{r}
-unique(env_metadata_toplot_flor$ENV_VARIABLE)
-```
-
-Assign oxygen minimum as the depth with the lowest oxygen below 30 meters.
-```{r}
-dcm <- env_metadata_toplot_flor %>% 
-  filter(ENV_VARIABLE == "Fluorescence") %>% 
-  group_by(Station) %>% 
-  mutate(MAX = max(value)) %>% 
-  filter(MAX == value) %>%
-  select(-MAX) %>% 
-  add_column(FEATURE = "DCM")
-# head(o2_min)
-```
-
-## Salt max
-
-```{r}
-sal_max <- env_metadata_toplot_flor %>% 
-  filter(ENV_VARIABLE == "Salinity") %>% 
-  group_by(Station) %>% 
-  mutate(MAX = max(value)) %>% 
-  filter(MAX == value) %>%
-  select(-MAX) %>% 
-  add_column(FEATURE = "Salinity maximum")
-```
-
-## Depth profiles across transects
-
-
-```{r}
-feature_profiles <- rbind(sal_max, o2_min, dcm) %>% 
-  select(FEATURE, Station, Niskin, Depth) %>% drop_na()
-
-# Any duplicates?
-length(feature_profiles$Depth)
-length(unique(feature_profiles$Depth))
-# feature_profiles
-# write.csv(feature_profiles, file = "input-data/feature_profiles_depth.csv")
-```
-
-
-```{r}
-# dim(env_metadata_toplot_flor)
-# head(env_metadata_toplot_flor)
-env_metadata_mod <- env_metadata_toplot_flor %>% 
-  ungroup() %>% 
-  select(-depth_feature) %>% 
-  left_join(feature_profiles) %>% 
-  left_join(stn_info)
-# dim(env_metadata_mod)  
-head(env_metadata_mod)
-```
-```{r, fig.height=3, fig.width=8}
-env_metadata_mod %>% 
-  ungroup() %>% 
-  filter(!is.na(FEATURE)) %>% 
-  select(FEATURE, Station, Depth, Transect) %>% 
-  distinct() %>% 
-  ggplot(aes(x = Station, y = Depth, fill = FEATURE, shape = FEATURE, color = FEATURE)) +
-  geom_jitter(size = 2, width = 0.1) +
-  scale_color_manual(values = c("#18545e", "#603655", "#c49235")) +
-  geom_line() +
-  scale_y_reverse() +
-  facet_grid(cols = vars(Transect), scales = "free", space = "free") +
-  theme_classic() +
-    theme(axis.text = element_text(size = 10, colour="black"),
-          panel.border = element_rect(fill = NA),
-          legend.background = element_blank(),
-          panel.grid.major = element_line(color = "grey90", linetype = "dotdash"),
-        legend.text = element_text(size = 10, colour="black", face = "bold"),
-        legend.title = element_blank())
-# ggsave("figures/depth_profiles.svg", width = 8, height = 3, device = "svg", limitsize = FALSE)
 ```
 
 

@@ -23,225 +23,33 @@ library(ggupset); library(gt)
 library(plotly); library(viridis); library(vegan)
 ```
 
-Import ASV tables as R objects.
-
+Below is direct from `GoM-2023-amplicons.qmd`
 ```{r}
-load(file = "input-data/asv_wtax_qc_GoM23_102025.RData", verbose = TRUE)
-```
-
-Import & compile metadata
-
-```{r}
-master_metadata <- read.csv("input-data/grad23_master.csv", header = TRUE, 
-                            check.names = FALSE, na.strings = "--")
-# head(master_metadata)
-cellcounts <- read.csv("cellcounts-sept22.csv")
-```
-
-## Modify metadata file
-
-```{r}
-colnames(master_metadata)
-# str(master_metadata)
-# str(cellcounts)
-env_metadata_toplot <- master_metadata %>%
-  mutate(depth_feature = case_when(
-    grepl("O2 min", Notes) ~ "O2 min",
-    grepl("DCM", Notes) ~ "DCM"
-  )) %>% 
-  mutate(Station = as.integer(Station)) %>% 
-  select(Station, Niskin, Depth = `CTD Recorded Depth (m)`, depth_feature, Latitude = `NMEA Latitude`, Longitude = `NMEA Longitude`,
-         Date, Time_UTC = `Time (UTC)`, Temperature = `CTD Temperature`, Salinity = `Corrected CTD Salinity`, 
-         Oxygen = `Corrected CTD Oxygen`, NO3, PO4, SIL, NO2, NH4) %>% 
-  left_join(cellcounts %>% select(Station, Niskin, Prok_count = `prok.count`)) %>% 
-  separate_longer_delim(c(NO3, PO4, SIL, NO2, NH4), delim = " / ") %>%
-  pivot_longer(cols = c(Temperature, Salinity, Oxygen, NO3, PO4, SIL, NO2, NH4, Prok_count), names_to = "ENV_VARIABLE", values_to = "VALUE", values_drop_na = TRUE, values_transform = as.numeric) %>% 
-  group_by(Station, Niskin, Depth, depth_feature, Latitude, Longitude, Date, Time_UTC, ENV_VARIABLE) %>% 
-    summarise(value = mean(VALUE))
-```
-
-### Create metabarcoding table with metadata
-
-```{r}
-# head(asv_long_cleaned)
-# head(env_metadata_toplot)
-# Widen environmental metadata to add to ASV df.
-tmp_forasv <- env_metadata_toplot %>% 
-  filter(!is.na(ENV_VARIABLE)) |> 
-  pivot_wider(names_from = ENV_VARIABLE, values_from = value)
-  
-asv_long_cleaned_wenv <- asv_long_cleaned %>% 
-  separate(SAMPLES, into = c("gom", "STATION", "NISKIN", "extra"), sep = "_") %>% 
-  mutate(Station = as.integer(str_remove(STATION, "S")),
-         Niskin = as.integer(str_remove(NISKIN, "N"))) %>% 
-  unite(STN_NISKIN, STATION, NISKIN, sep = "_") %>% 
-  select(-gom, -extra) %>% 
-  left_join(tmp_forasv) 
-
-head(asv_long_cleaned_wenv)
-```
-
-## Calculate distance from shore
-
-Distance from shore
-
-```{r}
-library(geosphere)
-# Long, Lat order
-outflow_lat <- 28.95
-outflow_long <- 89.39
-outflow <- c(outflow_long, outflow_lat)
-outflow
-```
-
-Set up ordering of stations and locations.
-
-```{r}
-stn_info <- read.csv("input-data/manual_stn_classification.csv")
-
-offshore_on_shore_order <- c("S1", "S2", "S3", "S4", "S5","S9", "S8", "S7", "S11", "S12", "S14", "S15")
-
-transect_labels <- c("transect1", "transect1", "transect1", "transect1", "transect1", "transect2", "transect2", "transect2", "transect3", "transect3", "transect3", "transect3")
-
-depth_order <- as.character(sort((unique(env_metadata_toplot$Depth))))
-
-depth_order_round <- as.character(sort(round(unique(env_metadata_toplot$Depth), digits = 0)))
-
-depth_bin <- c("< 5m","5-25m","25-60m",
-                          "60-270m","270-400m","400-800m",
-                          "800-1200m","1200-2000m","2000-3000m")
-
-depth_bin_CHARC <- c("..5m","5.25m","25.60m",
-                          "60.270m","270.400m","400.800m",
-                          "800.1200m","1200.2000m","2000.3000m")
-
-asv_long_cleaned_wenv_mod <- asv_long_cleaned_wenv %>% 
-  left_join(stn_info) %>% 
-  mutate(stn = paste("S", Station, sep = "")) %>% 
-  mutate(STN_ORDER = factor(stn, levels = offshore_on_shore_order),
-         TRANSECT = factor(stn, levels = offshore_on_shore_order, labels = transect_labels),
-         DEPTH_ORDER = factor(Depth, levels = rev(depth_order), labels = rev(depth_order_round))) %>% 
-  mutate(DIST_OUTFLOW = distHaversine(cbind(Longitude, Latitude), cbind(outflow_long, outflow_lat))) %>% 
-  mutate(DEPTH_BIN = case_when(
-    Depth <= 5 ~ "< 5m",
-    Depth > 5 & Depth <=25 ~ "5-25m",
-    Depth > 25 & Depth <=60 ~ "25-60m",
-    Depth > 60 & Depth <=270 ~ "60-270m",
-    Depth > 270 & Depth <=400 ~ "270-400m",
-    Depth > 400 & Depth <=800 ~ "400-800m",
-    Depth > 800 & Depth <=1200 ~ "800-1200m",
-    Depth > 1200 & Depth <=2000 ~ "1200-2000m",
-    Depth > 2000 & Depth <=3000 ~ "2000-3000m",
-  ))
-# dim(asv_long_cleaned_wenv)
-# dim(asv_long_cleaned_wenv_mod)
+load("input-data/gulf-2023-sequence-analysis_11192025.RData", verbose = TRUE)
 ```
 
 ## Study stats
 
 ```{r}
-range(asv_long_cleaned_wenv_mod$Station)
-length(unique(asv_long_cleaned_wenv_mod$Station)) # 12 stations
 (unique(asv_long_cleaned_wenv_mod$Station)) # 12 stations
-length(unique(asv_long_cleaned_wenv_mod$STN_NISKIN)) # 91 unique samples
+length(unique(asv_long_cleaned_wenv_mod$Station)) # 12 stations
+length(unique(asv_long_cleaned_wenv_mod$STN_NISKIN)) # 90 unique samples
 ```
 
 ```{r}
-table1 <- asv_long_cleaned_wenv_mod %>% 
-  select(STN_NISKIN, Station, Depth, depth_feature, Date, Time_UTC, Latitude, Longitude, Transect, DEPTH_BIN, DIST_OUTFLOW, NH4, NO2, NO3, Oxygen, PO4, SIL, Salinity, Temperature, Prok_count) %>%
+table1 <- asv_long_cleaned_wenv_mod %>%
+  select(STN_NISKIN, Station, Depth, Date, Time_UTC, Latitude, Longitude, Transect, DEPTH_BIN, DIST_OUTFLOW, NH4, NO2, NO3, Oxygen, PO4, SIL, Salinity, Temperature, Prok_count, DAY_NIGHT, HR_OF_DAY, DEPTH_MAX) %>%
   distinct()
 # head(table1)
 write.csv(table1, file = "output-tables/table-samplelist.csv")
 ```
 
-# Curate taxonomic assignment
-
-```{r}
-# head(asv_long_cleaned_wenv_mod)
-# unique(asv_long_cleaned_wenv_mod$Domain) # take EUKS
-# unique(asv_long_cleaned_wenv_mod$Supergroup)
-# unique(asv_long_cleaned_wenv_mod$Division)
-# View(asv_long_cleaned_wenv_mod %>% 
-#        select(Domain, Supergroup, Division, Subdivision, Class, Order, Family, Genus, Species) %>% distinct())
-```
-
-```{r}
-asv_long_wenv_wtax <- asv_long_cleaned_wenv_mod %>% 
-  filter(Domain == "Eukaryota") %>% 
-  filter(Supergroup != "nucl") %>% 
-  mutate(DIVISION = case_when(
-    Subdivision == "X" ~ "Unannotated",
-    is.na(Subdivision) ~ "Unannotated",
-    TRUE ~ Subdivision
-  )) %>% 
-  # Goal is to combine Subdivision-Class
-  mutate(SUPERGROUP_CLASS = case_when(
-    ## High level NAs at the supergroup and division level
-    (is.na(Division) & !is.na(Supergroup)) ~ paste(Supergroup, "Unannotated", sep = "-"),
-    (is.na(Division) & is.na(Supergroup)) ~ "Eukaryote-Unannotated",
-    (is.na(Subdivision)) ~ paste(Supergroup, "Unannotated", sep = "-"),
-    (is.na(Class) & !is.na(Subdivision)) ~ paste(Subdivision, "Unannotated", sep = "-"),
-    #
-    (Subdivision == "X") ~ paste(Division, "Unannotated", sep = "-"),
-    (Class == "X") ~ paste(Subdivision, "Unannotated", sep = "-"),
-    TRUE ~ paste(Subdivision, Class, sep = "-"))) %>% 
-  mutate(Supergroup_simplified = case_when(
-    Supergroup == "TSAR" ~ paste("TSAR", Subdivision, sep = "-"),
-    Supergroup == "Obazoa" ~ paste("Obazoa", DIVISION, sep = "-"),
-    TRUE ~ Supergroup
-  ))
-
-# 
-# sort(unique(tmp$DIVISION))
-# sort(unique(tmp$Subdivision))
-# unique(tmp$SUPERGROUP_CLASS)
-# head(asv_long_clean_wtax)
-tax_key <- asv_long_wenv_wtax %>% 
-  select(FeatureID, Taxon, Supergroup, Division, Subdivision, Class, Order, Family, Genus, Species) %>% distinct()
-```
-
-## Average across replicates
-
-```{r}
-head(asv_long_wenv_wtax)
-```
-
-```{r}
-asv_long_avg_wtax <- asv_long_wenv_wtax %>% 
-  # First average ASV sequence count across replicates
-  group_by(FeatureID, Taxon, DIVISION, SUPERGROUP_CLASS, Supergroup_simplified, Supergroup, Division, Subdivision, Class, Order, Family, Genus, Species,
-           STN_NISKIN, Station, Niskin, Depth, depth_feature, Latitude, Longitude, Temperature, Salinity, Oxygen, NH4, NO2, NO3, PO4, SIL, Prok_count,
-           STN_CATEGORY_3, STN_CATEGORY_4, STN_ORDER, TRANSECT, DEPTH_ORDER, DIST_OUTFLOW, DEPTH_BIN) %>% 
-  summarise(MEAN_REPS_seq = mean(SEQUENCE_COUNT)) %>% 
- filter(STN_NISKIN != "S12_N10") |>
-  ungroup()
-
-# head(asv_long_avg_wtax)
-# unique(asv_long_avg_wtax$STN_CATEGORY_4)
-```
-
-# Data frames for analysis
-
-Central data frames:
-
--   `asv_long_wenv_wtax`
--   `tax_key`
--   `env_metadata_toplot`
--   `asv_long_avg_wtax`
-
-```{r}
-# save(asv_long_wenv_wtax, tax_key, table1, env_metadata_toplot, asv_long_avg_wtax, file = "input-data/gulf-2023-sequence-analysis_10252025.RData")
-```
 
 # Sample comparison & taxonomic classification
 
 ## PCA analysis
 
 Create wide format matrix with sequence counts averaged across replicates (by ASV)
-
-```{r}
-head(asv_long_avg_wtax)
-```
 
 Station & depth info
 
@@ -266,7 +74,7 @@ asv_wide_avg_matrix <- asv_long_avg_wtax %>%
 
 ```{r}
 pca_clr <- prcomp(data.frame(compositions::clr(t(asv_wide_avg_matrix))))
-# ?prcomp
+?prcomp
 ```
 
 ```{r}
@@ -1760,6 +1568,10 @@ https://cran.r-universe.dev/indicspecies/doc/manual.html
 ```{r}
 unique(asv_long_avg_wtax$Supergroup_simplified)
 ```
+```{r}
+hist(asv_long_avg_wtax$Temperature)
+hist(asv_long_avg_wtax$NO3)
+```
 
 
 ```{r}
@@ -1769,13 +1581,26 @@ indic_input <- asv_long_avg_wtax %>%
   filter(STN_NISKIN != "S12_N10") %>% 
   filter(Supergroup_simplified != "TSAR-NA") %>% 
   filter(!grepl("_X", Supergroup_simplified)) %>%
+  # Add additional bins
+  mutate(TEMP_BIN = case_when(
+    Temperature < 8 ~ "< 8",
+    Temperature >=8 & Temperature < 15 ~ "8-15",
+    Temperature >= 15 & Temperature < 20 ~ "15-20",
+    Temperature >= 20 & Temperature < 25 ~ "20-25",
+    Temperature > 25 ~ "> 25")) %>% 
+  mutate(NO3_BIN = case_when(
+    NO3 < 10 ~ "< 10",
+    NO3 >= 10 & NO3 < 20 ~ "10-20",
+    NO3 >= 20 ~ "> 20")) %>% 
   left_join(table1_wfeature %>% select(STN_NISKIN, DCM, OilRig_Count, SALT_MAX, O2_MIN)) %>% 
   filter(MEAN_REPS_seq >= 25) %>%
-  select(STN_NISKIN, DEPTH_BIN, NH4, NO2, NO3, Oxygen, PO4, SIL, Salinity, Temperature, DCM, OilRig_Count, SALT_MAX, O2_MIN, MEAN_REPS_seq, FeatureID) %>%
+  mutate(OIL_BIN = case_when(
+      OilRig_Count > 0 ~ "Oil Rig",
+      TRUE ~ "No oil rig"
+    )) %>% 
+  select(STN_NISKIN, DEPTH_BIN, NH4, NO2, NO3, Oxygen, PO4, SIL, Salinity, TEMP_BIN, Temperature, DCM, NO3_BIN, OIL_BIN, OilRig_Count, SALT_MAX, O2_MIN, MEAN_REPS_seq, FeatureID) %>%
   distinct() %>%
-  pivot_wider(names_from = FeatureID, values_from = MEAN_REPS_seq, values_fill = 0)
-  # select(-TEMP, -SALINITY)
-head(indic_input)
+  pivot_wider(names_from = FeatureID, names_prefix = "ASV_", values_from = MEAN_REPS_seq, values_fill = 0)
 ```
 
 Ahead of determining indicator species, ASVs were filtered to only include those that had more than or equal to 25 sequences.
@@ -1793,11 +1618,14 @@ two species are not strongly correlated and their frequency in the data set is l
 
 # clust <- indic_input$DEPTH_BIN
 # clust <- indic_input$DCM
-clust <- indic_input$O2_MIN
+# clust <- indic_input$O2_MIN
 # clust <- indic_input$SALT_MAX
-
+# clust <- indic_input$NO3_BIN
+# clust <- indic_input$TEMP_BIN
+clust <- indic_input$OIL_BIN
+# unique(indic_input$TEMP_BIN)
 abun <- indic_input %>% 
-  select(-DEPTH_BIN, -NH4, -NO2, -NO3, -Oxygen, -PO4, -SIL, -Salinity, -Temperature, -DCM, -OilRig_Count, -SALT_MAX, -O2_MIN) %>% 
+  select(STN_NISKIN, starts_with("ASV_")) %>% 
   column_to_rownames(var = "STN_NISKIN")
 ```
 
@@ -1808,11 +1636,16 @@ INV <- multipatt(abun, clust, func = "r.g", control = how(nperm = 99))
 summary(INV)
 
 # ?multipatt
-# depth_bin_result <- INV
+depth_bin_result <- INV
 # dcm_result <- INV
 # o2_result <- INV
 # salt_result <- INV
+# no3_result <- INV
+# temp_bin_result <- INV
+oil_result <- INV
+# unique(indic_input$NO3_BIN)
 ```
+
 
 ```{r, eval=FALSE}
 # | eval: false
@@ -1845,65 +1678,106 @@ process_inv_output <- function(INV){
     select(-`NA`)
 }
 # colnames(as.data.frame(depth_bin_result$sign))[1:9]
-depth_inv <- process_inv_output(depth_bin_result)
-dcm_inv <- process_inv_output(dcm_result)
-o2_inv <- process_inv_output(o2_result)
-salt_inv <- process_inv_output(salt_result)
+# depth_inv <- process_inv_output(depth_bin_result) # Need all nine
+# dcm_inv <- process_inv_output(dcm_result)
+# o2_inv <- process_inv_output(o2_result)
+# salt_inv <- process_inv_output(salt_result)
+# oil_inv <- process_inv_output(oil_result) 
+# no3_inv <- process_inv_output(no3_result) # need 3
+# temp_inv <- process_inv_output(temp_bin_result) # need 5
 
 asv_list_feature <- asv_long_avg_wtax %>% 
+  mutate(FeatureID = paste("ASV_", FeatureID, sep = "")) %>% 
   select(FeatureID) %>% distinct() %>%
   left_join(depth_inv) %>% 
   left_join(dcm_inv) %>% 
   left_join(o2_inv) %>% 
   left_join(salt_inv) %>% 
+  left_join(oil_inv) %>% 
+  left_join(no3_inv) %>% 
+  left_join(temp_inv) %>% 
   pivot_longer(cols = starts_with("s."), names_to = "Indicative_of", values_to = "p_value") %>% 
-  filter(!is.na(p_value))
+  filter(!is.na(p_value)) %>% 
+  mutate(FeatureID = str_remove_all(FeatureID, "ASV_"))
 ```
 
 ```{r}
 # save(asv_list_feature, file = "input-data/asv_list_feature.RData")
 load(file = "input-data/asv_list_feature.RData")
-head(asv_long_avg_wtax)
+# head(asv_long_avg_wtax)
+# head(asv_list_feature)
 ```
 
 
-```{r, fig.height=20, fig.width=25}
+```{r, fig.height=5, fig.width=45}
 # Sum by taxonomic groups
 asv_long_avg_wtax %>%
-   filter(STN_NISKIN != "S12_N10") %>% 
+  filter(MEAN_REPS_seq >= 100) %>% 
+  filter(STN_NISKIN != "S12_N10") %>% 
   filter(Supergroup_simplified != "Eukaryota") %>% 
   filter(Supergroup_simplified != "TSAR-NA") %>% 
   filter(Supergroup_simplified != "Obazoa-Metazoa") %>% 
   left_join(asv_list_feature) %>% 
   filter(!is.na(p_value)) %>% 
-  group_by(STN_NISKIN, Station, Niskin, Depth, DEPTH_BIN,
-           DEPTH_ORDER, Supergroup_simplified, Indicative_of) |> 
+  group_by(FeatureID, Supergroup_simplified, Indicative_of) |>
   summarise(SUM_SEQ = sum(MEAN_REPS_seq),
-            ASV_COUNT = n()) %>%
-  # Factoring and ordering
-  mutate(label_order = factor(STN_NISKIN, levels = labels_for_dendro)) %>% 
-  # mutate(label_order = str_remove(label_order, "_")) |> 
-  ggplot(aes(y = (label_order), x = SUM_SEQ, fill = Supergroup_simplified)) +
-    geom_bar(stat = "identity", position = "fill", 
-             color = "grey20", width = 0.8, linewidth = 0.5) +
-  scale_fill_manual(values = tax_color) +
-  facet_grid(cols = vars(Indicative_of)) +
-  scale_y_discrete(position = "right") +
-  theme_void() + theme(
-    legend.position = "right",
+            ASV = n()) %>%
+  add_column(PRESENCE = 1) %>% 
+  # # Factoring and ordering
+  # mutate(label_order = factor(STN_NISKIN, levels = labels_for_dendro)) %>%
+  ggplot(aes(x = FeatureID, y = Indicative_of, fill = PRESENCE)) +
+    geom_tile() +
+  facet_grid(cols = vars(Supergroup_simplified), space = "free", scale = "free") +
+  # scale_x_discrete(position = "right") +
+  theme_classic() + theme(
+    legend.position = "none",
     legend.title = element_blank(),
     legend.text = element_text(color = "black"),
     strip.background = element_blank(),
     axis.line.x = element_line(),
-    
+
     axis.title = element_text(color = "black"),
     axis.text.y = element_text(color = "black", vjust = 0.5, hjust = 0, size = 10),
-    axis.text.x = element_text(color = "black", size = 8)) +
-  guides(fill = guide_legend(reverse = TRUE, ncol = 1)) +
+    axis.text.x = element_blank()) +
+  # guides(fill = guide_legend(reverse = TRUE, ncol = 1)) +
   labs(x = "", y = "")
 
 ```
+```{r, fig.height=5, fig.width=20}
+# Sum by taxonomic groups
+asv_long_avg_wtax %>%
+  filter(MEAN_REPS_seq >= 100) %>% 
+  filter(STN_NISKIN != "S12_N10") %>% 
+  filter(Supergroup_simplified != "Eukaryota") %>%
+  filter(Supergroup_simplified == "Haptista") %>% 
+  filter(Supergroup_simplified != "TSAR-NA") %>% 
+  filter(Supergroup_simplified != "Obazoa-Metazoa") %>% 
+  left_join(asv_list_feature) %>% 
+  filter(!is.na(p_value)) %>% 
+  group_by(FeatureID, Supergroup_simplified, Indicative_of) |>
+  summarise(SUM_SEQ = sum(MEAN_REPS_seq),
+            ASV = n()) %>%
+  add_column(PRESENCE = 1) %>% 
+  # # Factoring and ordering
+  # mutate(label_order = factor(STN_NISKIN, levels = labels_for_dendro)) %>%
+  ggplot(aes(x = FeatureID, y = Indicative_of, fill = PRESENCE)) +
+    geom_tile(color = "black") +
+  facet_grid(cols = vars(Supergroup_simplified), space = "free", scale = "free") +
+  # scale_x_discrete(position = "right") +
+  theme_classic() + theme(
+    legend.position = "none",
+    legend.title = element_blank(),
+    legend.text = element_text(color = "black"),
+    strip.background = element_blank(),
+    axis.line.x = element_line(),
 
+    axis.title = element_text(color = "black"),
+    axis.text.y = element_text(color = "black", vjust = 0.5, hjust = 0, size = 10),
+    axis.text.x = element_blank()) +
+  # guides(fill = guide_legend(reverse = TRUE, ncol = 1)) +
+  labs(x = "", y = "")
+
+```
 Table to demonstrate how many ASVs and what taxa could be indicator species. 
 ```{r}
 total_seq <- sum(asv_long_avg_wtax$MEAN_REPS_seq)
