@@ -363,7 +363,6 @@ save(samples_too_low, asv_wide_cleaned, asv_long_cleaned, file =  "input-data/as
 ```{r}
 # | eval: false
 load(file = "input-data/asv_wtax_qc_GoM23_102025.RData", verbose = TRUE)
-
 ```
 
 Import & compile metadata
@@ -417,6 +416,8 @@ asv_long_cleaned_wenv <- asv_long_cleaned %>%
 # 
 head(asv_long_cleaned_wenv)
 ```
+> When we get distance from plume, MLD, and other physical characteristics, we can add them to metadata here. 
+
 
 ## Add station information
 
@@ -580,6 +581,22 @@ head(asv_long_wenv_wtax)
 tax_key <- asv_long_wenv_wtax %>%
   select(FeatureID, Taxon, Supergroup, Division, Subdivision, Class, Order, Family, Genus, Species) %>% distinct()
 ```
+
+### Stats on what was removed
+
+```{r}
+head(asv_long_cleaned_wenv_mod)
+head(asv_long_wenv_wtax)
+sum(asv_long_cleaned_wenv_mod$SEQUENCE_COUNT)
+sum(asv_long_wenv_wtax$SEQUENCE_COUNT)
+38481175/(41695184 + 38481175)
+# 41,695,184
+# 38,481,175
+length(unique(asv_long_cleaned_wenv_mod$FeatureID))
+length(unique(asv_long_wenv_wtax$FeatureID))
+```
+
+
 
 ## Average across replicates
 
@@ -746,6 +763,7 @@ Core data frames to take to additional code.
 #      env_metadata_mod,
 #      file = "input-data/gulf-2023-sequence-analysis_11192025.RData")
 ```
+
 
 # Session Information
 

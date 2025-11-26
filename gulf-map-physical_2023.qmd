@@ -40,12 +40,43 @@ glimpse(env_metadata_toplot)
 
 # Marine Heat Wave?
 
+> Siddarth
+
 # Discharge at the MS River
 
-# Northern Gulf region map
+> Siddarth 
 
-> See work from Meagan.
+# Temperature-Salinity plots
 
+
+```{r}
+# https://dankelley.github.io/oce/
+# install.packages("oce", repos = c("https://dankelley.r-universe.dev", "https://cloud.r-project.org"))
+library(oce)
+```
+> T-S plot with all stations, and depths above the DCM? above the O2 min layer?
+
+# Brunt-Väisälä frequency
+
+Measure of stability within a sampled vertical profile. Use the formula `N = √(g/`ρ`) (∂ρ/∂z)`
+`g` = gravity 9.8 m/s^2
+`ρ` = density
+`z` = depth
+
+> Calculate MLD, would add this to my parameters for DCM and more.
+
+```{r}
+
+```
+
+
+
+> Goal: what water masses are influencing key stations where I see diversity-based edge effects? specific taxa? 
+
+
+# Calculate distance from MS River plume
+
+> This would replace additional parameters, would test for other key factors.
 
 # Map
 
@@ -690,7 +721,6 @@ surf_sil +
 # ggsave("figures/nutrient-profiles-all.svg", width = 20, height = 20, device = "svg", limitsize = FALSE)
 ```
 
-
 # ASVs on map
 
 ```{r}
@@ -1031,6 +1061,8 @@ tax_whole_asv_profile("Gyrista-Coscinodiscophyceae", 0, 20, "Gyrista-Coscinodisc
 ```{r, fig.height=5, fig.width=17, warning=FALSE}
 tax_whole_asv_profile("Gyrista-Dictyochophyceae", 0, 20, "Gyrista-Dictyochophyceae")
 ```
+
+
 
 # Session Information
 
