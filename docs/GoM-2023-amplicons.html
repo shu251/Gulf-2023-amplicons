@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.7.32">
+<meta name="generator" content="quarto-1.8.26">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -67,14 +67,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <meta name="quarto:offset" content="./">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-6bdd2aebeb936dcddaa5f935a5de481c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-f93c2b1f3f0577f377aefa4848a86a36.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -125,11 +126,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
     <a class="nav-link active" href="./GoM-2023-amplicons.html" aria-current="page"> 
-<span class="menu-text">Sequence analysis</span></a>
-  </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./gulf-2023-amplicon-analysis.html"> 
-<span class="menu-text">Data analysis (part I)</span></a>
+<span class="menu-text">Sequence analysis &amp; data curation</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="./gulf-map-physical_2023.html"> 
@@ -178,7 +175,28 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#save-necessary-files" id="toc-save-necessary-files" class="nav-link" data-scroll-target="#save-necessary-files"><span class="header-section-number">2.5.1</span> Save necessary files</a></li>
   </ul></li>
   </ul></li>
-  <li><a href="#session-information" id="toc-session-information" class="nav-link" data-scroll-target="#session-information"><span class="header-section-number">3</span> Session Information</a></li>
+  <li><a href="#curate-metadata" id="toc-curate-metadata" class="nav-link" data-scroll-target="#curate-metadata"><span class="header-section-number">3</span> Curate metadata</a>
+  <ul class="collapse">
+  <li><a href="#modify-metadata-file" id="toc-modify-metadata-file" class="nav-link" data-scroll-target="#modify-metadata-file"><span class="header-section-number">3.1</span> Modify metadata file</a>
+  <ul class="collapse">
+  <li><a href="#create-metabarcoding-table-with-metadata" id="toc-create-metabarcoding-table-with-metadata" class="nav-link" data-scroll-target="#create-metabarcoding-table-with-metadata"><span class="header-section-number">3.1.1</span> Create metabarcoding table with metadata</a></li>
+  </ul></li>
+  <li><a href="#add-station-information" id="toc-add-station-information" class="nav-link" data-scroll-target="#add-station-information"><span class="header-section-number">3.2</span> Add station information</a></li>
+  </ul></li>
+  <li><a href="#curate-taxonomic-assignment" id="toc-curate-taxonomic-assignment" class="nav-link" data-scroll-target="#curate-taxonomic-assignment"><span class="header-section-number">4</span> Curate taxonomic assignment</a>
+  <ul class="collapse">
+  <li><a href="#stats-on-what-was-removed" id="toc-stats-on-what-was-removed" class="nav-link" data-scroll-target="#stats-on-what-was-removed"><span class="header-section-number">4.0.1</span> Stats on what was removed</a></li>
+  <li><a href="#average-across-replicates" id="toc-average-across-replicates" class="nav-link" data-scroll-target="#average-across-replicates"><span class="header-section-number">4.1</span> Average across replicates</a></li>
+  </ul></li>
+  <li><a href="#determine-depth-features" id="toc-determine-depth-features" class="nav-link" data-scroll-target="#determine-depth-features"><span class="header-section-number">5</span> Determine depth features</a>
+  <ul class="collapse">
+  <li><a href="#o2-min" id="toc-o2-min" class="nav-link" data-scroll-target="#o2-min"><span class="header-section-number">5.1</span> O2 min</a></li>
+  <li><a href="#dcm" id="toc-dcm" class="nav-link" data-scroll-target="#dcm"><span class="header-section-number">5.2</span> DCM</a></li>
+  <li><a href="#salt-max" id="toc-salt-max" class="nav-link" data-scroll-target="#salt-max"><span class="header-section-number">5.3</span> Salt max</a></li>
+  <li><a href="#depth-profiles-across-transects" id="toc-depth-profiles-across-transects" class="nav-link" data-scroll-target="#depth-profiles-across-transects"><span class="header-section-number">5.4</span> Depth profiles across transects</a></li>
+  </ul></li>
+  <li><a href="#save" id="toc-save" class="nav-link" data-scroll-target="#save"><span class="header-section-number">6</span> Save</a></li>
+  <li><a href="#session-information" id="toc-session-information" class="nav-link" data-scroll-target="#session-information"><span class="header-section-number">7</span> Session Information</a></li>
   </ul>
 </nav>
 </nav>
@@ -215,20 +233,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="make-manifest-file" class="level2" data-number="1.1">
 <h2 data-number="1.1" class="anchored" data-anchor-id="make-manifest-file"><span class="header-section-number">1.1</span> Make manifest file</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Make a list of files document so we can create a manifest file and import. I need to check total number of sequences per sample and the overall quality.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>seq_list <span class="ot">&lt;-</span> <span class="fu">read_delim</span>(<span class="at">file =</span> <span class="st">"scripts/list_of_files.txt"</span>, <span class="at">delim =</span> <span class="st">"</span><span class="sc">\t</span><span class="st">"</span>,<span class="at">col_names =</span> F)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(seq_list<span class="sc">$</span>X1)</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(seq_list<span class="sc">$</span>X1))</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>fullpath <span class="ot">&lt;-</span> <span class="st">"/scratch/group/hu-lab/data/tag-seq-data/GoM-2023-18S_2025-05/"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>fullpath <span class="ot">&lt;-</span> <span class="st">"/scratch/group/hu-lab/data/tag-seq-data/GoM-2023-18S_2025-05/"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Parse file names for sample IDs.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>parsed <span class="ot">&lt;-</span> seq_list <span class="sc">%&gt;%</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(X1, <span class="at">into =</span> <span class="fu">c</span>(<span class="st">"Order"</span>, <span class="st">"gom"</span>, <span class="st">"stn"</span>, <span class="st">"niskin"</span>, <span class="st">"template"</span>, <span class="st">"DNA"</span>, <span class="st">"REP"</span>, <span class="st">"RUN"</span>, <span class="st">"suffix"</span>, <span class="st">"l"</span>, <span class="st">"r"</span>), <span class="at">remove =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">sample-id</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">case_when</span>(</span>
@@ -240,41 +258,41 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    (suffix <span class="sc">==</span> <span class="st">"R1"</span> <span class="sc">|</span> suffix <span class="sc">==</span> <span class="st">"R2"</span>) <span class="sc">~</span> suffix</span>
 <span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">%&gt;%</span></span>
 <span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">`</span><span class="at">sample-id</span><span class="st">`</span>, READ, X1)  <span class="sc">%&gt;%</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> READ, <span class="at">values_from =</span> X1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> READ, <span class="at">values_from =</span> X1)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>manifest_gom23 <span class="ot">&lt;-</span>parsed <span class="sc">%&gt;%</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">forward-absolute-filepath</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">paste</span>(fullpath, R1, <span class="at">sep =</span> <span class="st">""</span>),</span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">reverse-absolute-filepath</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">paste</span>(fullpath, R2, <span class="at">sep =</span> <span class="st">""</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">`</span><span class="at">sample-id</span><span class="st">`</span>, <span class="st">`</span><span class="at">forward-absolute-filepath</span><span class="st">`</span>, <span class="st">`</span><span class="at">reverse-absolute-filepath</span><span class="st">`</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">`</span><span class="at">sample-id</span><span class="st">`</span>, <span class="st">`</span><span class="at">forward-absolute-filepath</span><span class="st">`</span>, <span class="st">`</span><span class="at">reverse-absolute-filepath</span><span class="st">`</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Write output as a manifest file</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">write.table</span>(manifest_gom23, <span class="at">file =</span> <span class="st">"manifest-gom-2023"</span>, <span class="at">quote=</span><span class="cn">FALSE</span>,<span class="at">col.names=</span><span class="cn">TRUE</span>,<span class="at">row.names=</span><span class="cn">FALSE</span>,<span class="at">sep=</span><span class="st">"</span><span class="sc">\t</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">write.table</span>(manifest_gom23, <span class="at">file =</span> <span class="st">"manifest-gom-2023"</span>, <span class="at">quote=</span><span class="cn">FALSE</span>,<span class="at">col.names=</span><span class="cn">TRUE</span>,<span class="at">row.names=</span><span class="cn">FALSE</span>,<span class="at">sep=</span><span class="st">"</span><span class="sc">\t</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="compile-qiime2-output-files" class="level2" data-number="1.2">
 <h2 data-number="1.2" class="anchored" data-anchor-id="compile-qiime2-output-files"><span class="header-section-number">1.2</span> Compile QIIME2 output files</h2>
 <p>Import ASV table</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>asvs <span class="ot">&lt;-</span> <span class="fu">read_delim</span>(<span class="at">file =</span> <span class="st">"input-data/gom-2023-18s-asv-table.tsv"</span>, <span class="at">delim =</span> <span class="st">"</span><span class="sc">\t</span><span class="st">"</span>, <span class="at">skip =</span><span class="dv">1</span> ) <span class="sc">%&gt;%</span> </span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">FeatureID =</span> <span class="st">`</span><span class="at">#OTU ID</span><span class="st">`</span>, <span class="fu">starts_with</span>(<span class="st">"GOM"</span>))</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># head(asvs)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># head(asvs)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Import taxonomy.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>tax <span class="ot">&lt;-</span> <span class="fu">read_delim</span>(<span class="st">"input-data/taxonomy.tsv"</span>, <span class="at">delim =</span> <span class="st">"</span><span class="sc">\t</span><span class="st">"</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">FeatureID =</span> <span class="st">`</span><span class="at">Feature ID</span><span class="st">`</span>, Taxon)</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># head(tax)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># head(tax)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>asv_wtax_GoM23_062025 <span class="ot">&lt;-</span> asvs <span class="sc">%&gt;%</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(tax)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(tax)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <!-- ## Align with metadata -->
 <!-- Abby & Meagan's code. -->
@@ -315,21 +333,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h1 data-number="2"><span class="header-section-number">2</span> Sequence QC</h1>
 <p>Set up R &amp; import starting data</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse);<span class="fu">library</span>(phyloseq); <span class="fu">library</span>(decontam)</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(compositions); <span class="fu">library</span>(patchwork); </span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggupset); <span class="fu">library</span>(gt)</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(plotly); <span class="fu">library</span>(viridis); <span class="fu">library</span>(vegan)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(plotly); <span class="fu">library</span>(viridis); <span class="fu">library</span>(vegan)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>env_info <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"input-data/metadata-gom-23.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>env_info <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"input-data/metadata-gom-23.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="sequence-quality-control" class="level2" data-number="2.1">
 <h2 data-number="2.1" class="anchored" data-anchor-id="sequence-quality-control"><span class="header-section-number">2.1</span> Sequence quality control</h2>
 <p>Import to Phyloseq.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>tax_mat <span class="ot">&lt;-</span> asv_wtax_GoM23_062025 <span class="sc">%&gt;%</span> </span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(FeatureID, Taxon) <span class="sc">%&gt;%</span> </span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(Taxon, <span class="fu">c</span>(<span class="st">"Domain"</span>, <span class="st">"Supergroup"</span>, </span>
@@ -343,38 +361,38 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">column_to_rownames</span>(<span class="at">var =</span> <span class="st">"FeatureID"</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>  as.matrix</span>
 <span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(tax_mat) <span class="ot">&lt;-</span> <span class="fu">row.names</span>(asv_mat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(tax_mat) <span class="ot">&lt;-</span> <span class="fu">row.names</span>(asv_mat)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">row.names</span>(env_info) <span class="ot">&lt;-</span> env_info<span class="sc">$</span>SAMPLES</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">row.names</span>(env_info) <span class="ot">&lt;-</span> env_info<span class="sc">$</span>SAMPLES</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(env_info<span class="sc">$</span>SAMPLES)</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(env_info<span class="sc">$</span>SAMPLES))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(env_info<span class="sc">$</span>SAMPLES))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="phyloseq-integration" class="level2" data-number="2.2">
 <h2 data-number="2.2" class="anchored" data-anchor-id="phyloseq-integration"><span class="header-section-number">2.2</span> Phyloseq integration</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>ASV <span class="ot">=</span> <span class="fu">otu_table</span>(asv_mat, <span class="at">taxa_are_rows =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>TAX <span class="ot">=</span> <span class="fu">tax_table</span>(tax_mat)</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>gom_phylo <span class="ot">=</span> <span class="fu">phyloseq</span>(ASV, TAX)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>gom_phylo <span class="ot">=</span> <span class="fu">phyloseq</span>(ASV, TAX)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>samplenames <span class="ot">&lt;-</span> <span class="fu">sample_data</span>(env_info)</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>gom_phylo_sample <span class="ot">&lt;-</span> <span class="fu">merge_phyloseq</span>(gom_phylo, samplenames)</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>gom_phylo_sample</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>gom_phylo_sample</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="decontam" class="level2" data-number="2.3">
 <h2 data-number="2.3" class="anchored" data-anchor-id="decontam"><span class="header-section-number">2.3</span> Decontam</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sample_data</span>(gom_phylo_sample)<span class="sc">$</span>is.neg <span class="ot">&lt;-</span> <span class="fu">sample_data</span>(gom_phylo_sample)<span class="sc">$</span>Sample_Ctrl  <span class="sc">==</span> <span class="st">"Control"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sample_data</span>(gom_phylo_sample)<span class="sc">$</span>is.neg <span class="ot">&lt;-</span> <span class="fu">sample_data</span>(gom_phylo_sample)<span class="sc">$</span>Sample_Ctrl  <span class="sc">==</span> <span class="st">"Control"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>When “Control” appears in “Sample_or_Control column, this is a negative control” &gt; 0.5 - this threshold will ID contaminants in all samples that are more prevalent in negative controls than in positive samples.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co"># ID contaminants using Prevalence information</span></span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>contam_prev <span class="ot">&lt;-</span> <span class="fu">isContaminant</span>(gom_phylo_sample, </span>
 <span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>                               <span class="at">method=</span><span class="st">"prevalence"</span>, </span>
@@ -382,12 +400,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>                               <span class="at">threshold =</span> <span class="fl">0.5</span>, <span class="at">normalize =</span> <span class="cn">TRUE</span>) </span>
 <span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="co"># ?isContaminant()</span></span>
 <span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Report number of ASVs IDed as contaminants</span></span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(contam_prev<span class="sc">$</span>contaminant)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(contam_prev<span class="sc">$</span>contaminant)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>list <span class="ot">&lt;-</span> <span class="fu">filter</span>(contam_prev, contaminant <span class="sc">==</span> <span class="cn">TRUE</span>)</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>list_to_rm <span class="ot">&lt;-</span> <span class="fu">as.character</span>(<span class="fu">row.names</span>(list))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>list_to_rm <span class="ot">&lt;-</span> <span class="fu">as.character</span>(<span class="fu">row.names</span>(list))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="remove-decontam-asvs-and-check-stats" class="level2" data-number="2.4">
@@ -395,24 +413,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Total number of sequences and ASVs. 48,463,174 sequences 61,813 ASVs</p>
 <p>766 ASVs to be removed.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(asv_wtax_GoM23_062025<span class="sc">$</span>FeatureID))</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(asv_mat)</span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(list_to_rm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(list_to_rm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>cleaned <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(asv_mat) <span class="sc">%&gt;%</span> </span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rownames_to_column</span>(<span class="at">var =</span> <span class="st">"FeatureID"</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>(FeatureID <span class="sc">%in%</span> list_to_rm)) <span class="sc">%&gt;%</span> </span>
 <span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">column_to_rownames</span>(<span class="at">var =</span> <span class="st">"FeatureID"</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  as.matrix</span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(cleaned)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(cleaned)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>After decontam 42,775,994 sequences 766 ASVs</p>
 <p>Save cleaned ASV table files</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="co"># glimpse(asv_wtax_GoM23_062025)</span></span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>asv_wtax_wide_062025 <span class="ot">&lt;-</span> asv_wtax_GoM23_062025 <span class="sc">%&gt;%</span> </span>
@@ -425,13 +443,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(SEQUENCE_COUNT <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(Taxon, <span class="at">into =</span> <span class="fu">c</span>(<span class="st">"Domain"</span>, <span class="st">"Supergroup"</span>, <span class="st">"Division"</span>, <span class="st">"Subdivision"</span>, <span class="st">"Class"</span>, <span class="st">"Order"</span>, <span class="st">"Family"</span>, <span class="st">"Genus"</span>, <span class="st">"Species"</span>), <span class="at">sep =</span> <span class="st">";"</span>, <span class="at">remove =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a><span class="co"># length(unique(asv_wtax_wide_062025$FeatureID))</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a><span class="co"># length(unique(asv_wtax_wide_062025$FeatureID))</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="get-sequence-stats" class="level2" data-number="2.5">
 <h2 data-number="2.5" class="anchored" data-anchor-id="get-sequence-stats"><span class="header-section-number">2.5</span> Get sequence stats</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="co"># unique(asv_wtax_long_062025$SAMPLES)</span></span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(asv_wtax_long_062025)</span>
 <span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>asv_wtax_long_062025 <span class="sc">%&gt;%</span> </span>
@@ -443,10 +461,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
 <span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"black"</span>),</span>
 <span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">panel.grid.major =</span> <span class="fu">element_line</span>(<span class="at">color =</span> <span class="st">"grey90"</span>)) <span class="sc">+</span></span>
-<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Total sequences"</span>, <span class="at">y =</span> <span class="st">"Total ASVs"</span>, <span class="at">title =</span> <span class="st">"Distribtion of sequences and ASVs for all samples"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Total sequences"</span>, <span class="at">y =</span> <span class="st">"Total ASVs"</span>, <span class="at">title =</span> <span class="st">"Distribtion of sequences and ASVs for all samples"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(asv_wtax_long_062025<span class="sc">$</span>SAMPLES)</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="co"># head(asv_wtax_long_062025)</span></span>
 <span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>asv_wtax_long_062025 <span class="sc">%&gt;%</span> </span>
@@ -458,10 +476,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
 <span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"black"</span>),</span>
 <span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">panel.grid.major =</span> <span class="fu">element_line</span>()) <span class="sc">+</span></span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Total sequences"</span>, <span class="at">y =</span> <span class="st">"Total ASVs"</span>, <span class="at">title =</span> <span class="st">"Distribtion of sequences and ASVs for all samples"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Total sequences"</span>, <span class="at">y =</span> <span class="st">"Total ASVs"</span>, <span class="at">title =</span> <span class="st">"Distribtion of sequences and ASVs for all samples"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(asv_wtax_long_062025<span class="sc">$</span>SEQUENCE_COUNT)</span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>sample_count <span class="ot">&lt;-</span> asv_wtax_long_062025 <span class="sc">%&gt;%</span> </span>
 <span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(SAMPLES) <span class="sc">%&gt;%</span> </span>
@@ -474,52 +492,426 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>samples_too_low</span>
 <span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>ctrl_samples <span class="ot">&lt;-</span> <span class="fu">unique</span>((env_info <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Sample_Ctrl <span class="sc">==</span> <span class="st">"Control"</span>))<span class="sc">$</span>SAMPLES)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>ctrl_samples <span class="ot">&lt;-</span> <span class="fu">unique</span>((env_info <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Sample_Ctrl <span class="sc">==</span> <span class="st">"Control"</span>))<span class="sc">$</span>SAMPLES)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Remove control samples and samples with too few sequences.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>asv_long_cleaned <span class="ot">&lt;-</span> asv_wtax_long_062025 <span class="sc">%&gt;%</span> </span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Remove controls</span></span>
 <span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>SAMPLES <span class="sc">%in%</span> ctrl_samples) <span class="sc">%&gt;%</span> </span>
 <span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># remove samples with too few sequences</span></span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>SAMPLES <span class="sc">%in%</span> samples_too_low)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>SAMPLES <span class="sc">%in%</span> samples_too_low)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(asv_long_cleaned<span class="sc">$</span>FeatureID))</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(asv_long_cleaned<span class="sc">$</span>SEQUENCE_COUNT)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(asv_long_cleaned<span class="sc">$</span>SEQUENCE_COUNT)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>42,302,959 total sequences 60044 total ASV</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>table_seq_stats <span class="ot">&lt;-</span> asv_long_cleaned <span class="sc">%&gt;%</span> </span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(SAMPLES) <span class="sc">%&gt;%</span> </span>
 <span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">total_asvs =</span> <span class="fu">n</span>(),</span>
 <span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">sequence_count =</span> <span class="fu">sum</span>(SEQUENCE_COUNT))</span>
 <span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="co"># write.csv(table_seq_stats, file = "output-tables/seq-asv-stats.csv")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="co"># write.csv(table_seq_stats, file = "output-tables/seq-asv-stats.csv")</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="co"># head(asv_wtax_wide_062025)</span></span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="co"># dim(asv_wtax_wide_062025)</span></span>
 <span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>asv_wide_cleaned <span class="ot">&lt;-</span> asv_wtax_wide_062025 <span class="sc">%&gt;%</span> </span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">!</span>(<span class="fu">all_of</span>(ctrl_samples)) <span class="sc">&amp;</span> <span class="sc">!</span>(<span class="fu">all_of</span>(samples_too_low)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">!</span>(<span class="fu">all_of</span>(ctrl_samples)) <span class="sc">&amp;</span> <span class="sc">!</span>(<span class="fu">all_of</span>(samples_too_low)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="save-necessary-files" class="level3" data-number="2.5.1">
 <h3 data-number="2.5.1" class="anchored" data-anchor-id="save-necessary-files"><span class="header-section-number">2.5.1</span> Save necessary files</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(samples_too_low, asv_wide_cleaned, asv_long_cleaned, <span class="at">file =</span>  <span class="st">"input-data/asv_wtax_qc_GoM23_102025.RData"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(samples_too_low, asv_wide_cleaned, asv_long_cleaned, <span class="at">file =</span>  <span class="st">"input-data/asv_wtax_qc_GoM23_102025.RData"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 </section>
 </section>
-<section id="session-information" class="level1" data-number="3">
-<h1 data-number="3"><span class="header-section-number">3</span> Session Information</h1>
+<section id="curate-metadata" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Curate metadata</h1>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="at">file =</span> <span class="st">"input-data/asv_wtax_qc_GoM23_102025.RData"</span>, <span class="at">verbose =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Import &amp; compile metadata</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Direct CTD data</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>master_metadata <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"input-data/grad23_master.csv"</span>, </span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>                            <span class="at">header =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">check.names =</span> <span class="cn">FALSE</span>, <span class="at">na.strings =</span> <span class="st">"--"</span>)</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="co"># head(master_metadata)</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>cellcounts <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"cellcounts-sept22.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="modify-metadata-file" class="level2" data-number="3.1">
+<h2 data-number="3.1" class="anchored" data-anchor-id="modify-metadata-file"><span class="header-section-number">3.1</span> Modify metadata file</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># colnames(master_metadata)</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="co"># # str(master_metadata)</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="co"># # str(cellcounts)</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>env_metadata_toplot <span class="ot">&lt;-</span> master_metadata <span class="sc">%&gt;%</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Station =</span> <span class="fu">as.integer</span>(Station)) <span class="sc">%&gt;%</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Station, Niskin, <span class="at">Depth =</span> <span class="st">`</span><span class="at">CTD Recorded Depth (m)</span><span class="st">`</span>, <span class="at">Latitude =</span> <span class="st">`</span><span class="at">NMEA Latitude</span><span class="st">`</span>, <span class="at">Longitude =</span> <span class="st">`</span><span class="at">NMEA Longitude</span><span class="st">`</span>, </span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">Pressure =</span> <span class="st">`</span><span class="at">CTD Pressure (db)</span><span class="st">`</span>,</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>         Date, <span class="at">Time_UTC =</span> <span class="st">`</span><span class="at">Time (UTC)</span><span class="st">`</span>, <span class="at">Temperature =</span> <span class="st">`</span><span class="at">CTD Temperature</span><span class="st">`</span>, <span class="at">Salinity =</span> <span class="st">`</span><span class="at">Corrected CTD Salinity</span><span class="st">`</span>,</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>         <span class="at">Oxygen =</span> <span class="st">`</span><span class="at">Corrected CTD Oxygen</span><span class="st">`</span>, NO3, PO4, SIL, NO2, NH4) <span class="sc">%&gt;%</span></span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(cellcounts <span class="sc">%&gt;%</span> <span class="fu">select</span>(Station, Niskin, <span class="at">Prok_count =</span> <span class="st">`</span><span class="at">prok.count</span><span class="st">`</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate_longer_delim</span>(<span class="fu">c</span>(NO3, PO4, SIL, NO2, NH4), <span class="at">delim =</span> <span class="st">" / "</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(Temperature, Salinity, Oxygen, NO3, PO4, SIL, NO2, NH4, Prok_count), <span class="at">names_to =</span> <span class="st">"ENV_VARIABLE"</span>, <span class="at">values_to =</span> <span class="st">"VALUE"</span>, <span class="at">values_drop_na =</span> <span class="cn">TRUE</span>, <span class="at">values_transform =</span> as.numeric) <span class="sc">%&gt;%</span></span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Station, Niskin, Depth, Latitude, Longitude, Pressure, Date, Time_UTC, ENV_VARIABLE) <span class="sc">%&gt;%</span></span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="at">value =</span> <span class="fu">mean</span>(VALUE))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="create-metabarcoding-table-with-metadata" class="level3" data-number="3.1.1">
+<h3 data-number="3.1.1" class="anchored" data-anchor-id="create-metabarcoding-table-with-metadata"><span class="header-section-number">3.1.1</span> Create metabarcoding table with metadata</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(asv_long_cleaned)</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(env_metadata_toplot)</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Widen environmental metadata to add to ASV df.</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>tmp_forasv <span class="ot">&lt;-</span> env_metadata_toplot <span class="sc">%&gt;%</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(ENV_VARIABLE)) <span class="sc">|&gt;</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> ENV_VARIABLE, <span class="at">values_from =</span> value)</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>asv_long_cleaned_wenv <span class="ot">&lt;-</span> asv_long_cleaned <span class="sc">%&gt;%</span></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(SAMPLES, <span class="at">into =</span> <span class="fu">c</span>(<span class="st">"gom"</span>, <span class="st">"STATION"</span>, <span class="st">"NISKIN"</span>, <span class="st">"extra"</span>), <span class="at">sep =</span> <span class="st">"_"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Station =</span> <span class="fu">as.integer</span>(<span class="fu">str_remove</span>(STATION, <span class="st">"S"</span>)),</span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">Niskin =</span> <span class="fu">as.integer</span>(<span class="fu">str_remove</span>(NISKIN, <span class="st">"N"</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unite</span>(STN_NISKIN, STATION, NISKIN, <span class="at">sep =</span> <span class="st">"_"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(STN_NISKIN <span class="sc">!=</span> <span class="st">"S12_N10"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>gom, <span class="sc">-</span>extra) <span class="sc">%&gt;%</span></span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(tmp_forasv)</span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(asv_long_cleaned_wenv)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<blockquote class="blockquote">
+<p>When we get distance from plume, MLD, and other physical characteristics, we can add them to metadata here.</p>
+</blockquote>
+</section>
+</section>
+<section id="add-station-information" class="level2" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="add-station-information"><span class="header-section-number">3.2</span> Add station information</h2>
+<p>Distance from shore</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(geosphere)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Long, Lat order</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>outflow_lat <span class="ot">&lt;-</span> <span class="fl">28.95</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>outflow_long <span class="ot">&lt;-</span> <span class="fl">89.39</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>outflow <span class="ot">&lt;-</span> <span class="fu">c</span>(outflow_long, outflow_lat)</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>outflow</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Add station ordering</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>stn_info <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"input-data/manual_stn_classification.csv"</span>)</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>offshore_on_shore_order <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"S1"</span>, <span class="st">"S2"</span>, <span class="st">"S3"</span>, <span class="st">"S4"</span>, <span class="st">"S5"</span>,<span class="st">"S9"</span>, <span class="st">"S8"</span>, <span class="st">"S7"</span>, <span class="st">"S11"</span>, <span class="st">"S12"</span>, <span class="st">"S14"</span>, <span class="st">"S15"</span>)</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>transect_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"transect1"</span>, <span class="st">"transect1"</span>, <span class="st">"transect1"</span>, <span class="st">"transect1"</span>, <span class="st">"transect1"</span>, <span class="st">"transect2"</span>, <span class="st">"transect2"</span>, <span class="st">"transect2"</span>, <span class="st">"transect3"</span>, <span class="st">"transect3"</span>, <span class="st">"transect3"</span>, <span class="st">"transect3"</span>)</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>depth_order <span class="ot">&lt;-</span> <span class="fu">as.character</span>(<span class="fu">sort</span>((<span class="fu">unique</span>(env_metadata_toplot<span class="sc">$</span>Depth))))</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>depth_order_round <span class="ot">&lt;-</span> <span class="fu">as.character</span>(<span class="fu">sort</span>(<span class="fu">round</span>(<span class="fu">unique</span>(env_metadata_toplot<span class="sc">$</span>Depth), <span class="at">digits =</span> <span class="dv">0</span>)))</span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>depth_bin <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"&lt; 5m"</span>,<span class="st">"5-25m"</span>,<span class="st">"25-60m"</span>,</span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>                          <span class="st">"60-270m"</span>,<span class="st">"270-400m"</span>,<span class="st">"400-800m"</span>,</span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>                          <span class="st">"800-1200m"</span>,<span class="st">"1200-2000m"</span>,<span class="st">"2000-3000m"</span>)</span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>depth_bin_CHARC <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"..5m"</span>,<span class="st">"5.25m"</span>,<span class="st">"25.60m"</span>,</span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a>                          <span class="st">"60.270m"</span>,<span class="st">"270.400m"</span>,<span class="st">"400.800m"</span>,</span>
+<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a>                          <span class="st">"800.1200m"</span>,<span class="st">"1200.2000m"</span>,<span class="st">"2000.3000m"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Get sunrise and sunset - These calculations are based on equations provided by the National Oceanic &amp; Atmospheric Administration (NOAA).</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("suntools")</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(suntools)</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Test</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a><span class="fu">sunriset</span>(</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Longitude, Latitude</span></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="fl">86.990</span>, <span class="fl">27.839</span>), <span class="at">nrow =</span> <span class="dv">1</span>), <span class="co"># Add a negative to N longitude</span></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.POSIXct</span>(<span class="st">"2023-07-30 19:47:00"</span>, <span class="at">tz =</span> <span class="st">"US/Central"</span>),</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">direction=</span><span class="st">'sunrise'</span>,</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># direction = 'sunset',</span></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">POSIXct.out =</span> <span class="cn">TRUE</span></span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Include added function</span></span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>sunrise_set_newcol <span class="ot">&lt;-</span> <span class="cf">function</span>(lat, lon, date, <span class="at">direction =</span> <span class="fu">c</span>(<span class="st">"sunrise"</span>, <span class="st">"sunset"</span>)) {</span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>  lat_long <span class="ot">&lt;-</span> <span class="fu">cbind</span>(lon, lat)</span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sunriset</span>(lat_long, date, <span class="at">direction =</span> direction, <span class="at">POSIXct.out=</span><span class="cn">TRUE</span>)[,<span class="dv">2</span>]</span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Add time of day in central time (local) and add in sunrise and sunset.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="co"># head(asv_long_cleaned_wenv$Time_UTC)</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="co"># head(asv_long_cleaned_wenv$Date)</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine date and time in GMT.</span></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>asv_long_cleaned_wenv_wdates <span class="ot">&lt;-</span> asv_long_cleaned_wenv <span class="sc">%&gt;%</span> </span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">DATE_GMT =</span> <span class="fu">mdy</span>(Date),</span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">TIME_GMT =</span> <span class="fu">format</span>(<span class="fu">strptime</span>(Time_UTC, <span class="st">"%H:%M:%S"</span>), <span class="st">"%H:%M:%S"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Use glue to combine</span></span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">datetime_string =</span> <span class="fu">str_glue</span>(<span class="st">"{DATE_GMT} {TIME_GMT}"</span>),</span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Parse the combined string using ymd_hms() keep in GMT time.</span></span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">datetime =</span> <span class="fu">ymd_hms</span>(datetime_string, <span class="at">tz =</span> <span class="st">"GMT"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Create new column with a new time zone</span></span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">datetime_cst =</span> <span class="fu">with_tz</span>(datetime, <span class="at">tzone =</span> <span class="st">"US/Central"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Add sunrise</span></span>
+<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">SUNRISE =</span> <span class="fu">sunrise_set_newcol</span>(Latitude, <span class="sc">-</span>Longitude, </span>
+<span id="cb36-17"><a href="#cb36-17" aria-hidden="true" tabindex="-1"></a>                                      datetime_cst, <span class="at">direction =</span> <span class="st">"sunrise"</span>),</span>
+<span id="cb36-18"><a href="#cb36-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">SUNSET =</span> <span class="fu">sunrise_set_newcol</span>(Latitude, <span class="sc">-</span>Longitude,</span>
+<span id="cb36-19"><a href="#cb36-19" aria-hidden="true" tabindex="-1"></a>                                      datetime_cst, <span class="at">direction =</span> <span class="st">"sunset"</span>),</span>
+<span id="cb36-20"><a href="#cb36-20" aria-hidden="true" tabindex="-1"></a>         <span class="at">DAYTIME_INT =</span> <span class="fu">interval</span>(<span class="fu">ymd_hms</span>(SUNRISE), <span class="fu">ymd_hms</span>(SUNSET)),</span>
+<span id="cb36-21"><a href="#cb36-21" aria-hidden="true" tabindex="-1"></a>         <span class="at">DAY_NIGHT =</span> <span class="fu">case_when</span>(</span>
+<span id="cb36-22"><a href="#cb36-22" aria-hidden="true" tabindex="-1"></a>           <span class="fu">ymd_hms</span>(datetime_cst) <span class="sc">%within%</span> DAYTIME_INT <span class="sc">~</span> <span class="st">"Day"</span>,</span>
+<span id="cb36-23"><a href="#cb36-23" aria-hidden="true" tabindex="-1"></a>           <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Night"</span></span>
+<span id="cb36-24"><a href="#cb36-24" aria-hidden="true" tabindex="-1"></a>         )) <span class="sc">%&gt;%</span> </span>
+<span id="cb36-25"><a href="#cb36-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">HR_OF_DAY =</span> <span class="fu">hour</span>(datetime_cst)) <span class="sc">%&gt;%</span> </span>
+<span id="cb36-26"><a href="#cb36-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>DAYTIME_INT, <span class="sc">-</span>datetime_string, <span class="sc">-</span>datetime)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Where <code>HR_OF_DAY</code> 19 is at sunset and 6 is at sunrise for this study.</p>
+<p>Add additional station info to ASV table.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>asv_long_cleaned_wenv_mod <span class="ot">&lt;-</span> asv_long_cleaned_wenv_wdates <span class="sc">%&gt;%</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(stn_info) <span class="sc">%&gt;%</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">stn =</span> <span class="fu">paste</span>(<span class="st">"S"</span>, Station, <span class="at">sep =</span> <span class="st">""</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">STN_ORDER =</span> <span class="fu">factor</span>(stn, <span class="at">levels =</span> offshore_on_shore_order),</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">TRANSECT =</span> <span class="fu">factor</span>(stn, <span class="at">levels =</span> offshore_on_shore_order, <span class="at">labels =</span> transect_labels),</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">DEPTH_ORDER =</span> <span class="fu">factor</span>(Depth, <span class="at">levels =</span> <span class="fu">rev</span>(depth_order), <span class="at">labels =</span> <span class="fu">rev</span>(depth_order_round))) <span class="sc">%&gt;%</span></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">DIST_OUTFLOW =</span> <span class="fu">distHaversine</span>(<span class="fu">cbind</span>(Longitude, Latitude), <span class="fu">cbind</span>(outflow_long, outflow_lat))) <span class="sc">%&gt;%</span></span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">DEPTH_BIN =</span> <span class="fu">case_when</span>(</span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>    Depth <span class="sc">&lt;=</span> <span class="dv">5</span> <span class="sc">~</span> <span class="st">"&lt; 5m"</span>,</span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>    Depth <span class="sc">&gt;</span> <span class="dv">5</span> <span class="sc">&amp;</span> Depth <span class="sc">&lt;=</span><span class="dv">25</span> <span class="sc">~</span> <span class="st">"5-25m"</span>,</span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>    Depth <span class="sc">&gt;</span> <span class="dv">25</span> <span class="sc">&amp;</span> Depth <span class="sc">&lt;=</span><span class="dv">60</span> <span class="sc">~</span> <span class="st">"25-60m"</span>,</span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a>    Depth <span class="sc">&gt;</span> <span class="dv">60</span> <span class="sc">&amp;</span> Depth <span class="sc">&lt;=</span><span class="dv">270</span> <span class="sc">~</span> <span class="st">"60-270m"</span>,</span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>    Depth <span class="sc">&gt;</span> <span class="dv">270</span> <span class="sc">&amp;</span> Depth <span class="sc">&lt;=</span><span class="dv">400</span> <span class="sc">~</span> <span class="st">"270-400m"</span>,</span>
+<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a>    Depth <span class="sc">&gt;</span> <span class="dv">400</span> <span class="sc">&amp;</span> Depth <span class="sc">&lt;=</span><span class="dv">800</span> <span class="sc">~</span> <span class="st">"400-800m"</span>,</span>
+<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a>    Depth <span class="sc">&gt;</span> <span class="dv">800</span> <span class="sc">&amp;</span> Depth <span class="sc">&lt;=</span><span class="dv">1200</span> <span class="sc">~</span> <span class="st">"800-1200m"</span>,</span>
+<span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a>    Depth <span class="sc">&gt;</span> <span class="dv">1200</span> <span class="sc">&amp;</span> Depth <span class="sc">&lt;=</span><span class="dv">2000</span> <span class="sc">~</span> <span class="st">"1200-2000m"</span>,</span>
+<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a>    Depth <span class="sc">&gt;</span> <span class="dv">2000</span> <span class="sc">&amp;</span> Depth <span class="sc">&lt;=</span><span class="dv">3000</span> <span class="sc">~</span> <span class="st">"2000-3000m"</span>,</span>
+<span id="cb37-18"><a href="#cb37-18" aria-hidden="true" tabindex="-1"></a>  ))</span>
+<span id="cb37-19"><a href="#cb37-19" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(asv_long_cleaned_wenv_wdates)</span>
+<span id="cb37-20"><a href="#cb37-20" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(asv_long_cleaned_wenv_mod)</span>
+<span id="cb37-21"><a href="#cb37-21" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(asv_long_cleaned_wenv_mod)</span>
+<span id="cb37-22"><a href="#cb37-22" aria-hidden="true" tabindex="-1"></a><span class="co"># sort(unique(asv_long_cleaned_wenv_mod$STN_NISKIN))</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="curate-taxonomic-assignment" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Curate taxonomic assignment</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># head(asv_long_cleaned_wenv_mod)</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(asv_long_cleaned_wenv_mod<span class="sc">$</span>Domain) <span class="co"># take EUKS</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(asv_long_cleaned_wenv_mod<span class="sc">$</span>Supergroup)</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(asv_long_cleaned_wenv_mod<span class="sc">$</span>Division)</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="co"># View(asv_long_cleaned_wenv_mod %&gt;% filter(Division == "Opisthokonta"))</span></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a><span class="co"># View(asv_long_cleaned_wenv_mod %&gt;%</span></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>       <span class="co"># select(Domain, Supergroup, Division, Subdivision, Class, Order, Family, Genus, Species) %&gt;% distinct())</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Isolating Domain to “Eukaryota”, removing bacteria, “Unassigned” and eukaryotes with <code>:nucl</code>. At the Division level, removing “Opisthokonta”</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>asv_long_wenv_wtax <span class="ot">&lt;-</span> asv_long_cleaned_wenv_mod <span class="sc">%&gt;%</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Domain <span class="sc">==</span> <span class="st">"Eukaryota"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Supergroup <span class="sc">!=</span> <span class="st">"nucl"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">DIVISION =</span> <span class="fu">case_when</span>(</span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>    Subdivision <span class="sc">==</span> <span class="st">"X"</span> <span class="sc">~</span> <span class="st">"Unannotated"</span>,</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">is.na</span>(Subdivision) <span class="sc">~</span> <span class="st">"Unannotated"</span>,</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span> <span class="sc">~</span> Subdivision</span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">%&gt;%</span></span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Goal is to combine Subdivision-Class</span></span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">SUPERGROUP_CLASS =</span> <span class="fu">case_when</span>(</span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>    <span class="do">## High level NAs at the supergroup and division level</span></span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>    (<span class="fu">is.na</span>(Division) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(Supergroup)) <span class="sc">~</span> <span class="fu">paste</span>(Supergroup, <span class="st">"Unannotated"</span>, <span class="at">sep =</span> <span class="st">"-"</span>),</span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a>    (<span class="fu">is.na</span>(Division) <span class="sc">&amp;</span> <span class="fu">is.na</span>(Supergroup)) <span class="sc">~</span> <span class="st">"Eukaryote-Unannotated"</span>,</span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a>    (<span class="fu">is.na</span>(Subdivision)) <span class="sc">~</span> <span class="fu">paste</span>(Supergroup, <span class="st">"Unannotated"</span>, <span class="at">sep =</span> <span class="st">"-"</span>),</span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>    (<span class="fu">is.na</span>(Class) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(Subdivision)) <span class="sc">~</span> <span class="fu">paste</span>(Subdivision, <span class="st">"Unannotated"</span>, <span class="at">sep =</span> <span class="st">"-"</span>),</span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">#</span></span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a>    (Subdivision <span class="sc">==</span> <span class="st">"X"</span>) <span class="sc">~</span> <span class="fu">paste</span>(Division, <span class="st">"Unannotated"</span>, <span class="at">sep =</span> <span class="st">"-"</span>),</span>
+<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a>    (Class <span class="sc">==</span> <span class="st">"X"</span>) <span class="sc">~</span> <span class="fu">paste</span>(Subdivision, <span class="st">"Unannotated"</span>, <span class="at">sep =</span> <span class="st">"-"</span>),</span>
+<span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span> <span class="sc">~</span> <span class="fu">paste</span>(Subdivision, Class, <span class="at">sep =</span> <span class="st">"-"</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Supergroup_simplified =</span> <span class="fu">case_when</span>(</span>
+<span id="cb39-21"><a href="#cb39-21" aria-hidden="true" tabindex="-1"></a>    Supergroup <span class="sc">==</span> <span class="st">"TSAR"</span> <span class="sc">~</span> <span class="fu">paste</span>(<span class="st">"TSAR"</span>, Subdivision, <span class="at">sep =</span> <span class="st">"-"</span>),</span>
+<span id="cb39-22"><a href="#cb39-22" aria-hidden="true" tabindex="-1"></a>    Supergroup <span class="sc">==</span> <span class="st">"Obazoa"</span> <span class="sc">~</span> <span class="fu">paste</span>(<span class="st">"Obazoa"</span>, DIVISION, <span class="at">sep =</span> <span class="st">"-"</span>),</span>
+<span id="cb39-23"><a href="#cb39-23" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span> <span class="sc">~</span> Supergroup</span>
+<span id="cb39-24"><a href="#cb39-24" aria-hidden="true" tabindex="-1"></a>  ))</span>
+<span id="cb39-25"><a href="#cb39-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-26"><a href="#cb39-26" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(asv_long_wenv_wtax)</span>
+<span id="cb39-27"><a href="#cb39-27" aria-hidden="true" tabindex="-1"></a>tax_key <span class="ot">&lt;-</span> asv_long_wenv_wtax <span class="sc">%&gt;%</span></span>
+<span id="cb39-28"><a href="#cb39-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(FeatureID, Taxon, Supergroup, Division, Subdivision, Class, Order, Family, Genus, Species) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="stats-on-what-was-removed" class="level3" data-number="4.0.1">
+<h3 data-number="4.0.1" class="anchored" data-anchor-id="stats-on-what-was-removed"><span class="header-section-number">4.0.1</span> Stats on what was removed</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(asv_long_cleaned_wenv_mod)</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(asv_long_wenv_wtax)</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(asv_long_cleaned_wenv_mod<span class="sc">$</span>SEQUENCE_COUNT)</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(asv_long_wenv_wtax<span class="sc">$</span>SEQUENCE_COUNT)</span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a><span class="dv">38481175</span><span class="sc">/</span>(<span class="dv">41695184</span> <span class="sc">+</span> <span class="dv">38481175</span>)</span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a><span class="co"># 41,695,184</span></span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 38,481,175</span></span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(asv_long_cleaned_wenv_mod<span class="sc">$</span>FeatureID))</span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(asv_long_wenv_wtax<span class="sc">$</span>FeatureID))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="average-across-replicates" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="average-across-replicates"><span class="header-section-number">4.1</span> Average across replicates</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(asv_long_wenv_wtax)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>asv_long_avg_wtax <span class="ot">&lt;-</span> asv_long_wenv_wtax <span class="sc">%&gt;%</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   # First average ASV sequence count across replicates</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(FeatureID, Taxon, DIVISION, SUPERGROUP_CLASS, Supergroup_simplified, Supergroup, Division, Subdivision, Class, Order, Family, Genus, Species,</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>           STN_NISKIN, Station, Niskin, Depth, Latitude, Longitude, Pressure, Temperature, Salinity, Oxygen, NH4, NO2, NO3, PO4, SIL, Prok_count,</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>           STN_CATEGORY_3, STN_CATEGORY_4, STN_ORDER, TRANSECT, DEPTH_ORDER, DIST_OUTFLOW, DEPTH_MAX, DEPTH_BIN,</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>           DATE_GMT, TIME_GMT, datetime_cst, DAY_NIGHT, HR_OF_DAY) <span class="sc">%&gt;%</span></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">MEAN_REPS_seq =</span> <span class="fu">mean</span>(SEQUENCE_COUNT)) <span class="sc">%&gt;%</span></span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="determine-depth-features" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Determine depth features</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>tmp <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"GradGoM23_MasterSpreadsheet_9-26-23.xlsx - Master.csv"</span>)</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(tmp)</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(env_metadata_toplot)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>raw_env_data <span class="ot">&lt;-</span> tmp <span class="sc">%&gt;%</span> </span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Station, Niskin, <span class="at">Depth =</span> <span class="st">`</span><span class="at">Bottle.Depth..m.</span><span class="st">`</span>, Latitude, Longitude, Date, <span class="at">Time_UTC =</span> <span class="st">`</span><span class="at">Time..UTC.</span><span class="st">`</span>, <span class="at">value =</span> <span class="st">`</span><span class="at">Fluorescence.CTD</span><span class="st">`</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Station =</span> <span class="fu">as.integer</span>(Station),</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">Depth =</span> <span class="fu">as.numeric</span>(Depth),</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">value =</span> <span class="fu">as.numeric</span>(value)) <span class="sc">%&gt;%</span> </span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_column</span>(<span class="at">ENV_VARIABLE =</span> <span class="st">"Fluorescence"</span>,</span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">depth_feature =</span> <span class="st">""</span>)</span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a><span class="co"># colnames(raw_env_data)</span></span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a><span class="co"># colnames(env_metadata_toplot)</span></span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>stn_list <span class="ot">&lt;-</span> <span class="fu">as.character</span>(<span class="fu">unique</span>(stn_info<span class="sc">$</span>Station))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>env_metadata_toplot_flor <span class="ot">&lt;-</span> <span class="fu">rbind</span>(env_metadata_toplot, raw_env_data) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Station <span class="sc">%in%</span> stn_list)</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="co"># glimpse(raw_env_data)</span></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a><span class="co"># glimpse(env_metadata_toplot)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(env_metadata_toplot_flor)</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(env_metadata_toplot_flor<span class="sc">$</span>Station)</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(env_metadata_toplot_flor<span class="sc">$</span>Station))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="o2-min" class="level2" data-number="5.1">
+<h2 data-number="5.1" class="anchored" data-anchor-id="o2-min"><span class="header-section-number">5.1</span> O2 min</h2>
+<p>Assign oxygen mininum as the depth with the lowest oxygen below 30 meters.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>o2_min <span class="ot">&lt;-</span> env_metadata_toplot_flor <span class="sc">%&gt;%</span> </span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(ENV_VARIABLE <span class="sc">==</span> <span class="st">"Oxygen"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Depth <span class="sc">&gt;</span> <span class="dv">30</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Station) <span class="sc">%&gt;%</span> </span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">MIN =</span> <span class="fu">min</span>(value)) <span class="sc">%&gt;%</span> </span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(MIN <span class="sc">==</span> value) <span class="sc">%&gt;%</span> </span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>MIN) <span class="sc">%&gt;%</span> </span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_column</span>(<span class="at">FEATURE =</span> <span class="st">"Oxygen minimum"</span>)</span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(o2_min)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="dcm" class="level2" data-number="5.2">
+<h2 data-number="5.2" class="anchored" data-anchor-id="dcm"><span class="header-section-number">5.2</span> DCM</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(env_metadata_toplot_flor<span class="sc">$</span>ENV_VARIABLE)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Assign oxygen minimum as the depth with the lowest oxygen below 30 meters.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>dcm <span class="ot">&lt;-</span> env_metadata_toplot_flor <span class="sc">%&gt;%</span> </span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(ENV_VARIABLE <span class="sc">==</span> <span class="st">"Fluorescence"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Station) <span class="sc">%&gt;%</span> </span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">MAX =</span> <span class="fu">max</span>(value)) <span class="sc">%&gt;%</span> </span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(MAX <span class="sc">==</span> value) <span class="sc">%&gt;%</span></span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>MAX) <span class="sc">%&gt;%</span> </span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_column</span>(<span class="at">FEATURE =</span> <span class="st">"DCM"</span>)</span>
+<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a><span class="co"># head(o2_min)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="salt-max" class="level2" data-number="5.3">
+<h2 data-number="5.3" class="anchored" data-anchor-id="salt-max"><span class="header-section-number">5.3</span> Salt max</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>sal_max <span class="ot">&lt;-</span> env_metadata_toplot_flor <span class="sc">%&gt;%</span> </span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(ENV_VARIABLE <span class="sc">==</span> <span class="st">"Salinity"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Station) <span class="sc">%&gt;%</span> </span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">MAX =</span> <span class="fu">max</span>(value)) <span class="sc">%&gt;%</span> </span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(MAX <span class="sc">==</span> value) <span class="sc">%&gt;%</span></span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>MAX) <span class="sc">%&gt;%</span> </span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_column</span>(<span class="at">FEATURE =</span> <span class="st">"Salinity maximum"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="depth-profiles-across-transects" class="level2" data-number="5.4">
+<h2 data-number="5.4" class="anchored" data-anchor-id="depth-profiles-across-transects"><span class="header-section-number">5.4</span> Depth profiles across transects</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>feature_profiles <span class="ot">&lt;-</span> <span class="fu">rbind</span>(sal_max, o2_min, dcm) <span class="sc">%&gt;%</span> </span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(FEATURE, Station, Niskin, Depth) <span class="sc">%&gt;%</span> <span class="fu">drop_na</span>()</span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Any duplicates?</span></span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(feature_profiles<span class="sc">$</span>Depth)</span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(feature_profiles<span class="sc">$</span>Depth))</span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a><span class="co"># feature_profiles</span></span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a><span class="co"># write.csv(feature_profiles, file = "input-data/feature_profiles_depth.csv")</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="co"># dim(env_metadata_toplot_flor)</span></span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="co"># head(env_metadata_toplot_flor)</span></span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>env_metadata_mod <span class="ot">&lt;-</span> env_metadata_toplot_flor <span class="sc">%&gt;%</span> </span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>depth_feature) <span class="sc">%&gt;%</span> </span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(feature_profiles) <span class="sc">%&gt;%</span> </span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(stn_info)</span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a><span class="co"># dim(env_metadata_mod)  </span></span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(env_metadata_mod)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>env_metadata_mod <span class="sc">%&gt;%</span> </span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(FEATURE)) <span class="sc">%&gt;%</span> </span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(FEATURE, Station, Depth, Transect) <span class="sc">%&gt;%</span> </span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Station, <span class="at">y =</span> Depth, <span class="at">fill =</span> FEATURE, <span class="at">shape =</span> FEATURE, <span class="at">color =</span> FEATURE)) <span class="sc">+</span></span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">size =</span> <span class="dv">2</span>, <span class="at">width =</span> <span class="fl">0.1</span>) <span class="sc">+</span></span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"#18545e"</span>, <span class="st">"#603655"</span>, <span class="st">"#c49235"</span>)) <span class="sc">+</span></span>
+<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_reverse</span>() <span class="sc">+</span></span>
+<span id="cb53-11"><a href="#cb53-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_grid</span>(<span class="at">cols =</span> <span class="fu">vars</span>(Transect), <span class="at">scales =</span> <span class="st">"free"</span>, <span class="at">space =</span> <span class="st">"free"</span>) <span class="sc">+</span></span>
+<span id="cb53-12"><a href="#cb53-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb53-13"><a href="#cb53-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>, <span class="at">colour=</span><span class="st">"black"</span>),</span>
+<span id="cb53-14"><a href="#cb53-14" aria-hidden="true" tabindex="-1"></a>          <span class="at">panel.border =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="cn">NA</span>),</span>
+<span id="cb53-15"><a href="#cb53-15" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend.background =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb53-16"><a href="#cb53-16" aria-hidden="true" tabindex="-1"></a>          <span class="at">panel.grid.major =</span> <span class="fu">element_line</span>(<span class="at">color =</span> <span class="st">"grey90"</span>, <span class="at">linetype =</span> <span class="st">"dotdash"</span>),</span>
+<span id="cb53-17"><a href="#cb53-17" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>, <span class="at">colour=</span><span class="st">"black"</span>, <span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb53-18"><a href="#cb53-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.title =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb53-19"><a href="#cb53-19" aria-hidden="true" tabindex="-1"></a><span class="co"># ggsave("figures/depth_profiles.svg", width = 8, height = 3, device = "svg", limitsize = FALSE)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="save" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> Save</h1>
+<p>Core data frames to take to additional code. * asv_long_cleaned_wenv * asv_long_cleaned_wenv_mod * asv_long_wenv_wtax * tax_key * asv_long_avg_wtax * env_metadata_mod</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a><span class="co"># save(asv_long_cleaned_wenv, asv_long_cleaned_wenv_mod,</span></span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a><span class="co">#      asv_long_wenv_wtax, tax_key, asv_long_avg_wtax,</span></span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a><span class="co">#      env_metadata_mod,</span></span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a><span class="co">#      file = "input-data/gulf-2023-sequence-analysis_11192025.RData")</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="session-information" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> Session Information</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 
 
@@ -577,13 +969,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       e.clearSelection();
     }
     const getTextToCopy = function(trigger) {
-        const codeEl = trigger.previousElementSibling.cloneNode(true);
-        for (const childEl of codeEl.children) {
-          if (isCodeAnnotation(childEl)) {
-            childEl.remove();
-          }
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
         }
-        return codeEl.innerText;
+      }
+      return codeEl.innerText;
     }
     const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
       text: getTextToCopy
