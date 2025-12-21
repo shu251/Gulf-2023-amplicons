@@ -746,6 +746,26 @@ env_metadata_mod %>%
 # ggsave("figures/depth_profiles.svg", width = 8, height = 3, device = "svg", limitsize = FALSE)
 ```
 
+```{r}
+head(asv_long_cleaned_wenv_mod)
+```
+
+### List of ASVs with too low sequences
+
+
+Starting with 59,594 total ASVs.
+```{r}
+tmp <- asv_long_cleaned_wenv_mod %>% 
+  group_by(FeatureID) %>% 
+  summarize(SUM = sum(SEQUENCE_COUNT)) %>% 
+  filter(SUM >= 100)
+# str(tmp)
+# hist(tmp$SUM)
+
+asvs_less_100 <- as.character(unique(tmp$FeatureID))
+```
+
+
 # Save
 
 Core data frames to take to additional code.
@@ -756,12 +776,13 @@ Core data frames to take to additional code.
 * asv_long_avg_wtax
 * env_metadata_mod
 
+
 ```{r}
 # | eval: false
-# save(asv_long_cleaned_wenv, asv_long_cleaned_wenv_mod,
-#      asv_long_wenv_wtax, tax_key, asv_long_avg_wtax,
-#      env_metadata_mod,
-#      file = "input-data/gulf-2023-sequence-analysis_11192025.RData")
+save(asv_long_cleaned_wenv, asv_long_cleaned_wenv_mod,
+     asv_long_wenv_wtax, tax_key, asv_long_avg_wtax,
+     env_metadata_mod, asvs_less_100, 
+     file = "input-data/gulf-2023-sequence-analysis_11192025.RData")
 ```
 
 
