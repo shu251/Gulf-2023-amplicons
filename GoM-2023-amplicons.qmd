@@ -89,47 +89,6 @@ asv_wtax_GoM23_062025 <- asvs %>%
 ```
 
 
-<!-- ## Align with metadata -->
-
-<!-- Abby & Meagan's code. -->
-
-<!-- ```{r} -->
-<!-- # | eval: false -->
-<!-- metadata <- read_delim("GradGoM23_MasterSpreadsheet_9-26-23.xlsx - Master.csv") %>%  -->
-<!--   mutate(Station = as.numeric(Station)) -->
-
-<!-- nuts <- read_delim("SHEETNutrients_MasterComps.csv", delim = ",", col_names = TRUE) %>% select(-`Bottle Depth (m)`, -`Nutrient BTL #`, -`...11`, -`...12`, -`...13`, -`Lab Temp (°C)`) %>%  -->
-<!--   pivot_longer(cols = -c(Station, Niskin), names_to = "Nutrients", values_to = "Conc") %>%  -->
-<!--   group_by(Station, Niskin, Nutrients) %>%  -->
-<!--     summarize(CONC = mean(Conc)) %>%  -->
-<!--   pivot_wider(names_from = Nutrients, values_from = CONC) %>%  -->
-<!--   select(Station, Niskin, NH4 = `NH₄ (µmol/L)`, NO2 = `NO₂ (µmol/L)`, NO3 = `NO₃ (µmol/L)`, PO4 = `PO₄ (µmol/L)`, SIL = `SIL (µmol/L)`) -->
-<!-- # colnames(nuts) -->
-<!-- # -->
-<!-- metadata_all <- metadata %>%  -->
-<!--   select(Station, Niskin, DEPTH = `Bottle Depth (m)`, Latitude, Longitude, TEMP = `CTD temp`,  Date, Time_UTC = `Time (UTC)`, SALINITY = `Corrected CTD Sal 1`, OXYGEN = `Corrected CTD Oxy1`) %>%  -->
-<!--   left_join(nuts)  -->
-<!-- ``` -->
-
-<!-- > All nutrients in µmol/L -->
-
-<!-- ```{r} -->
-<!-- # | eval: false -->
-<!-- sample_wmetadata <- as.data.frame(colnames(asvs %>% select(-FeatureID))) %>% select(SAMPLES = `colnames(asvs %>% select(-FeatureID))`) %>%  -->
-<!--   mutate(Sample_Ctrl = case_when( -->
-<!--     grepl("GOM23_S0_N0", SAMPLES) ~ "Control",  -->
-<!--     TRUE ~ "Sample")) %>%  -->
-<!--   separate(SAMPLES, into = c("YEAR", -->
-<!--                              "stn", "nisk",  -->
-<!--                              "barcode", "rep"), remove = FALSE) %>%  -->
-<!--   mutate(Station = as.numeric(str_replace(stn, "S", "")), -->
-<!--          Niskin = as.numeric(str_replace(nisk, "N", ""))) %>%  -->
-<!--   left_join(metadata_all) -->
-
-<!-- # write.csv(sample_wmetadata, file = "input-data/metadata-gom-23.csv") -->
-<!-- ``` -->
-
-
 # Sequence QC
 
 Set up R & import starting data
@@ -336,29 +295,31 @@ sum(asv_long_cleaned$SEQUENCE_COUNT)
 table_seq_stats <- asv_long_cleaned %>% 
   group_by(SAMPLES) %>% 
   summarise(total_asvs = n(),
-            sequence_count = sum(SEQUENCE_COUNT))
+            sequence_count = sum(SEQUENCE_COUNT)) %>% 
+  separate(SAMPLES, into = c("rm", "STN", "NISKIN", "18s", "Excess"), remove = FALSE) %>% 
+  # mutate(Replicate = case_when(
+  #   Excess == "orig" ~ "1",
+  #   TRUE ~ "2"
+  # )) %>% 
+  group_by(STN, NISKIN) %>% 
+    summarise(Sequence_files = str_c(SAMPLES, collapse = ", "),
+              Total_ASVs = sum(total_asvs),
+              Total_sequences = sum(sequence_count))
+  # pivot_wider(names_from = Replicate, values_from = c(total_asvs, sequence_count)) %>% 
 
+table_seq_stats
 # write.csv(table_seq_stats, file = "output-tables/seq-asv-stats.csv")
 ```
-
-```{r}
-# | eval: false
-# head(asv_wtax_wide_062025)
-# dim(asv_wtax_wide_062025)
-asv_wide_cleaned <- asv_wtax_wide_062025 %>% 
-  select(!(all_of(ctrl_samples)) & !(all_of(samples_too_low)))
-```
-
 
 ### Save necessary files
 
 ```{r}
 # | eval: false
-save(samples_too_low, asv_wide_cleaned, asv_long_cleaned, file =  "input-data/asv_wtax_qc_GoM23_102025.RData")
+# save(samples_too_low, asv_long_cleaned, file =  "input-data/asv_wtax_qc_GoM23_102025.RData")
 ```
 
 
-# Curate metadata
+# Curate ASV tables and include metadata
 
 ```{r}
 # | eval: false
@@ -400,11 +361,15 @@ env_metadata_toplot <- master_metadata %>%
 ```{r}
 head(asv_long_cleaned)
 head(env_metadata_toplot)
+
 # Widen environmental metadata to add to ASV df.
 tmp_forasv <- env_metadata_toplot %>%
   filter(!is.na(ENV_VARIABLE)) |>
   pivot_wider(names_from = ENV_VARIABLE, values_from = value)
+```
 
+
+```{r}
 asv_long_cleaned_wenv <- asv_long_cleaned %>%
   separate(SAMPLES, into = c("gom", "STATION", "NISKIN", "extra"), sep = "_") %>%
   mutate(Station = as.integer(str_remove(STATION, "S")),
@@ -416,7 +381,6 @@ asv_long_cleaned_wenv <- asv_long_cleaned %>%
 # 
 head(asv_long_cleaned_wenv)
 ```
-> When we get distance from plume, MLD, and other physical characteristics, we can add them to metadata here. 
 
 
 ## Add station information
@@ -598,18 +562,24 @@ length(unique(asv_long_wenv_wtax$FeatureID))
 
 
 
-## Average across replicates
+## Average across replicates & apply ASV threshold
 
 ```{r}
 head(asv_long_wenv_wtax)
 ```
 
+```{r}
+colnames(asv_long_wenv_wtax)
+```
 
 ```{r}
 asv_long_avg_wtax <- asv_long_wenv_wtax %>%
 #   # First average ASV sequence count across replicates
-  group_by(FeatureID, Taxon, DIVISION, SUPERGROUP_CLASS, Supergroup_simplified, Supergroup, Division, Subdivision, Class, Order, Family, Genus, Species,
-           STN_NISKIN, Station, Niskin, Depth, Latitude, Longitude, Pressure, Temperature, Salinity, Oxygen, NH4, NO2, NO3, PO4, SIL, Prok_count,
+  group_by(FeatureID, Taxon, 
+           DIVISION, SUPERGROUP_CLASS, Supergroup_simplified, 
+           Supergroup, Division, Subdivision, Class, Order, Family, Genus, Species,
+           STN_NISKIN, Station, Niskin, Depth, Latitude, Longitude, 
+           Pressure, Temperature, Salinity, Oxygen, NH4, NO2, NO3, PO4, SIL, Prok_count,
            STN_CATEGORY_3, STN_CATEGORY_4, STN_ORDER, TRANSECT, DEPTH_ORDER, DIST_OUTFLOW, DEPTH_MAX, DEPTH_BIN,
            DATE_GMT, TIME_GMT, datetime_cst, DAY_NIGHT, HR_OF_DAY) %>%
   summarise(MEAN_REPS_seq = mean(SEQUENCE_COUNT)) %>%
@@ -750,39 +720,53 @@ env_metadata_mod %>%
 head(asv_long_cleaned_wenv_mod)
 ```
 
-### List of ASVs with too low sequences
+### Remove ASVs with too low sequences
 
-
-Starting with 59,594 total ASVs.
 ```{r}
-tmp <- asv_long_cleaned_wenv_mod %>% 
+asvs_total_seq <- asv_long_avg_wtax %>% 
   group_by(FeatureID) %>% 
-  summarize(SUM = sum(SEQUENCE_COUNT)) %>% 
-  filter(SUM >= 100)
-# str(tmp)
-# hist(tmp$SUM)
+  summarise(SEQ_SUM = sum(MEAN_REPS_seq)) %>% 
+  filter(SEQ_SUM >= 100)
+glimpse(asvs_total_seq)
+length(unique(asvs_total_seq$FeatureID))
+sum(asvs_total_seq$SEQ_SUM)
 
-asvs_less_100 <- as.character(unique(tmp$FeatureID))
+# Starting with 22 mill
+# 38,262 ASVs
+
+asvs_to_keep <- unique(asvs_total_seq$FeatureID)
 ```
+Cleaned and averaged: 22 million sequences and 38,262 ASVs
 
+Filtered the whole dataset by ASVs that have more than 100 sequences total
+Leaving us with 21,865,501 total sequences.
+10,563 ASVs
+
+### Rename data R objects
+
+```{r}
+asv_long_avg_wtax <- asv_long_avg_wtax %>% 
+  filter(FeatureID %in% asvs_to_keep)
+
+asv_long_cleaned_wenv_mod <- asv_long_cleaned_wenv_mod %>% 
+  filter(FeatureID %in% asvs_to_keep)
+```
 
 # Save
 
 Core data frames to take to additional code.
-* asv_long_cleaned_wenv
 * asv_long_cleaned_wenv_mod
-* asv_long_wenv_wtax
-* tax_key
 * asv_long_avg_wtax
+* tax_key
 * env_metadata_mod
 
 
 ```{r}
 # | eval: false
-save(asv_long_cleaned_wenv, asv_long_cleaned_wenv_mod,
-     asv_long_wenv_wtax, tax_key, asv_long_avg_wtax,
-     env_metadata_mod, asvs_less_100, 
-     file = "input-data/gulf-2023-sequence-analysis_11192025.RData")
+# save(asv_long_cleaned_wenv_mod,
+#      asv_long_avg_wtax, tax_key,
+#      env_metadata_mod,
+#      file = "input-data/gulf-2023-sequence-analysis_12222025.RData")
 ```
 
 

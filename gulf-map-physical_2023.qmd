@@ -22,21 +22,26 @@ library(plotly); library(viridis); library(vegan)
 ```
 
 ```{r}
-load(file = "input-data/gulf-2023-sequence-analysis_11192025.RData", verbose = TRUE)
+load(file = "input-data/gulf-2023-sequence-analysis_12222025.RData", verbose = TRUE)
 stn_info <- read.csv("input-data/manual_stn_classification.csv")
 ```
 
 ```{r}
 #offshore_on_shore_order <- c("S1", "S2", "S3", "S4", "S5","S9", "S8", "S7", "S11", "S12", "S14", "S15")
-head(env_metadata_toplot)
+head(env_metadata_mod)
 head(asv_long_wenv_wtax)
 # unique(asv_long_wenv_wtax$Station)
 stns_in_study <- as.character(unique(asv_long_wenv_wtax$Station))
 ```
 
+
+## CTD data import
 ```{r}
-glimpse(env_metadata_toplot)
+master_metadata <- read.csv("input-data/grad23_master.csv", 
+                            header = TRUE,
+                            check.names = FALSE, na.strings = "--")
 ```
+
 
 # Marine Heat Wave?
 
@@ -48,13 +53,15 @@ glimpse(env_metadata_toplot)
 
 # Temperature-Salinity plots
 
+> T-S plot with all stations, and depths above the DCM? above the O2 min layer?
 
 ```{r}
-# https://dankelley.github.io/oce/
-# install.packages("oce", repos = c("https://dankelley.r-universe.dev", "https://cloud.r-project.org"))
-library(oce)
+# master_metadata %>% 
+#   select(Station, Niskin, DEPTH = `CTD Recorded Depth (m)`, TEMP = `CTD Temperature`, SALINITY = `Corrected CTD Salinity`, PRESSURE = `CTD Pressure (db)`,
+#          LONG = `NMEA Longitude`, LAT = `NMEA Latitude`)
 ```
-> T-S plot with all stations, and depths above the DCM? above the O2 min layer?
+
+
 
 # Brunt-Väisälä frequency
 
@@ -65,6 +72,48 @@ Measure of stability within a sampled vertical profile. Use the formula `N = √
 
 > Calculate MLD, would add this to my parameters for DCM and more.
 
+```{r}
+# install.packages("gsw")
+library(gsw)
+# ?gsw_Nsquared()
+```
+
+
+```{r}
+# colnames(master_metadata)
+by_freq <- master_metadata %>% 
+  select(Station, Niskin, DEPTH = `CTD Recorded Depth (m)`, TEMP = `CTD Temperature`, SALINITY = `Corrected CTD Salinity`, PRESSURE = `CTD Pressure (db)`,
+         LONG = `NMEA Longitude`, LAT = `NMEA Latitude`) %>% 
+  filter(Station != 63) %>% 
+  mutate(STN_NISKIN = as.character(paste("S", Station, "_N", Niskin, sep = ""))) %>%
+  filter(STN_NISKIN != "S12_N10") %>% 
+  drop_na() %>% 
+  column_to_rownames(var = "STN_NISKIN")
+
+head(by_freq)
+```
+
+```{r}
+bv_output <- by_freq %>% 
+  group_by(Station, DEPTH) %>% 
+  reframe(bv_out = gsw_Nsquared(by_freq$SALINITY, 
+                                    by_freq$TEMP, 
+                                    by_freq$PRESSURE, 
+                                    by_freq$LAT)) %>% 
+  mutate(BV_INDIC = names(bv_out)) %>% 
+  unnest(bv_out) %>% 
+  pivot_wider(names_from = BV_INDIC, values_from = bv_out)
+
+# head(tmp)
+# unique(tmp$BV_INDIC)
+# ?gsw_Nsquared()
+  # bind_cols(data.frame(gsw_Nsquared(by_freq$SALINITY, 
+  #                                   by_freq$TEMP, 
+  #                                   by_freq$PRESSURE, 
+  #                                   by_freq$LAT)))
+```
+
+Interpret B-V frequency to determine Mixed Layer Depth.
 ```{r}
 
 ```
@@ -87,13 +136,12 @@ Measure of stability within a sampled vertical profile. Use the formula `N = √
 Set up a data frame with all parameters as columns.
 
 ```{r}
-head(env_metadata_toplot)
-# range(env_metadata_toplot$Depth)
-# unique(env_metadata_toplot$Station)
+head(env_metadata_mod)
+
 ```
 
 ```{r}
-stn_labels <- env_metadata_toplot %>% 
+stn_labels <- env_metadata_mod %>% 
   ungroup() %>% 
   filter(Station %in% stns_in_study) %>% 
   select(Station, Latitude, Longitude, Depth) %>% distinct()
@@ -197,7 +245,7 @@ ODV_colours <- c("#b0020c", "#d31f2a", "#ffb300","#ffc000",  "#75ab19","#27ab19"
 Station points and labels.
 
 ```{r}
-stn_labels <- env_metadata_toplot %>% 
+stn_labels <- env_metadata_mod %>% 
   filter(Station %in% stns_in_study) %>% 
   select(Station, Latitude, Longitude, Depth) %>% distinct() %>% 
   mutate(TRANSECT = case_when(
@@ -209,7 +257,7 @@ stn_labels <- env_metadata_toplot %>%
 # stn_labels
 
 # max_stn_num <- max(stn_labels$Station)
-stn_order_shore_offshore <- c(1, 2, 3, 4, 5, 9, 8, 7, 6, 10, 11, 12, 13, 15, 16, 17)
+stn_order_shore_offshore <- c(1, 2, 3, 4, 5, 9, 8, 7, 6, 10, 11, 12, 13, 14, 15, 16, 17)
 
 surf_labels <- stn_labels %>% 
   ungroup() %>% 
@@ -226,7 +274,7 @@ surf_labels <- stn_labels %>%
 Get surface profiles
 
 ```{r}
-surface_odv <- env_metadata_toplot %>%
+surface_odv <- env_metadata_mod %>%
   # Isolate the three transects we're interested in and cover the study area.
   filter(Station < 18) %>% 
   mutate(TRANSECT = case_when(
@@ -244,7 +292,7 @@ surface_odv <- env_metadata_toplot %>%
 Get depth profiles
 
 ```{r}
-depth_odv <- env_metadata_toplot %>%
+depth_odv <- env_metadata_mod %>%
   # Isolate the three transects we're interested in and cover the study area.
   filter(Station < 18) %>% 
   mutate(TRANSECT = case_when(
@@ -724,17 +772,24 @@ surf_sil +
 # ASVs on map
 
 ```{r}
-load("input-data/gulf-2023-sequence-analysis_10252025.RData", verbose = TRUE)
+load("input-data/gulf-2023-sequence-analysis_12222025.RData", verbose = TRUE)
 head(asv_long_avg_wtax)
 ```
 
 ## Surface ASV profiles
+
+```{r}
+# head(asv_long_avg_wtax)
+```
+
+
 
 Surface lat/long
 ```{r}
 surface_asv_odv <- asv_long_avg_wtax %>%
   # Isolate surface & average across replicates
   filter(Depth < 5) %>%
+  filter(FeatureID %in% asvs_less_100) %>% 
   ungroup() %>%
   group_by(Station, Latitude, Longitude, TRANSECT) %>%
     summarise(ASV_COUNT = n())
@@ -747,7 +802,7 @@ Interpolate function for ASVs:
 # df <- surface_asv_odv
 # PARAM <- "ASV_COUNT"
 # TITLE <- "Total ASVs"
-
+# ?mba.surf
 # Put PARAM in quotes
 interpolate_lat_long_asv <- function(df, PARAM, min, max, TITLE){
   # Interpolate
@@ -799,7 +854,7 @@ head(envs_interpol)
 ### Total ASVs
 
 ```{r, fig.height=4, fig.width=4, warning=FALSE}
-surf_all_asv <- interpolate_lat_long_asv(surface_asv_odv, "ASV_COUNT", 1000, 3000, "Total ASVs")
+surf_all_asv <- interpolate_lat_long_asv(surface_asv_odv, "ASV_COUNT", 500, 3000, "Total ASVs")
 surf_all_asv
 ```
 
@@ -809,6 +864,7 @@ surf_all_asv
 bytaxa_surface_asvs <- asv_long_avg_wtax %>%
   # Isolate surface & average across replicates
   filter(Depth < 5) %>%
+  filter(FeatureID %in% asvs_less_100) %>%
   ungroup() %>%
   group_by(SUPERGROUP_CLASS, Station, Latitude, Longitude, TRANSECT) %>%
     summarise(ASV_COUNT = n())
@@ -818,7 +874,7 @@ bytaxa_surface_asvs <- asv_long_avg_wtax %>%
 ```{r, fig.height=4, fig.width=4, warning=FALSE}
 # Dinoflagellata-Syndiniales
 interpolate_lat_long_asv((bytaxa_surface_asvs %>% 
-  filter(SUPERGROUP_CLASS == "Dinoflagellata-Syndiniales")), "ASV_COUNT", 400, 1600, "Syndiniales ASVs")
+  filter(SUPERGROUP_CLASS == "Dinoflagellata-Syndiniales")), "ASV_COUNT", 100, 1000, "Syndiniales ASVs")
 ```
 
 
@@ -826,7 +882,7 @@ interpolate_lat_long_asv((bytaxa_surface_asvs %>%
 # unique(bytaxa_surface_asvs$SUPERGROUP_CLASS)
 # Dinoflagellata-Syndiniales
 interpolate_lat_long_asv((bytaxa_surface_asvs %>% 
-  filter(SUPERGROUP_CLASS == "Gyrista-Bacillariophyceae")), "ASV_COUNT", 5, 25,"Diatom ASVs")
+  filter(SUPERGROUP_CLASS == "Gyrista-Bacillariophyceae")), "ASV_COUNT", 5, 20,"Diatom ASVs")
 
 
 interpolate_lat_long_asv((bytaxa_surface_asvs %>% 
@@ -859,6 +915,7 @@ interpolate_lat_long_asv((bytaxa_surface_asvs %>%
 ```{r}
 depth_asv_odv <- asv_long_avg_wtax %>%
   filter(!is.na(Latitude)) %>% 
+  filter(FeatureID %in% asvs_less_100) %>%
   ungroup() %>%
   group_by(Station, Latitude, Longitude, Depth, TRANSECT) %>%
     summarise(ASV_COUNT = n())
@@ -919,18 +976,28 @@ interpolate_depth_long_asv <- function(df_all, transect, PARAM, min, max, TITLE)
         legend.position=c(0.2,0.35))
 }
 
-interpolate_depth_long_asv(depth_asv_odv, "transect1","ASV_COUNT", 1000, 3000,"Total ASVs")
+interpolate_depth_long_asv(depth_asv_odv, "transect1","ASV_COUNT", 400, 2000,"Total ASVs")
 ```
 
-### Total ASVs
+### Total ASVs panel
 
 ```{r, fig.height=5, fig.width=15, warning=FALSE}
-interpolate_lat_long_asv(surface_asv_odv, "ASV_COUNT", 1000, 3000, "Total ASVs") +
-interpolate_depth_long_asv(depth_asv_odv, "transect1","ASV_COUNT", 1000, 3000,"Total ASVs") +
-  interpolate_depth_long_asv(depth_asv_odv, "transect2","ASV_COUNT", 1000, 3000, "Total ASVs") +
-  interpolate_depth_long_asv(depth_asv_odv, "transect3","ASV_COUNT", 1000, 3000, "Total ASVs") +
-  plot_layout(nrow = 1) + plot_annotation(tag_levels = c("a"))
+interpolate_lat_long_asv(surface_asv_odv, "ASV_COUNT", 400, 2000, "Total ASVs") +
+interpolate_depth_long_asv(depth_asv_odv, "transect1","ASV_COUNT", 400, 2000,"Total ASVs") +
+  interpolate_depth_long_asv(depth_asv_odv, "transect2","ASV_COUNT", 400, 2000, "Total ASVs") +
+  interpolate_depth_long_asv(depth_asv_odv, "transect3","ASV_COUNT", 400, 2000, "Total ASVs") +
+  plot_layout(nrow = 1, guides = "collect") + plot_annotation(tag_levels = c("a"))
 # ggsave("figures/asv-map-all.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
+```
+
+
+```{r, fig.height=5, fig.width=15, warning=FALSE}
+interpolate_depth_long_asv((depth_asv_odv %>% filter(Depth <= 200)), "transect1","ASV_COUNT", 400, 2000,"Total ASVs") +
+  interpolate_depth_long_asv((depth_asv_odv %>% filter(Depth <= 200)), "transect2","ASV_COUNT", 400, 2000, "Total ASVs") +
+  interpolate_depth_long_asv((depth_asv_odv %>% filter(Depth <= 200)), "transect3","ASV_COUNT", 400, 2000, "Total ASVs") +
+  plot_layout(nrow = 1, guides = "collect") + plot_annotation(tag_levels = c("a"))
+# ggsave("figures/asv-map-all.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
+
 ```
 ### Taxa by ASVs
 
