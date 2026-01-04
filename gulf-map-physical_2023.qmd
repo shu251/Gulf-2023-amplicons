@@ -119,6 +119,56 @@ Interpret B-V frequency to determine Mixed Layer Depth.
 ```
 
 
+# Plot water column parameters
+
+```{r}
+offshore_on_shore_order <- c("S1", "S2", "S3", "S4", "S5",
+                             "S9", "S8", "S7", 
+                             "S11", "S12", "S14", "S15")
+stn_order_shore_offshore <- c(1, 2, 3, 4, 5, 
+                              9, 8, 7, 6, 
+                              10, 11, 12, 13, 14, 15, 16, 17)
+
+transect_labels <- c("transect1", "transect1", "transect1", "transect1", "transect1", "transect2", "transect2", "transect2", "transect3", "transect3", "transect3", "transect3")
+
+watercol_features <- c("other", "DCM", "Salinity maximum", "Oxygen minimum")
+watercol_features_label <- c("Depth with no feature", "DCM", "Salinity maximum", "Oxygen minimum")
+watercol_shape <- c(21, 23, 24, 22)
+names(watercol_shape) <- watercol_features_label
+
+```
+
+```{r}
+head(env_metadata_mod)
+unique(env_metadata_mod$FEATURE)
+```
+```{r, fig.width=10, fig.height=5}
+env_metadata_mod %>% 
+  mutate(FEATURE = str_replace_na(FEATURE, replacement = "other")) %>% 
+  mutate(FEATURE_ORDER = factor(FEATURE, levels = watercol_features, labels = watercol_features_label)) %>% 
+  mutate(STN_ORDER = factor(as.character(Station), levels = stn_order_shore_offshore)) %>% 
+  filter(FEATURE_ORDER != "Depth with no feature") %>% 
+  ggplot(aes(x = STN_ORDER, y = Depth, 
+             shape = FEATURE_ORDER, fill = FEATURE_ORDER, group = FEATURE_ORDER)) +
+  geom_line(aes(color = FEATURE_ORDER)) + 
+  geom_point(color = "black", stat = "identity",
+             size = 3) +
+  facet_grid(cols = vars(Transect), scale = "free") +
+  scale_shape_manual(values = watercol_shape) +
+  scale_y_reverse() +
+  theme_bw() +
+  theme(axis.text = element_text(color="black", size=12),
+        legend.title = element_blank(),
+        panel.grid.major = element_line(color = "grey70", linetype = "dashed"),
+        strip.text = element_text(color = "black", size = 12),
+        strip.background = element_blank(),
+        axis.title = element_text(color="black", size= 12),
+        legend.text = element_text(color = "black", size = 12, face = "bold"),
+        plot.margin = margin(2, 1, 2, 1, "cm")) +
+  labs(x = "Station (coast to offshore)", y = "Depth (m)")
+  
+```
+
 
 > Goal: what water masses are influencing key stations where I see diversity-based edge effects? specific taxa? 
 
