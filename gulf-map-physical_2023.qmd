@@ -22,37 +22,36 @@ library(plotly); library(viridis); library(vegan)
 ```
 
 ```{r}
-load(file = "input-data/gulf-2023-sequence-analysis_12222025.RData", verbose = TRUE)
-stn_info <- read.csv("input-data/manual_stn_classification.csv")
+load("input-data/gulf-2023-sequence-analysis_02062026.RData", verbose = TRUE)
 ```
 
 ```{r}
-#offshore_on_shore_order <- c("S1", "S2", "S3", "S4", "S5","S9", "S8", "S7", "S11", "S12", "S14", "S15")
-head(env_metadata_mod)
-head(asv_long_wenv_wtax)
-# unique(asv_long_wenv_wtax$Station)
-stns_in_study <- as.character(unique(asv_long_wenv_wtax$Station))
+offshore_on_shore_order <- c("S1", "S2", "S3", "S4", "S5","S9", "S8", "S7", "S11", "S12", "S14", "S15")
+stn_nisk_in_study <- as.character(unique(asv_long_avg_wtax_clean$STN_NISKIN))
 ```
 
 
-## CTD data import
+## Change Lat/Long to surface stations
 ```{r}
-master_metadata <- read.csv("input-data/grad23_master.csv", 
-                            header = TRUE,
-                            check.names = FALSE, na.strings = "--")
+head(metadata_allsamples) # All stations are present.
+# unique(env_metadata_mod$Station)
+
+tmp_lat_long <- metadata_allsamples %>% 
+  filter(Depth < 5) %>% 
+  ungroup() %>%
+  group_by(Station) %>% 
+  slice_sample(n = 1) %>% 
+  select(Station, Latitude, Longitude)
+
+metadata_allsamples_mod <- metadata_allsamples %>% 
+  select(-Latitude, -Longitude) %>% 
+  left_join(tmp_lat_long)
 ```
 
-
-# Marine Heat Wave?
-
-> Siddarth
-
-# Discharge at the MS River
-
-> Siddarth 
 
 # Temperature-Salinity plots
-
+ Try this: https://hafezahmad.medium.com/making-temperature-salinity-diagrams-called-the-t-s-diagram-with-python-and-r-programming-5deec6378a29
+ 
 > T-S plot with all stations, and depths above the DCM? above the O2 min layer?
 
 ```{r}
@@ -60,7 +59,6 @@ master_metadata <- read.csv("input-data/grad23_master.csv",
 #   select(Station, Niskin, DEPTH = `CTD Recorded Depth (m)`, TEMP = `CTD Temperature`, SALINITY = `Corrected CTD Salinity`, PRESSURE = `CTD Pressure (db)`,
 #          LONG = `NMEA Longitude`, LAT = `NMEA Latitude`)
 ```
-
 
 
 # Brunt-Väisälä frequency
@@ -74,52 +72,11 @@ Measure of stability within a sampled vertical profile. Use the formula `N = √
 
 ```{r}
 # install.packages("gsw")
-library(gsw)
+# library(gsw)
 # ?gsw_Nsquared()
 ```
 
-
-```{r}
-# colnames(master_metadata)
-by_freq <- master_metadata %>% 
-  select(Station, Niskin, DEPTH = `CTD Recorded Depth (m)`, TEMP = `CTD Temperature`, SALINITY = `Corrected CTD Salinity`, PRESSURE = `CTD Pressure (db)`,
-         LONG = `NMEA Longitude`, LAT = `NMEA Latitude`) %>% 
-  filter(Station != 63) %>% 
-  mutate(STN_NISKIN = as.character(paste("S", Station, "_N", Niskin, sep = ""))) %>%
-  filter(STN_NISKIN != "S12_N10") %>% 
-  drop_na() %>% 
-  column_to_rownames(var = "STN_NISKIN")
-
-head(by_freq)
-```
-
-```{r}
-bv_output <- by_freq %>% 
-  group_by(Station, DEPTH) %>% 
-  reframe(bv_out = gsw_Nsquared(by_freq$SALINITY, 
-                                    by_freq$TEMP, 
-                                    by_freq$PRESSURE, 
-                                    by_freq$LAT)) %>% 
-  mutate(BV_INDIC = names(bv_out)) %>% 
-  unnest(bv_out) %>% 
-  pivot_wider(names_from = BV_INDIC, values_from = bv_out)
-
-# head(tmp)
-# unique(tmp$BV_INDIC)
-# ?gsw_Nsquared()
-  # bind_cols(data.frame(gsw_Nsquared(by_freq$SALINITY, 
-  #                                   by_freq$TEMP, 
-  #                                   by_freq$PRESSURE, 
-  #                                   by_freq$LAT)))
-```
-
-Interpret B-V frequency to determine Mixed Layer Depth.
-```{r}
-
-```
-
-
-# Plot water column parameters
+# Water masses
 
 ```{r}
 offshore_on_shore_order <- c("S1", "S2", "S3", "S4", "S5",
@@ -135,47 +92,11 @@ watercol_features <- c("other", "DCM", "Salinity maximum", "Oxygen minimum")
 watercol_features_label <- c("Depth with no feature", "DCM", "Salinity maximum", "Oxygen minimum")
 watercol_shape <- c(21, 23, 24, 22)
 names(watercol_shape) <- watercol_features_label
-
-```
-
-```{r}
-head(env_metadata_mod)
-unique(env_metadata_mod$FEATURE)
-```
-```{r, fig.width=10, fig.height=5}
-env_metadata_mod %>% 
-  mutate(FEATURE = str_replace_na(FEATURE, replacement = "other")) %>% 
-  mutate(FEATURE_ORDER = factor(FEATURE, levels = watercol_features, labels = watercol_features_label)) %>% 
-  mutate(STN_ORDER = factor(as.character(Station), levels = stn_order_shore_offshore)) %>% 
-  filter(FEATURE_ORDER != "Depth with no feature") %>% 
-  ggplot(aes(x = STN_ORDER, y = Depth, 
-             shape = FEATURE_ORDER, fill = FEATURE_ORDER, group = FEATURE_ORDER)) +
-  geom_line(aes(color = FEATURE_ORDER)) + 
-  geom_point(color = "black", stat = "identity",
-             size = 3) +
-  facet_grid(cols = vars(Transect), scale = "free") +
-  scale_shape_manual(values = watercol_shape) +
-  scale_y_reverse() +
-  theme_bw() +
-  theme(axis.text = element_text(color="black", size=12),
-        legend.title = element_blank(),
-        panel.grid.major = element_line(color = "grey70", linetype = "dashed"),
-        strip.text = element_text(color = "black", size = 12),
-        strip.background = element_blank(),
-        axis.title = element_text(color="black", size= 12),
-        legend.text = element_text(color = "black", size = 12, face = "bold"),
-        plot.margin = margin(2, 1, 2, 1, "cm")) +
-  labs(x = "Station (coast to offshore)", y = "Depth (m)")
-  
 ```
 
 
 > Goal: what water masses are influencing key stations where I see diversity-based edge effects? specific taxa? 
 
-
-# Calculate distance from MS River plume
-
-> This would replace additional parameters, would test for other key factors.
 
 # Map
 
@@ -186,15 +107,14 @@ env_metadata_mod %>%
 Set up a data frame with all parameters as columns.
 
 ```{r}
-head(env_metadata_mod)
-
+head(metadata_allsamples_mod)
 ```
 
 ```{r}
-stn_labels <- env_metadata_mod %>% 
+stn_labels <- metadata_seqsamples %>% 
   ungroup() %>% 
-  filter(Station %in% stns_in_study) %>% 
   select(Station, Latitude, Longitude, Depth) %>% distinct()
+stn_labels
 
 surface_labels <- stn_labels %>% 
   filter(Depth < 5) %>% 
@@ -255,6 +175,7 @@ LARGE
 
 ```{r, fig.width=7, fig.height=7}
 # MAP
+# surface_labels
 INSET <- ggplot(data = world) +
   geom_sf(color = "black", linewidth = 0.6, fill = "grey10", alpha = 0.8) +
   # Set lat long region to show
@@ -283,20 +204,10 @@ INSET + inset_element(LARGE, 0.4, 0.4, 1.2, 1, align_to = "plot", clip = FALSE)
 # ggsave("figures/map_overview.svg", width = 8, height = 8, device = "svg", limitsize = FALSE)
 ```
 
-# ODV plots in R
-
-Extract points you want and dimensions. Interpolate, subtract bathymetry if needed and move along from there.
-
-```{r}
-# Manually extracted hexidecimal ODV colour palette
-ODV_colours <- c("#b0020c", "#d31f2a", "#ffb300","#ffc000",  "#75ab19","#27ab19", "#0db5e6", "#4626bd","#7139fe", "#aa24e0", "#d16cfa", "#d5a0eb")
-```
-
 Station points and labels.
 
 ```{r}
-stn_labels <- env_metadata_mod %>% 
-  filter(Station %in% stns_in_study) %>% 
+stn_labels <- metadata_seqsamples %>% 
   select(Station, Latitude, Longitude, Depth) %>% distinct() %>% 
   mutate(TRANSECT = case_when(
     (Station < 6) ~ 1,
@@ -304,7 +215,7 @@ stn_labels <- env_metadata_mod %>%
     (Station >= 10) ~ 3
   ))
 
-# stn_labels
+stn_labels
 
 # max_stn_num <- max(stn_labels$Station)
 stn_order_shore_offshore <- c(1, 2, 3, 4, 5, 9, 8, 7, 6, 10, 11, 12, 13, 14, 15, 16, 17)
@@ -312,534 +223,34 @@ stn_order_shore_offshore <- c(1, 2, 3, 4, 5, 9, 8, 7, 6, 10, 11, 12, 13, 14, 15,
 surf_labels <- stn_labels %>% 
   ungroup() %>% 
   filter(Depth < 5) %>% 
-  select(Station, Latitude, Longitude) %>% distinct() %>% 
-  mutate(TRANSECT = case_when(
-    (Station < 6) ~ 1,
-    (Station > 5 & Station < 10) ~ 2,
-    (Station >= 10) ~ 3
-  ))
-
-```
-
-Get surface profiles
-
-```{r}
-surface_odv <- env_metadata_mod %>%
-  # Isolate the three transects we're interested in and cover the study area.
-  filter(Station < 18) %>% 
-  mutate(TRANSECT = case_when(
-    (Station < 6) ~ 1,
-    (Station > 5 & Station < 10) ~ 2,
-    (Station >= 10) ~ 3
-  )) %>% 
-  filter(Depth < 5 & Depth > 2) %>% 
-  group_by(Station, Latitude, Longitude, ENV_VARIABLE, TRANSECT) %>% 
-    summarise(SURFACE_VALUE = mean(value)) %>% 
-  ungroup() %>% 
-  pivot_wider(names_from = ENV_VARIABLE, values_from = SURFACE_VALUE)
-```
-
-Get depth profiles
-
-```{r}
-depth_odv <- env_metadata_mod %>%
-  # Isolate the three transects we're interested in and cover the study area.
-  filter(Station < 18) %>% 
-  mutate(TRANSECT = case_when(
-    (Station < 6) ~ 1,
-    (Station > 5 & Station < 10) ~ 2,
-    (Station >= 10) ~ 3
-  )) %>% 
-  group_by(Station, Latitude, Longitude, Depth, ENV_VARIABLE, TRANSECT) %>% 
-    summarise(VALUE = mean(value)) %>% 
-  ungroup() %>% 
-  pivot_wider(names_from = ENV_VARIABLE, values_from = VALUE)
-```
-
-## Depth profiles
-
-### Temperature & Long
-
-```{r}
-head(depth_odv)
-```
-
-Non-interpolated scatterplot
-
-```{r}
-depth_odv %>%
-  ggplot(aes(x = Longitude, y = Depth)) +
-  geom_point(aes(color = Temperature), size = 2) +
-  # geom_point(aes(color = PROK_COUNT), size = 2) +
-  scale_colour_gradientn(colours = rev(ODV_colours),
-                         limits = c(2, 32)) +
-  labs(y = "Depth (m)", x = "Longitude (°W)", colour = "Temperature (°C)") +
-  scale_y_reverse() + scale_x_reverse() +
-  theme_classic()
-```
-
-Interpolate step
-
-```{r}
-library(MBA)
-# ?mba.surf
-head(depth_odv)
-# Interpolate
-temp_mba <- mba.surf(depth_odv[c("Longitude", "Depth", "Temperature")], no.X = 300, no.Y = 300, extend = T)
-```
-
-X, y, z are Longitude", "DEPTH", "TEMP"
-
-```{r}
-dimnames(temp_mba$xyz.est$z) <- list(temp_mba$xyz.est$x, temp_mba$xyz.est$y)
-# head(temp_mba)
-
-temp_interpol <- reshape2::melt(temp_mba$xyz.est$z, varnames = c('LONGITUDE', 'DEPTH'), value.name = 'TEMPERATURE') %>% 
-  filter(DEPTH > 0) %>%
-  mutate(TEMPERATURE = round(TEMPERATURE, 1))
-
-```
-
-```{r, fig.height=3, fig.width=5}
-ggplot(data = temp_interpol, aes(x = LONGITUDE, y = DEPTH)) +
-  geom_raster(aes(fill = TEMPERATURE)) +
-  geom_contour(aes(z = TEMPERATURE), binwidth = 2, colour = "black", alpha = 0.2) +
-  geom_contour(aes(z = TEMPERATURE), breaks = 20, colour = "black") +
-  scale_fill_gradientn(colours = rev(ODV_colours),
-                       limits = c(2, 32)) +
-  labs(y = "Depth (m)", x = "Longitude (°W)") +
-  scale_y_reverse() + scale_x_reverse() +
-  theme_classic() +
-  coord_cartesian(expand = F)
-```
-
-### Surface params, lat, long
-
-```{r}
-head(surface_odv)
-```
-
-Non-interpolated scatterplot
-
-```{r}
-surface_odv %>% 
-  ggplot(aes(x = Longitude, y = Latitude)) +
-  geom_point(aes(color = Temperature), size = 3) +
-  scale_colour_gradientn(colours = rev(ODV_colours)) +
-  labs(y = "Latitude (°N)", x = "Longitude (°W)", colour = "Temperature (°C)") +
-  scale_x_reverse() +
-  theme_classic()
-```
-
-Interpolate step
-
-```{r}
-library(MBA)
-# ?mba.surf
-head(surface_odv)
-
-# Interpolate
-temp_mba <- mba.surf(surface_odv[c("Longitude", "Latitude", "Temperature")], 
-                     no.X = 300, no.Y = 300, extend = F)
-```
-
-X, y, z are Longitude", "DEPTH", "TEMP"
-
-```{r}
-dimnames(temp_mba$xyz.est$z) <- list(temp_mba$xyz.est$x, temp_mba$xyz.est$y)
-# head(temp_mba)
-# 
-temp_surface_interpol <- reshape2::melt(temp_mba$xyz.est$z, varnames = c("Longitude", "Latitude"), value.name = 'TEMPERATURE') %>% 
-  mutate(TEMPERATURE = round(TEMPERATURE, 1))
-head(temp_surface_interpol)
-```
-
-```{r, fig.height=3, fig.width=6, warning=FALSE, message=FALSE}
-surface_temperature <- temp_surface_interpol %>% 
-  ggplot(aes(x = Longitude, y = Latitude)) +
-  geom_raster(aes(fill = TEMPERATURE)) +
-  geom_contour(aes(z = TEMPERATURE), binwidth = 2, colour = "black", alpha = 0.2) +
-  geom_contour(aes(z = TEMPERATURE), breaks = 20, colour = "black") +
-  # Add data points
-  geom_point(data = surface_odv, aes(x = Longitude, y = Latitude)) +
-  # ggrepel::geom_text_repel(data = surf_labels, aes(x = Longitude, y = Latitude, label = Station), box.padding = 0.1) +
-  geom_text(data = surface_odv, aes(x = Longitude, y = Latitude, label = Station),
-  position = position_dodge(width = 0.3),
-  hjust = 0.5, vjust = 1, color= "black") +
-  scale_fill_gradientn(colours = rev(ODV_colours),
-                       breaks = c(24, 26, 28, 30, 32)) +
-  labs(y = "Latitude (°N)", x = "Longitude (°W)", fill = "Temperature (°C)") +
-  scale_x_reverse() +
-  theme_classic() +
-  coord_cartesian(expand = F) +
-  theme(axis.text = element_text(size = 10, colour="black"))
-surface_temperature
-```
-
-##### Temperature with map
-
-```{r, fig.width=6, fig.height=3}
-# MAP
-ggplot(data = (world %>% filter(subunit == "United States"))) +
-  geom_sf(color = "black", linewidth = 0.6, fill = "grey10", alpha = 0.6) +
-  # Set lat long region to show:
-  coord_sf(xlim = c(-90, -86.75), ylim = c(27.5, 29.5), expand = FALSE) +
-  # Overlay with temperature 
-  geom_raster(data = temp_surface_interpol, aes(fill = TEMPERATURE, x = Longitude, y = Latitude)) +
-    geom_contour(data = temp_surface_interpol, aes(z = TEMPERATURE, x = Longitude, y = Latitude), binwidth = 2, colour = "black", alpha = 0.2) +
-    geom_contour(data = temp_surface_interpol, aes(z = TEMPERATURE,x = Longitude, y = Latitude), breaks = 20, colour = "black") +
-  # Add data points for stations
-  geom_point(data = surface_odv, aes(x = Longitude, y = Latitude)) +
-  ggrepel::geom_label_repel(data = surf_labels, aes(x = Longitude, y = Latitude, label = Station)) +
-  # geom_text(data = surface_odv, aes(x = Longitude, y = Latitude, label = Station), position = position_dodge(width = 0.1),
-  #                                                hjust = 0.5, vjust = 1, color= "black") +
-  scale_fill_gradientn(colours = rev(ODV_colours), na.value=NA) +
-  labs(y = "Latitude (°N)", x = "Longitude (°W)", fill = "Temperature (°C)") +
-  scale_x_reverse() +
-  theme_classic() +
-  theme(axis.text = element_text(size = 10, colour="black"),
-        panel.background = element_rect(fill = "#B4C7D9"),
-        panel.border = element_rect(fill = NA),
-        aspect.ratio = 1)
-
-```
-
-##### Temperature Surface
-
-```{r, fig.width=6, fig.height=3, warning=FALSE}
-# MAP
-ggplot(data = (world %>% filter(subunit == "United States"))) +
-  geom_sf(color = "black", linewidth = 0.6, fill = "grey10", alpha = 0.6) +
-  # Set lat long region to show:
-  coord_sf(xlim = c(-90, -86.75), ylim = c(27.5, 29.5), expand = FALSE) +
-  # Overlay with temperature 
-  geom_raster(data = temp_surface_interpol, aes(fill = TEMPERATURE, x = Longitude, y = Latitude)) +
-    geom_contour(data = temp_surface_interpol, aes(z = TEMPERATURE, x = Longitude, y = Latitude), binwidth = 2, colour = "black", alpha = 0.2) +
-    geom_contour(data = temp_surface_interpol, aes(z = TEMPERATURE,x = Longitude, y = Latitude), breaks = 20, colour = "black") +
-  # Add data points for stations
-  geom_point(data = surf_labels, aes(x = Longitude, y = Latitude)) +
-  geom_text(data = surf_labels, aes(x = Longitude, y = Latitude, label = Station), position = position_dodge(width = 0.1),
-                                                 hjust = 0.5, vjust = 1, color= "black") +
-  scale_fill_gradientn(colours = rev(ODV_colours), na.value=NA) +
-  labs(y = "Latitude (°N)", x = "Longitude (°W)", fill = "Temperature (°C)") +
-  scale_x_reverse() +
-  theme_classic() +
-  theme(axis.text = element_text(size = 10, colour="black"),
-        panel.background = element_rect(fill = "#B4C7D9"),
-        panel.border = element_rect(fill = NA),
-        aspect.ratio = 1)
-```
-
-## Fxn for surface params, lat, long
-
-Set up a data frame with all parameters as columns.
-
-```{r}
-set.seed(123)
-# Put PARAM in quotes
-#limits = c(2, 32)
-interpolate_lat_long_env <- function(df, PARAM, min, max, TITLE){
-  # Interpolate
-  output_mba <- mba.surf(df[c("Longitude", "Latitude", PARAM)], 
-                     no.X = 300, no.Y = 300, extend = F)
-  # Extract interpolated values
-  dimnames(output_mba$xyz.est$z) <- list(output_mba$xyz.est$x, output_mba$xyz.est$y)
-  #
-  envs_interpol <- reshape2::melt(output_mba$xyz.est$z, 
-                                  varnames = c("Longitude", "Latitude"), 
-                                  value.name = PARAM) %>% 
-    select(Longitude, Latitude, VALUE = !!PARAM) %>% 
-    mutate(VALUE = round(VALUE, 1))
-  # MAP
-  ggplot(data = (world %>% filter(subunit == "United States"))) +
-    geom_sf(color = "black", linewidth = 0.6, fill = "grey10", alpha = 0.6) +
-    # Set lat long region to show:
-    coord_sf(xlim = c(-90, -86.75), ylim = c(27.5, 29.5), expand = FALSE) +
-    # Overlay with temperature 
-    geom_raster(data = envs_interpol, aes(fill = VALUE, x = Longitude, y = Latitude)) +
-    geom_contour(data = envs_interpol, aes(z = VALUE, x = Longitude, y = Latitude), binwidth = 2, colour = "black", alpha = 0.2) +
-    geom_contour(data = envs_interpol, aes(z = VALUE,x = Longitude, y = Latitude), breaks = 20, colour = "black") +
-    # Add data points for stations
-    geom_point(data = surf_labels, aes(x = Longitude, y = Latitude)) +
-    ggrepel::geom_text_repel(data = surf_labels, 
-                             aes(x = Longitude, y = Latitude, label = Station),
-                             direction = "y", nudge_x = 0.1, nudge_y = 0) +
-    scale_fill_gradientn(colours = rev(ODV_colours), 
-                         na.value = NA,
-                         limits = c(min, max)) +
-    labs(y = "Latitude (°N)", x = "Longitude (°W)", fill = TITLE) +
-  scale_x_reverse() +
-  theme_classic() +
-  theme(axis.text = element_text(size = 10, colour="black"),
-        panel.background = element_rect(fill = "#B4C7D9"),
-        panel.border = element_rect(fill = NA),
-        aspect.ratio = 1,
-        legend.background = element_blank(),
-        legend.text = element_text(size = 10, colour="black", face = "bold"),
-        legend.title = element_text(size = 10, colour="black", face = "bold", hjust = 1, vjust = 1),
-        legend.ticks = element_line(color = "black"),
-        legend.position=c(0.83,.75))
-}
-# interpolate_lat_long_env(surface_odv, "SURFACE_TEMP", "Temperature (°C)")
-colnames(surface_odv)
-```
-
-Parameters to use in function: "NH4" "NO2" "NO3" "Oxygen"\
-\[9\] "PO4" "SIL" "Salinity" "Temperature"
-
-```{r, warning=FALSE}
-# TEMP: 2,32 (18, 32)
-# Salinity: 30, 38 (25, 37)
-# o2: 2, 5
-surf_temp <- (interpolate_lat_long_env(surface_odv, "Temperature", 25, 32,
-                                       "Temperature (°C)")); surf_temp
-
-surf_sal <- interpolate_lat_long_env(surface_odv, "Salinity", 25, 37, "Salinity"); surf_sal
-
-surf_oxy <- interpolate_lat_long_env(surface_odv, "Oxygen", 2, 5, (expression(bold(O[2]*" "*"ml/L")))); surf_oxy
-```
-
-now: "NH4" "NO2" "NO3" "PO4" "SIL"
-
-```{r, warning=FALSE}
-# expression("S"["in"] ~ "[W" ~ m^-2~"]")
-# NH4: 0, 1.5
-# NO3: 0, 30
-# NO2: 0, 0.5
-# PO4: 0, 2
-# Sio: 2, 25 (0,15)
-surf_nh4 <- interpolate_lat_long_env(surface_odv, "NH4",0, 1.5, expression(bold("NH"["4"]*" µmol/L")))
-surf_no2 <- interpolate_lat_long_env(surface_odv, "NO2", 0, 0.5, expression(bold("NO"["2"]*" µmol/L")))
-surf_no3 <- interpolate_lat_long_env(surface_odv, "NO3", 0, 30, expression(bold("NO"["3"]*" µmol/L")))
-surf_po4 <- interpolate_lat_long_env(surface_odv, "PO4", 0, 2, expression(bold("PO"["4"]*" µmol/L")))
-surf_sil <- interpolate_lat_long_env(surface_odv, "SIL", 0, 15, expression(bold("SiO" ["4"] ^"2-"*" µmol/L"))); surf_sil
-```
-
-### Compile all surface plots
-
-```{r, fig.height=10, fig.width=19, warning=FALSE}
-surf_temp + surf_sal + surf_oxy + surf_sil + surf_nh4 + surf_no3 + surf_no2 + surf_po4 + plot_layout(ncol = 4) + plot_annotation(tag_levels = "A")
-# ?plot_annotation
-```
-
-## Fxn for depth parameters
-
-```{r}
-# df_all <- depth_odv
-# transect <- "transect1"
-# PARAM <- "TEMP"
-# PARAM
-# as.name(PARAM)
-# TITLE <- "Temperature"
-# Put PARAM in quotes
-
-interpolate_depth_long_env <- function(df_all, transect, PARAM, min, max, TITLE){
-  param <- as.name(PARAM)
-  # Isolate transect of interest
-  df <- df_all %>% 
-    filter(TRANSECT == transect) %>% 
-    select(Longitude, Depth, param) %>% 
-    drop_na()
-  #
-  df_labels <- stn_labels %>% 
-    filter(TRANSECT == transect)
-  #
-  # Get specific transect Longitude
-  max_long <- round(max(df$Longitude), 0) + 1
-  min_long <- round(min(df$Longitude), 0) - 1
-  #
-  # Interpolate
-  output_mba <- mba.surf(df[c("Longitude", "Depth", PARAM)], 
-                     no.X = 300, no.Y = 300, extend = F)
-  # Extract interpolated values
-  dimnames(output_mba$xyz.est$z) <- list(output_mba$xyz.est$x, output_mba$xyz.est$y)
-  #
-  envs_interpol <- reshape2::melt(output_mba$xyz.est$z, 
-                                  varnames = c("Longitude", "Depth"), 
-                                  value.name = PARAM) %>% 
-    select(Longitude, Depth, VALUE = !!PARAM) %>% 
-    mutate(VALUE = round(VALUE, 1)) %>% 
-    filter(Longitude > min_long & Longitude < max_long)
-  #
-  # Plot
-  envs_interpol %>% 
-    ggplot(aes(x = Longitude, y = Depth)) +
-    geom_raster(aes(fill = VALUE)) +
-    geom_contour(aes(z = VALUE), binwidth = 2, colour = "black", alpha = 0.2) +
-    geom_contour(aes(z = VALUE), breaks = 20, colour = "black") +
-    # Add data points
-    geom_point(data = df_labels, aes(x = Longitude, y = Depth)) +
-    geom_text(data = df_labels, 
-              aes(x = Longitude, y = -80, label = Station), 
-              position = position_dodge(width = 0.1),
-              hjust = 0.5, vjust = 0, color= "black") +
-    scale_fill_gradientn(colours = rev(ODV_colours), 
-                         na.value = NA,
-                         limits = c(min, max)) +
-    labs(y = "Depth (m)", x = "Longitude (°W)", fill = TITLE) +
-    scale_x_reverse() + scale_y_reverse() +
-    theme_classic() +
-    theme(axis.text = element_text(size = 10, colour="black"),
-          panel.border = element_rect(fill = NA),
-          aspect.ratio = 1,
-          legend.background = element_blank(),
-        legend.text = element_text(size = 10, colour="black", face = "bold"),
-        legend.title = element_text(size = 10, colour="black", face = "bold", hjust = 0, vjust = 1),
-        legend.ticks = element_line(color = "black"),
-        legend.position=c(0.2,0.26))
-}
-
-# interpolate_depth_long_env(depth_odv, 1 ,"Temperature", "Temperature (°C)")
-```
-
-```{r}
-colnames(depth_odv)
-# unique(depth_odv$TRANSECT)
-```
-
-### Transect 1
-```{r}
-# TEMP: depth: 2,32 surface: (18, 32)
-# Salinity: 30, 38 (25, 37)
-# o2: 2, 5
-# Sio: 2, 25 (0,15)
-# NH4: 0, 1.5
-# NO3: 0, 30
-# NO2: 0, 0.5
-# PO4: 0, 2
-```
-
-```{r, fig.height=10, fig.width=20, warning=FALSE}
-(interpolate_depth_long_env(depth_odv, 1, "Temperature", 2, 32,"Temperature (°C)")) +
-  (interpolate_depth_long_env(depth_odv, 1, "Salinity", 25, 37, "Salinity")) +
-  (interpolate_depth_long_env(depth_odv, 1, "Oxygen", 2, 5, (expression(bold(O[2]*" "*"ml/L"))))) +
-  (interpolate_depth_long_env(depth_odv, 1, "SIL", 1, 28, expression(bold("SiO" ["4"] ^"2-"*" µmol/L")))) +
-  #
-  (interpolate_depth_long_env(depth_odv, 1, "NH4", 0, 1.5, expression(bold("NH"["4"]*" µmol/L")))) +
-  (interpolate_depth_long_env(depth_odv, 1, "NO2", 0, 0.5, expression(bold("NO"["2"]*" µmol/L")))) +
-  (interpolate_depth_long_env(depth_odv, 1, "NO3", 0, 31, expression(bold("NO"["3"]*" µmol/L")))) +
-  (interpolate_depth_long_env(depth_odv, 1, "PO4", 0, 2.5, expression(bold("PO"["4"]*" µmol/L")))) +
-    plot_annotation(tag_levels = "A", title = "Transect 1") +
-  plot_layout(ncol = 4)
-```
-
-### Transect 2
-
-```{r, fig.height=10, fig.width=20, warning=FALSE}
-# (interpolate_depth_long_env(depth_odv, 2, "Temperature", "Temperature (°C)")) +
-#   (interpolate_depth_long_env(depth_odv, 2, "Salinity", "Salinity")) +
-#   (interpolate_depth_long_env(depth_odv, 2, "Oxygen", (expression(bold(O[2]*" "*"ml/L"))))) +
-#   (interpolate_depth_long_env(depth_odv, 2, "SIL", expression(bold("SiO" ["4"] ^"2-"*" µmol/L")))) +
-#   #
-#   (interpolate_depth_long_env(depth_odv, 2, "NH4", expression(bold("NH"["4"]*" µmol/L")))) +
-#   (interpolate_depth_long_env(depth_odv, 2, "NO2", expression(bold("NO"["2"]*" µmol/L")))) +
-#   (interpolate_depth_long_env(depth_odv, 2, "NO3", expression(bold("NO"["3"]*" µmol/L")))) +
-#   (interpolate_depth_long_env(depth_odv, 2, "PO4", expression(bold("PO"["4"]*" µmol/L")))) +
-#     plot_annotation(tag_levels = "A", title = "Transect 1") +
-#   plot_layout(ncol = 4)
-```
-
-### Transect 3
-
-```{r, fig.height=10, fig.width=20, warning=FALSE}
-# (interpolate_depth_long_env(depth_odv, 3, "Temperature", "Temperature (°C)")) +
-#   (interpolate_depth_long_env(depth_odv, 3, "Salinity", "Salinity")) +
-#   (interpolate_depth_long_env(depth_odv, 3, "Oxygen", (expression(bold(O[2]*" "*"ml/L"))))) +
-#   (interpolate_depth_long_env(depth_odv, 3, "SIL", expression(bold("SiO" ["4"] ^"2-"*" µmol/L")))) +
-#   #
-#   (interpolate_depth_long_env(depth_odv, 3, "NH4", expression(bold("NH"["4"]*" µmol/L")))) +
-#   (interpolate_depth_long_env(depth_odv, 3, "NO2", expression(bold("NO"["2"]*" µmol/L")))) +
-#   (interpolate_depth_long_env(depth_odv, 3, "NO3", expression(bold("NO"["3"]*" µmol/L")))) +
-#   (interpolate_depth_long_env(depth_odv, 3, "PO4", expression(bold("PO"["4"]*" µmol/L")))) +
-#     plot_annotation(tag_levels = "A", title = "Transect 1") +
-#   plot_layout(ncol = 4)
-```
-
-# Compiled physical parameters
-
-```{r}
-# TEMP: 2,32 (18, 32)
-# Salinity: 30, 38 (25, 37)
-# o2: 2, 5
-# Sio: 2, 25 (0,15)
-# NH4: 0, 1.5
-# NO3: 0, 30
-# NO2: 0, 0.5
-# PO4: 0, 2
-
-```
-
-
-```{r, fig.width=20, fig.height=20, warning=FALSE, message=FALSE}
-# Temperature
-surf_temp + 
-  (interpolate_depth_long_env(depth_odv, 1, "Temperature", 2, 32, "Temperature (°C)")) +
-  (interpolate_depth_long_env(depth_odv, 2, "Temperature", 2, 32, "Temperature (°C)")) +
-  (interpolate_depth_long_env(depth_odv, 3, "Temperature", 2, 32, "Temperature (°C)")) +
-surf_sal + 
-  (interpolate_depth_long_env(depth_odv, 1, "Salinity", 25, 37, "Salinity")) +
-  (interpolate_depth_long_env(depth_odv, 2, "Salinity", 25, 37, "Salinity")) +
-  (interpolate_depth_long_env(depth_odv, 3, "Salinity", 25, 37, "Salinity")) +
-surf_oxy +
-  (interpolate_depth_long_env(depth_odv, 1, "Oxygen", 2, 5, (expression(bold(O[2]*" "*"ml/L"))))) +
-  (interpolate_depth_long_env(depth_odv, 2, "Oxygen", 2, 5, (expression(bold(O[2]*" "*"ml/L"))))) +
-  (interpolate_depth_long_env(depth_odv, 3, "Oxygen", 2, 5, (expression(bold(O[2]*" "*"ml/L"))))) +
-surf_sil + 
-  (interpolate_depth_long_env(depth_odv, 1, "SIL", 1, 28, expression(bold("SiO" ["4"] ^"2-"*" µmol/L")))) +
-  (interpolate_depth_long_env(depth_odv, 2, "SIL", 1, 28, expression(bold("SiO" ["4"] ^"2-"*" µmol/L")))) +
-  (interpolate_depth_long_env(depth_odv, 3, "SIL", 1, 28, expression(bold("SiO" ["4"] ^"2-"*" µmol/L")))) +
-  plot_annotation(tag_levels = "a", title = "") +
-  plot_layout(ncol = 4)
-# ggsave("figures/env-profiles-all.svg", width = 20, height = 20, device = "svg", limitsize = FALSE)
-```
-
-```{r, fig.width=20, fig.height=20, warning=FALSE, message=FALSE}
-  surf_nh4 + 
-  (interpolate_depth_long_env(depth_odv, 1, "NH4", 0, 1.5, expression(bold("NH"["4"]*" µmol/L")))) +
-  (interpolate_depth_long_env(depth_odv, 2, "NH4", 0, 1.5,expression(bold("NH"["4"]*" µmol/L")))) +
-  (interpolate_depth_long_env(depth_odv, 3, "NH4", 0, 1.5,expression(bold("NH"["4"]*" µmol/L")))) +
-  #
-  surf_no3 + 
-   (interpolate_depth_long_env(depth_odv, 1, "NO3", 0, 31, expression(bold("NO"["3"]*" µmol/L")))) +
-   (interpolate_depth_long_env(depth_odv, 2, "NO3", 0, 31, expression(bold("NO"["3"]*" µmol/L")))) +
-   (interpolate_depth_long_env(depth_odv, 3, "NO3", 0, 31, expression(bold("NO"["3"]*" µmol/L")))) +
-  #
-  surf_no2 + 
-  (interpolate_depth_long_env(depth_odv, 1, "NO2", 0, 0.5, expression(bold("NO"["2"]*" µmol/L")))) +
-  (interpolate_depth_long_env(depth_odv, 2, "NO2", 0, 0.5, expression(bold("NO"["2"]*" µmol/L")))) +
-  (interpolate_depth_long_env(depth_odv, 3, "NO2", 0, 0.5, expression(bold("NO"["2"]*" µmol/L")))) +
-  #
-  surf_po4 + 
-  (interpolate_depth_long_env(depth_odv, 1, "PO4", 0, 2.8, expression(bold("PO"["4"]*" µmol/L")))) +
-  (interpolate_depth_long_env(depth_odv, 2, "PO4", 0, 2.8, expression(bold("PO"["4"]*" µmol/L")))) +
-  (interpolate_depth_long_env(depth_odv, 3, "PO4", 0, 2.8, expression(bold("PO"["4"]*" µmol/L")))) +
-  #
-  plot_annotation(tag_levels = "a") +
-  plot_layout(ncol = 4)
-# ggsave("figures/nutrient-profiles-all.svg", width = 20, height = 20, device = "svg", limitsize = FALSE)
+  select(Station, Latitude, Longitude, TRANSECT) %>% 
+  distinct()
+surf_labels
 ```
 
 # ASVs on map
 
 ```{r}
-load("input-data/gulf-2023-sequence-analysis_12222025.RData", verbose = TRUE)
-head(asv_long_avg_wtax)
+set.seed(123)
+library(MBA)
+# ?mba.surf
+```
+
+
+```{r}
+load("input-data/gulf-2023-sequence-analysis_02062026.RData", verbose = TRUE)
+head(asv_long_avg_wtax_clean)
 ```
 
 ## Surface ASV profiles
 
-```{r}
-# head(asv_long_avg_wtax)
-```
-
-
 
 Surface lat/long
 ```{r}
-surface_asv_odv <- asv_long_avg_wtax %>%
+surface_asv_odv <- asv_long_avg_wtax_clean %>% 
+  left_join(metadata_seqsamples) %>%
   # Isolate surface & average across replicates
   filter(Depth < 5) %>%
-  filter(FeatureID %in% asvs_less_100) %>% 
   ungroup() %>%
   group_by(Station, Latitude, Longitude, TRANSECT) %>%
     summarise(ASV_COUNT = n())
@@ -853,6 +264,7 @@ Interpolate function for ASVs:
 # PARAM <- "ASV_COUNT"
 # TITLE <- "Total ASVs"
 # ?mba.surf
+surf_labels
 # Put PARAM in quotes
 interpolate_lat_long_asv <- function(df, PARAM, min, max, TITLE){
   # Interpolate
@@ -886,7 +298,7 @@ head(envs_interpol)
                          limits = c(min, max)) +
     # scale_fill_gradientn(colours = rev(ODV_colours), na.value=NA) +
     labs(y = "Latitude (°N)", x = "Longitude (°W)", fill = TITLE) +
-  scale_x_reverse() +
+  scale_x_reverse(n.breaks = 4) +
   theme_classic() +
   theme(axis.text = element_text(size = 10, colour="black"),
         panel.background = element_rect(fill = "#B4C7D9"),
@@ -896,7 +308,7 @@ head(envs_interpol)
         legend.background = element_blank(),
         legend.title = element_text(size = 10, colour="black", face = "bold", hjust = 1, vjust = 1),
         legend.ticks = element_line(color = "black"),
-        legend.position=c(0.78,.75))
+        legend.position=c(0.80,.75))
 }
 ```
 
@@ -911,10 +323,10 @@ surf_all_asv
 ### Taxa by ASVs
 
 ```{r}
-bytaxa_surface_asvs <- asv_long_avg_wtax %>%
+bytaxa_surface_asvs <- asv_long_avg_wtax_clean %>% 
+  left_join(metadata_seqsamples) %>%
   # Isolate surface & average across replicates
   filter(Depth < 5) %>%
-  filter(FeatureID %in% asvs_less_100) %>%
   ungroup() %>%
   group_by(SUPERGROUP_CLASS, Station, Latitude, Longitude, TRANSECT) %>%
     summarise(ASV_COUNT = n())
@@ -963,9 +375,9 @@ interpolate_lat_long_asv((bytaxa_surface_asvs %>%
 ## Depth ASV profiles
 
 ```{r}
-depth_asv_odv <- asv_long_avg_wtax %>%
+depth_asv_odv <- asv_long_avg_wtax_clean %>% 
+  left_join(metadata_seqsamples) %>%
   filter(!is.na(Latitude)) %>% 
-  filter(FeatureID %in% asvs_less_100) %>%
   ungroup() %>%
   group_by(Station, Latitude, Longitude, Depth, TRANSECT) %>%
     summarise(ASV_COUNT = n())
@@ -1013,17 +425,17 @@ interpolate_depth_long_asv <- function(df_all, transect, PARAM, min, max, TITLE)
                          direction = 1, na.value = NA,
                          limits = c(min, max)) +
     labs(y = "Depth (m)", x = "Longitude (°W)", fill = TITLE) +
-    scale_x_reverse() + scale_y_reverse() +
+    scale_x_reverse(n.breaks = 4, expand = c(0,0)) + scale_y_reverse(position = "right") +
     theme_classic() +
     theme(axis.text = element_text(size = 10, colour="black"),
           panel.border = element_blank(),
           aspect.ratio = 1,
           legend.background = element_blank(),
-        legend.text = element_text(size = 10, colour="black", face = "bold"),
-        legend.title = element_text(size = 10, colour="black", face = "bold", hjust = 0, vjust = 1),
+        legend.text = element_text(size = 14, colour="black", face = "bold"),
+        legend.title = element_text(size = 14, colour="black", face = "bold", hjust = 0, vjust = 1),
         axis.line = element_line(),
         legend.ticks = element_line(color = "black"),
-        legend.position=c(0.2,0.35))
+        legend.position=c(0.16,0.31))
 }
 
 interpolate_depth_long_asv(depth_asv_odv, "transect1","ASV_COUNT", 400, 2000,"Total ASVs")
@@ -1032,19 +444,43 @@ interpolate_depth_long_asv(depth_asv_odv, "transect1","ASV_COUNT", 400, 2000,"To
 ### Total ASVs panel
 
 ```{r, fig.height=5, fig.width=15, warning=FALSE}
-interpolate_lat_long_asv(surface_asv_odv, "ASV_COUNT", 400, 2000, "Total ASVs") +
+(interpolate_lat_long_asv(surface_asv_odv, "ASV_COUNT", 400, 2000, "Total ASVs") + theme(legend.position = "none")) +
 interpolate_depth_long_asv(depth_asv_odv, "transect1","ASV_COUNT", 400, 2000,"Total ASVs") +
-  interpolate_depth_long_asv(depth_asv_odv, "transect2","ASV_COUNT", 400, 2000, "Total ASVs") +
-  interpolate_depth_long_asv(depth_asv_odv, "transect3","ASV_COUNT", 400, 2000, "Total ASVs") +
-  plot_layout(nrow = 1, guides = "collect") + plot_annotation(tag_levels = c("a"))
+  (interpolate_depth_long_asv(depth_asv_odv, "transect2","ASV_COUNT", 400, 2000, "Total ASVs") + theme(legend.position = "none")) +
+  (interpolate_depth_long_asv(depth_asv_odv, "transect3","ASV_COUNT", 400, 2000, "Total ASVs") + theme(legend.position = "none")) +
+  plot_layout(nrow = 1) + plot_annotation(tag_levels = c("a"))
 # ggsave("figures/asv-map-all.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
+```
+
+```{r}
+stns_in_study <- as.character(unique(metadata_seqsamples$Station))
+shallow_stn <- (surf_labels %>% filter(Station %in% stns_in_study))
+
+interpolate_depth_long_asv((depth_asv_odv %>% filter(Depth <= 200)), "transect1","ASV_COUNT", 400, 2000,"Total ASVs") + 
+  geom_text(data = (shallow_stn %>% filter(TRANSECT == 1)), 
+              aes(x = Longitude, y = 0, label = (shallow_stn %>% filter(TRANSECT == 1))$Station), 
+              position = position_dodge(width = 0.1),
+              hjust = 0.5, vjust = 0, color= "black") +
+  scale_y_reverse(position = "right", limits = c(0,200))
 ```
 
 
 ```{r, fig.height=5, fig.width=15, warning=FALSE}
-interpolate_depth_long_asv((depth_asv_odv %>% filter(Depth <= 200)), "transect1","ASV_COUNT", 400, 2000,"Total ASVs") +
-  interpolate_depth_long_asv((depth_asv_odv %>% filter(Depth <= 200)), "transect2","ASV_COUNT", 400, 2000, "Total ASVs") +
-  interpolate_depth_long_asv((depth_asv_odv %>% filter(Depth <= 200)), "transect3","ASV_COUNT", 400, 2000, "Total ASVs") +
+(interpolate_depth_long_asv((depth_asv_odv %>% filter(Depth <= 200)), "transect1","ASV_COUNT", 400, 2000,"Total ASVs") + geom_text(data = (shallow_stn %>% filter(TRANSECT == 1)), 
+              aes(x = Longitude, y = -3, label = (shallow_stn %>% filter(TRANSECT == 1))$Station), 
+              position = position_dodge(width = 0.1),
+              hjust = 0.5, vjust = 0, color= "black") +
+  scale_y_reverse(position = "right", limits = c(-3,200)))+
+  (interpolate_depth_long_asv((depth_asv_odv %>% filter(Depth <= 200)), "transect2","ASV_COUNT", 400, 2000, "Total ASVs") + geom_text(data = (shallow_stn %>% filter(TRANSECT == 2)), 
+              aes(x = Longitude, y = -3, label = (shallow_stn %>% filter(TRANSECT == 2))$Station), 
+              position = position_dodge(width = 0.1),
+              hjust = 0.5, vjust = 0, color= "black") +
+  scale_y_reverse(position = "right", limits = c(-3,200))) +
+  (interpolate_depth_long_asv((depth_asv_odv %>% filter(Depth <= 200)), "transect3","ASV_COUNT", 400, 2000, "Total ASVs") + geom_text(data = (shallow_stn %>% filter(TRANSECT == 3)), 
+              aes(x = Longitude, y = -3, label = (shallow_stn %>% filter(TRANSECT == 3))$Station), 
+              position = position_dodge(width = 0.1),
+              hjust = 0.5, vjust = 0, color= "black") +
+  scale_y_reverse(position = "right", limits = c(-3,200))) +
   plot_layout(nrow = 1, guides = "collect") + plot_annotation(tag_levels = c("a"))
 # ggsave("figures/asv-map-all.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
 
@@ -1052,7 +488,8 @@ interpolate_depth_long_asv((depth_asv_odv %>% filter(Depth <= 200)), "transect1"
 ### Taxa by ASVs
 
 ```{r}
-bytaxa_depth_asvs <- asv_long_avg_wtax %>%
+bytaxa_depth_asvs <- asv_long_avg_wtax_clean %>% 
+  left_join(metadata_seqsamples) %>%
   ungroup() %>%
   group_by(SUPERGROUP_CLASS, Station, Latitude, Longitude, Depth, TRANSECT) %>%
     summarise(ASV_COUNT = n())
@@ -1120,8 +557,9 @@ tax_whole_asv_profile("Dinoflagellata-Dinophyta_X", 0, 10, "Dinoflagellata-Dinop
 
 ```{r}
 # unique(bytaxa_surface_asvs$SUPERGROUP_CLASS)
-colnames(asv_long_avg_wtax)
-asv_long_avg_wtax %>% 
+colnames(asv_long_avg_wtax_clean)
+asv_long_avg_wtax_clean %>% 
+  left_join(metadata_seqsamples) %>%
   filter(grepl("Radiolaria", SUPERGROUP_CLASS)) %>% 
   ungroup() %>% 
   group_by(SUPERGROUP_CLASS) %>% 
@@ -1150,8 +588,9 @@ tax_whole_asv_profile("Radiolaria-RAD-C", 10, 70, "Radiolaria-RAD-C")
 
 ```{r}
 # unique(bytaxa_surface_asvs$SUPERGROUP_CLASS)
-colnames(asv_long_avg_wtax)
-asv_long_avg_wtax %>% 
+colnames(asv_long_avg_wtax_clean)
+asv_long_avg_wtax_clean %>% 
+  left_join(metadata_seqsamples) %>% 
   filter(grepl("Gyrista", SUPERGROUP_CLASS)) %>% 
   ungroup() %>% 
   group_by(SUPERGROUP_CLASS) %>% 

@@ -102,7 +102,7 @@ library(plotly); library(viridis); library(vegan)
 
 ```{r}
 # | eval: false
-env_info <- read.csv("input-data/metadata-gom-23.csv")
+seq_info <- read.csv("input-data/seq-metadata-dict.csv")
 ```
 
 ## Sequence quality control
@@ -126,11 +126,7 @@ asv_mat <- asv_wtax_GoM23_062025 %>%
 
 rownames(tax_mat) <- row.names(asv_mat)
 ```
-```{r}
-row.names(env_info) <- env_info$SAMPLES
-length(env_info$SAMPLES)
-length(unique(env_info$SAMPLES))
-```
+
 ## Phyloseq integration
 ```{r}
 # | eval: false
@@ -140,7 +136,11 @@ gom_phylo = phyloseq(ASV, TAX)
 ```
 ```{r}
 # | eval: false
-samplenames <- sample_data(env_info)
+# sample_names(ASV)
+seq_info <- seq_info %>% 
+  column_to_rownames(var = "SAMPLES")
+
+samplenames <- sample_data(seq_info)
 gom_phylo_sample <- merge_phyloseq(gom_phylo, samplenames)
 gom_phylo_sample
 ```
@@ -241,7 +241,7 @@ asv_wtax_long_062025 %>%
 
 ```{r, fig.height=20, fig.width=7}
 # | eval: false
-unique(asv_wtax_long_062025$SAMPLES)
+# unique(asv_wtax_long_062025$SAMPLES)
 # head(asv_wtax_long_062025)
 asv_wtax_long_062025 %>% 
   group_by(SAMPLES, Domain) %>% 
@@ -314,79 +314,54 @@ table_seq_stats
 ### Save necessary files
 
 ```{r}
-# | eval: false
-# save(samples_too_low, asv_long_cleaned, file =  "input-data/asv_wtax_qc_GoM23_102025.RData")
+# load("input-data/asv_wtax_qc_GoM23_102025.RData")
+tmp <- asv_long_cleaned %>% 
+  separate(SAMPLES, into = c("gom", "STATION", "NISKIN", "extra"), sep = "_") %>%
+  mutate(Station = as.integer(str_remove(STATION, "S")),
+         Niskin = as.integer(str_remove(NISKIN, "N"))) %>%
+  unite(STN_NISKIN, STATION, NISKIN, sep = "_")
+stn_niskin_seqs <- as.character(unique(tmp$STN_NISKIN))
 ```
 
-
-# Curate ASV tables and include metadata
 
 ```{r}
 # | eval: false
-load(file = "input-data/asv_wtax_qc_GoM23_102025.RData", verbose = TRUE)
+save(samples_too_low, asv_long_cleaned, stn_niskin_seqs, file =  "input-data/asv_wtax_qc_GoM23_102025.RData")
 ```
+
+
+# Curate metadata
 
 Import & compile metadata
 
 ```{r}
-# Direct CTD data
-master_metadata <- read.csv("input-data/grad23_master.csv", 
+# Import asv data
+load("input-data/asv_wtax_qc_GoM23_102025.RData")
+
+seq_info <- read.csv("input-data/seq-metadata-dict.csv")
+
+# Direct CTD data from shared GRAD cruise drive
+master_metadata <- read.csv("input-data/Grad23_MasterSpreadsheet_01-21-26.xlsx - Master.csv", 
                             header = TRUE,
-                            check.names = FALSE, na.strings = "--")
+                            check.names = TRUE, na.strings = "--") %>% 
+  select(-starts_with("X"), -Notes)
 # head(master_metadata)
-cellcounts <- read.csv("cellcounts-sept22.csv")
+
+cellcounts <- read.csv("input-data/cellcounts-sept22.csv")
+
+features <- read.csv("input-data/depth-features-02042026.csv")
+
+manual_stn_info <- read.csv("input-data/manual_stn_classification.csv")
 ```
 
-## Modify metadata file
-
+Add station ordering
 ```{r}
-# colnames(master_metadata)
-# # str(master_metadata)
-# # str(cellcounts)
-env_metadata_toplot <- master_metadata %>%
-  mutate(Station = as.integer(Station)) %>%
-  select(Station, Niskin, Depth = `CTD Recorded Depth (m)`, Latitude = `NMEA Latitude`, Longitude = `NMEA Longitude`, 
-         Pressure = `CTD Pressure (db)`,
-         Date, Time_UTC = `Time (UTC)`, Temperature = `CTD Temperature`, Salinity = `Corrected CTD Salinity`,
-         Oxygen = `Corrected CTD Oxygen`, NO3, PO4, SIL, NO2, NH4) %>%
-  left_join(cellcounts %>% select(Station, Niskin, Prok_count = `prok.count`)) %>%
-  separate_longer_delim(c(NO3, PO4, SIL, NO2, NH4), delim = " / ") %>%
-  pivot_longer(cols = c(Temperature, Salinity, Oxygen, NO3, PO4, SIL, NO2, NH4, Prok_count), names_to = "ENV_VARIABLE", values_to = "VALUE", values_drop_na = TRUE, values_transform = as.numeric) %>%
-  group_by(Station, Niskin, Depth, Latitude, Longitude, Pressure, Date, Time_UTC, ENV_VARIABLE) %>%
-    summarise(value = mean(VALUE))
+offshore_on_shore_order <- c("S1", "S2", "S3", "S4", "S5","S9", "S8", "S7", "S11", "S12", "S14", "S15")
+
+transect_labels <- c("transect1", "transect1", "transect1", "transect1", "transect1", "transect2", "transect2", "transect2", "transect3", "transect3", "transect3", "transect3")
 ```
-
-### Create metabarcoding table with metadata
-
-```{r}
-head(asv_long_cleaned)
-head(env_metadata_toplot)
-
-# Widen environmental metadata to add to ASV df.
-tmp_forasv <- env_metadata_toplot %>%
-  filter(!is.na(ENV_VARIABLE)) |>
-  pivot_wider(names_from = ENV_VARIABLE, values_from = value)
-```
-
-
-```{r}
-asv_long_cleaned_wenv <- asv_long_cleaned %>%
-  separate(SAMPLES, into = c("gom", "STATION", "NISKIN", "extra"), sep = "_") %>%
-  mutate(Station = as.integer(str_remove(STATION, "S")),
-         Niskin = as.integer(str_remove(NISKIN, "N"))) %>%
-  unite(STN_NISKIN, STATION, NISKIN, sep = "_") %>%
-  filter(STN_NISKIN != "S12_N10") %>% 
-  select(-gom, -extra) %>%
-  left_join(tmp_forasv)
-# 
-head(asv_long_cleaned_wenv)
-```
-
-
-## Add station information
 
 Distance from shore
-
 ```{r}
 library(geosphere)
 # Long, Lat order
@@ -396,33 +371,10 @@ outflow <- c(outflow_long, outflow_lat)
 outflow
 ```
 
-Add station ordering
-```{r}
-stn_info <- read.csv("input-data/manual_stn_classification.csv")
-
-offshore_on_shore_order <- c("S1", "S2", "S3", "S4", "S5","S9", "S8", "S7", "S11", "S12", "S14", "S15")
-
-transect_labels <- c("transect1", "transect1", "transect1", "transect1", "transect1", "transect2", "transect2", "transect2", "transect3", "transect3", "transect3", "transect3")
-
-depth_order <- as.character(sort((unique(env_metadata_toplot$Depth))))
-
-depth_order_round <- as.character(sort(round(unique(env_metadata_toplot$Depth), digits = 0)))
-
-depth_bin <- c("< 5m","5-25m","25-60m",
-                          "60-270m","270-400m","400-800m",
-                          "800-1200m","1200-2000m","2000-3000m")
-
-depth_bin_CHARC <- c("..5m","5.25m","25.60m",
-                          "60.270m","270.400m","400.800m",
-                          "800.1200m","1200.2000m","2000.3000m")
-```
-
 Get sunrise and sunset - These calculations are based on equations provided by the National Oceanic & Atmospheric Administration (NOAA).
 ```{r}
-# install.packages("suntools")
 library(suntools)
 
-# Test
 sunriset(
   # Longitude, Latitude
   matrix(c(-86.990, 27.839), nrow = 1), # Add a negative to N longitude
@@ -431,26 +383,47 @@ sunriset(
   # direction = 'sunset',
   POSIXct.out = TRUE
 )
-
-
 # Include added function
 sunrise_set_newcol <- function(lat, lon, date, direction = c("sunrise", "sunset")) {
   lat_long <- cbind(lon, lat)
   sunriset(lat_long, date, direction = direction, POSIXct.out=TRUE)[,2]
 }
-
 ```
 
-
+```{r}
+# glimpse(master_metadata)
+# unique(master_metadata$Station)
+# names(master_metadata)
+```
 
 Add time of day in central time (local) and add in sunrise and sunset.
 ```{r}
 library(lubridate)
-# head(asv_long_cleaned_wenv$Time_UTC)
-# head(asv_long_cleaned_wenv$Date)
 
 # Combine date and time in GMT.
-asv_long_cleaned_wenv_wdates <- asv_long_cleaned_wenv %>% 
+metadata_allsamples <- master_metadata %>% 
+  filter(Station != "Pete") %>% 
+  filter(Station != "") %>% 
+  filter(!is.na(Station)) %>%
+  mutate(Station = as.integer(Station)) %>% 
+  filter(Station != 63) %>%
+  select(Station, Niskin, Depth = `CTD.Recorded.Depth..m.`, 
+         Latitude = `NMEA.Latitude`, Longitude = `NMEA.Longitude`, 
+         Pressure = `CTD.Pressure..db.`,
+         Date, Time_UTC = `Time..UTC.`, 
+         Temperature = `CTD.Temperature`, Salinity = `Corrected.CTD.Salinity`,
+         Oxygen_CTD = `Corrected.CTD.Oxygen`, Oxygen_bottle = `Bottle.Oxygen..ml.l.`, 
+         NO3 = `NO...µmol.L.`, PO4 = `PO...µmol.L.`, 
+         SIL = `SIL..µmol.L.`, NO2 = `NO...µmol.L..1`, 
+         NH4 = `NH...µmol.L.`,
+         DIC = `Calculated..DIC..Apollo.`, pH = `Apollo.pH`,
+         TA = `TA_Final`) %>%
+  left_join(cellcounts %>% select(Station, Niskin, Prok_count = `prok.count`)) %>%
+  # separate_longer_delim(c(NO3, PO4, SIL, NO2, NH4), delim = " / ") %>%
+  pivot_longer(cols = c(Temperature, Salinity, Oxygen_CTD, NO3, PO4, SIL, NO2, NH4, Prok_count, DIC, TA, pH), names_to = "ENV_VARIABLE", values_to = "VALUE", values_drop_na = TRUE, values_transform = as.numeric) %>%
+  group_by(Station, Niskin, Depth, Latitude, Longitude, Pressure, Date, Time_UTC, ENV_VARIABLE) %>%
+    summarise(value = mean(VALUE)) %>% 
+  ungroup() %>% 
   mutate(DATE_GMT = mdy(Date),
          TIME_GMT = format(strptime(Time_UTC, "%H:%M:%S"), "%H:%M:%S")) %>%
   # Use glue to combine
@@ -470,20 +443,11 @@ asv_long_cleaned_wenv_wdates <- asv_long_cleaned_wenv %>%
            TRUE ~ "Night"
          )) %>% 
   mutate(HR_OF_DAY = hour(datetime_cst)) %>% 
-  select(-DAYTIME_INT, -datetime_string, -datetime)
-```
-Where `HR_OF_DAY` 19 is at sunset and 6 is at sunrise for this study.
-
-
-Add additional station info to ASV table. 
-```{r}
-asv_long_cleaned_wenv_mod <- asv_long_cleaned_wenv_wdates %>%
-  left_join(stn_info) %>%
-  mutate(stn = paste("S", Station, sep = "")) %>%
+  select(-DAYTIME_INT, -datetime_string, -datetime) %>% 
+  mutate(stn = paste("S", Station, sep = "")) %>% 
   mutate(STN_ORDER = factor(stn, levels = offshore_on_shore_order),
          TRANSECT = factor(stn, levels = offshore_on_shore_order, labels = transect_labels),
-         DEPTH_ORDER = factor(Depth, levels = rev(depth_order), labels = rev(depth_order_round))) %>%
-  mutate(DIST_OUTFLOW = distHaversine(cbind(Longitude, Latitude), cbind(outflow_long, outflow_lat))) %>%
+         DIST_OUTFLOW = distHaversine(cbind(Longitude, Latitude), cbind(outflow_long, outflow_lat))) %>%
   mutate(DEPTH_BIN = case_when(
     Depth <= 5 ~ "< 5m",
     Depth > 5 & Depth <=25 ~ "5-25m",
@@ -495,28 +459,103 @@ asv_long_cleaned_wenv_mod <- asv_long_cleaned_wenv_wdates %>%
     Depth > 1200 & Depth <=2000 ~ "1200-2000m",
     Depth > 2000 & Depth <=3000 ~ "2000-3000m",
   ))
-dim(asv_long_cleaned_wenv_wdates)
-dim(asv_long_cleaned_wenv_mod)
-head(asv_long_cleaned_wenv_mod)
-# sort(unique(asv_long_cleaned_wenv_mod$STN_NISKIN))
+```
+Where `HR_OF_DAY` 19 is at sunset and 6 is at sunrise for this study.
+
+
+```{r}
+# head(seq_info)
+# stn_niskin_seqs
+
+metadata_seqsamples <- metadata_allsamples %>% 
+  mutate(STN_NISKIN = paste("S", Station, "_N", Niskin, sep = "")) %>% 
+  filter(STN_NISKIN %in% stn_niskin_seqs) %>% 
+  filter(STN_NISKIN != "S12_N10")
+```
+
+
+Station information.
+```{r}
+metadata_stn_info <- features %>% 
+  select(Station, Date, Latitude, Longitude, Transect, OilRig_Count,
+         MLD = MLD_BV, SAL_MAX = Salinity.maximum.depth..m., O2_MIN = Oxygen.minimum.depth..m., DCM = DCM.depth..m.,
+         Depth_range = Depth_range..m., Surface_temp = Surface_temp..C, Sample_n) %>% 
+  left_join(manual_stn_info)
+```
+
+
+# Curate ASV data
+
+```{r}
+# | eval: false
+load(file = "input-data/asv_wtax_qc_GoM23_102025.RData", verbose = TRUE)
+```
+
+```{r}
+# head(asv_long_cleaned)
+asv_long_cleaned_mod <- asv_long_cleaned %>%
+  separate(SAMPLES, into = c("gom", "STATION", "NISKIN", "extra"), sep = "_") %>%
+  mutate(Station = as.integer(str_remove(STATION, "S")),
+         Niskin = as.integer(str_remove(NISKIN, "N"))) %>%
+  unite(STN_NISKIN, STATION, NISKIN, sep = "_") %>%
+  filter(STN_NISKIN != "S12_N10") %>%
+  select(-gom, -extra) %>% 
+  mutate(stn = paste("S", Station, sep = "")) 
+  
+head(asv_long_cleaned_mod)
+```
+
+## Depth profiles across transects
+
+
+```{r}
+head(metadata_stn_info)
+```
+
+
+```{r, fig.height=3, fig.width=8}
+metadata_stn_info %>% 
+  select(Station, Transect, MLD, SAL_MAX, O2_MIN, DCM) %>% 
+  pivot_longer(cols = c(MLD, SAL_MAX, O2_MIN, DCM), names_to = "FEATURE", values_to = "Depth") %>% 
+  distinct() %>% 
+  mutate(STATION = factor(Station, levels = c(1, 2, 3, 4, 5, 9, 8, 7, 11, 12, 14, 15)),
+         DEPTH_FEATURES = factor(FEATURE, levels = c("MLD", "DCM", "SAL_MAX", "O2_MIN"), labels = c("MLD", "DCM", "Salinity max", "Oxygen min"))) %>% 
+  ggplot(aes(x = as.factor(STATION), y = Depth, group = DEPTH_FEATURES,
+             fill = DEPTH_FEATURES, shape = DEPTH_FEATURES, color = DEPTH_FEATURES)) +
+  geom_line() +
+  geom_point(size = 3, color = "white") +
+  scale_color_manual(values = c("#18545e", "#c49235","#b54136", "#603655")) +
+  scale_fill_manual(values = c("#18545e", "#c49235","#b54136", "#603655")) +
+  scale_shape_manual(values = c(21, 23, 22, 24)) +
+  scale_y_reverse() +
+  facet_grid(cols = vars(Transect), scales = "free", space = "free") +
+  theme_classic() +
+    theme(axis.text = element_text(size = 10, colour="black"),
+          panel.border = element_rect(fill = NA),
+          legend.background = element_blank(),
+          panel.grid.major = element_line(color = "grey90", linetype = "dotdash"),
+        legend.text = element_text(size = 10, colour="black", face = "bold"),
+        legend.title = element_blank(),
+        strip.background = element_blank()) +
+  labs(x = "Station", y = "Depth (m)")
+# ggsave("figures/depth_profiles.svg", width = 8, height = 3, device = "svg", limitsize = FALSE)
 ```
 
 
 # Curate taxonomic assignment
 
 ```{r}
-# head(asv_long_cleaned_wenv_mod)
-unique(asv_long_cleaned_wenv_mod$Domain) # take EUKS
-unique(asv_long_cleaned_wenv_mod$Supergroup)
-unique(asv_long_cleaned_wenv_mod$Division)
-# View(asv_long_cleaned_wenv_mod %>% filter(Division == "Opisthokonta"))
-# View(asv_long_cleaned_wenv_mod %>%
+unique(asv_long_cleaned_mod$Domain) # take EUKS
+unique(asv_long_cleaned_mod$Supergroup)
+unique(asv_long_cleaned_mod$Division)
+# View(asv_long_cleaned_mod %>% filter(Division == "Opisthokonta"))
+# View(asv_long_cleaned_mod %>%
        # select(Domain, Supergroup, Division, Subdivision, Class, Order, Family, Genus, Species) %>% distinct())
 ```
 
 Isolating Domain to "Eukaryota", removing bacteria, "Unassigned" and eukaryotes with `:nucl`. At the Division level, removing "Opisthokonta" 
 ```{r}
-asv_long_wenv_wtax <- asv_long_cleaned_wenv_mod %>%
+asv_long_wtax <- asv_long_cleaned_mod %>%
   filter(Domain == "Eukaryota") %>%
   filter(Supergroup != "nucl") %>%
   mutate(DIVISION = case_when(
@@ -541,184 +580,45 @@ asv_long_wenv_wtax <- asv_long_cleaned_wenv_mod %>%
     TRUE ~ Supergroup
   ))
 
-head(asv_long_wenv_wtax)
-tax_key <- asv_long_wenv_wtax %>%
+head(asv_long_wtax)
+tax_key <- asv_long_wtax %>%
   select(FeatureID, Taxon, Supergroup, Division, Subdivision, Class, Order, Family, Genus, Species) %>% distinct()
 ```
 
 ### Stats on what was removed
 
 ```{r}
-head(asv_long_cleaned_wenv_mod)
-head(asv_long_wenv_wtax)
-sum(asv_long_cleaned_wenv_mod$SEQUENCE_COUNT)
-sum(asv_long_wenv_wtax$SEQUENCE_COUNT)
+head(asv_long_cleaned_mod)
+head(asv_long_wtax)
+sum(asv_long_cleaned_mod$SEQUENCE_COUNT)
+sum(asv_long_wtax$SEQUENCE_COUNT)
 38481175/(41695184 + 38481175)
 # 41,695,184
 # 38,481,175
-length(unique(asv_long_cleaned_wenv_mod$FeatureID))
-length(unique(asv_long_wenv_wtax$FeatureID))
+length(unique(asv_long_cleaned_mod$FeatureID))
+length(unique(asv_long_wtax$FeatureID))
 ```
-
 
 
 ## Average across replicates & apply ASV threshold
 
 ```{r}
-head(asv_long_wenv_wtax)
+head(asv_long_wtax)
 ```
 
 ```{r}
-colnames(asv_long_wenv_wtax)
-```
-
-```{r}
-asv_long_avg_wtax <- asv_long_wenv_wtax %>%
+asv_long_avg_wtax <- asv_long_wtax %>%
 #   # First average ASV sequence count across replicates
   group_by(FeatureID, Taxon, 
            DIVISION, SUPERGROUP_CLASS, Supergroup_simplified, 
            Supergroup, Division, Subdivision, Class, Order, Family, Genus, Species,
-           STN_NISKIN, Station, Niskin, Depth, Latitude, Longitude, 
-           Pressure, Temperature, Salinity, Oxygen, NH4, NO2, NO3, PO4, SIL, Prok_count,
-           STN_CATEGORY_3, STN_CATEGORY_4, STN_ORDER, TRANSECT, DEPTH_ORDER, DIST_OUTFLOW, DEPTH_MAX, DEPTH_BIN,
-           DATE_GMT, TIME_GMT, datetime_cst, DAY_NIGHT, HR_OF_DAY) %>%
+           STN_NISKIN) %>%
   summarise(MEAN_REPS_seq = mean(SEQUENCE_COUNT)) %>%
   ungroup()
 ```
 
 
 
-# Determine depth features
-
-```{r}
-tmp <- read.csv("GradGoM23_MasterSpreadsheet_9-26-23.xlsx - Master.csv")
-colnames(tmp)
-head(env_metadata_toplot)
-```
-
-```{r}
-raw_env_data <- tmp %>% 
-  select(Station, Niskin, Depth = `Bottle.Depth..m.`, Latitude, Longitude, Date, Time_UTC = `Time..UTC.`, value = `Fluorescence.CTD`) %>% 
-  mutate(Station = as.integer(Station),
-         Depth = as.numeric(Depth),
-         value = as.numeric(value)) %>% 
-  add_column(ENV_VARIABLE = "Fluorescence",
-             depth_feature = "")
-# colnames(raw_env_data)
-# colnames(env_metadata_toplot)
-
-
-stn_list <- as.character(unique(stn_info$Station))
-```
-
-```{r}
-env_metadata_toplot_flor <- rbind(env_metadata_toplot, raw_env_data) %>% 
-  filter(Station %in% stn_list)
-# glimpse(raw_env_data)
-# glimpse(env_metadata_toplot)
-```
-
-
-```{r}
-head(env_metadata_toplot_flor)
-unique(env_metadata_toplot_flor$Station)
-length(unique(env_metadata_toplot_flor$Station))
-```
-
-## O2 min
-
-Assign oxygen mininum as the depth with the lowest oxygen below 30 meters.
-```{r}
-o2_min <- env_metadata_toplot_flor %>% 
-  filter(ENV_VARIABLE == "Oxygen") %>% 
-  filter(Depth > 30) %>% 
-  group_by(Station) %>% 
-  mutate(MIN = min(value)) %>% 
-  filter(MIN == value) %>% 
-  select(-MIN) %>% 
-  add_column(FEATURE = "Oxygen minimum")
-head(o2_min)
-```
-
-## DCM
-```{r}
-unique(env_metadata_toplot_flor$ENV_VARIABLE)
-```
-
-Assign oxygen minimum as the depth with the lowest oxygen below 30 meters.
-```{r}
-dcm <- env_metadata_toplot_flor %>% 
-  filter(ENV_VARIABLE == "Fluorescence") %>% 
-  group_by(Station) %>% 
-  mutate(MAX = max(value)) %>% 
-  filter(MAX == value) %>%
-  select(-MAX) %>% 
-  add_column(FEATURE = "DCM")
-# head(o2_min)
-```
-
-## Salt max
-
-```{r}
-sal_max <- env_metadata_toplot_flor %>% 
-  filter(ENV_VARIABLE == "Salinity") %>% 
-  group_by(Station) %>% 
-  mutate(MAX = max(value)) %>% 
-  filter(MAX == value) %>%
-  select(-MAX) %>% 
-  add_column(FEATURE = "Salinity maximum")
-```
-
-## Depth profiles across transects
-
-
-```{r}
-feature_profiles <- rbind(sal_max, o2_min, dcm) %>% 
-  select(FEATURE, Station, Niskin, Depth) %>% drop_na()
-# Any duplicates?
-length(feature_profiles$Depth)
-length(unique(feature_profiles$Depth))
-# feature_profiles
-# write.csv(feature_profiles, file = "input-data/feature_profiles_depth.csv")
-```
-
-
-```{r}
-# dim(env_metadata_toplot_flor)
-# head(env_metadata_toplot_flor)
-env_metadata_mod <- env_metadata_toplot_flor %>% 
-  ungroup() %>% 
-  select(-depth_feature) %>% 
-  left_join(feature_profiles) %>% 
-  left_join(stn_info)
-# dim(env_metadata_mod)  
-head(env_metadata_mod)
-```
-```{r, fig.height=3, fig.width=8}
-env_metadata_mod %>% 
-  ungroup() %>% 
-  filter(!is.na(FEATURE)) %>% 
-  select(FEATURE, Station, Depth, Transect) %>% 
-  distinct() %>% 
-  ggplot(aes(x = Station, y = Depth, fill = FEATURE, shape = FEATURE, color = FEATURE)) +
-  geom_jitter(size = 2, width = 0.1) +
-  scale_color_manual(values = c("#18545e", "#603655", "#c49235")) +
-  geom_line() +
-  scale_y_reverse() +
-  facet_grid(cols = vars(Transect), scales = "free", space = "free") +
-  theme_classic() +
-    theme(axis.text = element_text(size = 10, colour="black"),
-          panel.border = element_rect(fill = NA),
-          legend.background = element_blank(),
-          panel.grid.major = element_line(color = "grey90", linetype = "dotdash"),
-        legend.text = element_text(size = 10, colour="black", face = "bold"),
-        legend.title = element_blank())
-# ggsave("figures/depth_profiles.svg", width = 8, height = 3, device = "svg", limitsize = FALSE)
-```
-
-```{r}
-head(asv_long_cleaned_wenv_mod)
-```
 
 ### Remove ASVs with too low sequences
 
@@ -745,28 +645,30 @@ Leaving us with 21,865,501 total sequences.
 ### Rename data R objects
 
 ```{r}
-asv_long_avg_wtax <- asv_long_avg_wtax %>% 
+asv_long_avg_wtax_clean <- asv_long_avg_wtax %>% 
   filter(FeatureID %in% asvs_to_keep)
 
-asv_long_cleaned_wenv_mod <- asv_long_cleaned_wenv_mod %>% 
+asv_long_wtax_clean <- asv_long_wtax %>% 
   filter(FeatureID %in% asvs_to_keep)
 ```
 
 # Save
 
 Core data frames to take to additional code.
-* asv_long_cleaned_wenv_mod
-* asv_long_avg_wtax
+* asv_long_avg_wtax_clean
+* asv_long_wtax_clean
 * tax_key
-* env_metadata_mod
+* metadata_allsamples
+* metadata_seqsamples
+* metadata_stn_info
 
 
 ```{r}
 # | eval: false
-# save(asv_long_cleaned_wenv_mod,
-#      asv_long_avg_wtax, tax_key,
-#      env_metadata_mod,
-#      file = "input-data/gulf-2023-sequence-analysis_12222025.RData")
+# save(asv_long_avg_wtax_clean,
+#      asv_long_wtax_clean, tax_key,
+#      metadata_allsamples, metadata_seqsamples, metadata_stn_info,
+#      file = "input-data/gulf-2023-sequence-analysis_02062026.RData")
 ```
 
 
