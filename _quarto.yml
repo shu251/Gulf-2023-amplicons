@@ -3,11 +3,10 @@ project:
   output-dir: docs
   render:
     - GoM-2023-amplicons.qmd
-    - gulf-2023-amplicon-analysis.qmd
     - gulf-data-analysis_2023.qmd
     - gulf-map-physical_2023.qmd
-    - Fxn_trait_classification.qmd
     - GOM23_OilHW_Analysis.Rmd
+    - Gulf-setting-visuals.qmd
 
 execute:
   eval: true
@@ -17,17 +16,15 @@ website:
   navbar:
     left:
       - href: GoM-2023-amplicons.qmd
-        text: Sequence analysis
-      - href: gulf-2023-amplicon-analysis.qmd
-        text: Data analysis (part I)
+        text: Sequence analysis & data curation
       - href: gulf-map-physical_2023.qmd
         text: Spatial analysis
       - href: gulf-data-analysis_2023.qmd
-        text: ASV analysis
-      - href: Fxn_trait_classification.qmd
-        text: Assign functional traits
+        text: Data analysis
       - href: GOM23_OilHW_Analysis.Rmd
         text: Oil Rig analysis
+      - href: Gulf-setting-visuals.qmd
+        text: Northern Gulf physical oceanography
 
 format:
   html:
