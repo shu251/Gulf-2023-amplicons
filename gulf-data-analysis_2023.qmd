@@ -127,7 +127,7 @@ kclusts <-
 # Unnest
 output_kclusts <- kclusts %>%
   unnest(cols = c(glanced))
-
+# ?kmeans
 # plot
 output_kclusts %>%
   ggplot(aes(x = k, y = tot.withinss)) +
@@ -199,13 +199,30 @@ table_wfeature <- metadata_seqsamples %>%
 
 table_wstn_wdepth <- table_wfeature %>%
   select(-ENV_VARIABLE, -value) %>% distinct()
+```
 
+
+### Create Table S1
+```{r}
+head(asv_long_wtax_clean)
+```
+```{r}
+tmp_seq_stats <- read.csv(file = "output-tables/seq-asv-stats.csv") %>% 
+  unite(STN_NISKIN, STN, NISKIN, sep = "_") %>% 
+  select(STN_NISKIN, Sequence_files, Total_ASVs, Total_sequences)
+# head(tmp_seq_stats)
+```
+
+
+```{r}
 table_supp <- table_wfeature %>%
   select(-Pressure, -datetime_cst, -starts_with("SUN"), -HR_OF_DAY, -stn) %>%
-  pivot_wider(names_from = ENV_VARIABLE, values_from = value)
-# glimpse(table_supp)
+  pivot_wider(names_from = ENV_VARIABLE, values_from = value) %>% 
+  left_join(tmp_seq_stats)
+glimpse(table_supp)
 # write.csv(table_supp, file = "output-tables/supp-table-allsampleinfo.csv")
 ```
+
 
 # Sample comparison & taxonomic classification
 
@@ -483,61 +500,37 @@ guides(fill = guide_legend(override.aes = list(
 SIMPSON
 ```
 
-## k-means T-S plot
+## T-S plot
 
 ```{r}
-# install.packages("marelac")
-# install.packages("plot3D")
-# library(marelac);library(plot3D)
-# Source - https://stackoverflow.com/a
-# Posted by JulianHi
-# Retrieved 2026-01-04, License - CC BY-SA 3.0
-# install.packages("gsw")
-# devtools::install_github("ggTS",username="Davidatlarge")
+# Import table from Portela et al.
+water_mass <- read.csv("input-data/water-mass-data.csv")
 ```
-
 
 ```{r}
-# library(tidyverse)
-# ts <- table1_wfeature %>% ungroup() %>% select(Temperature, Salinity, CLUSTER, Depth)
-# 
-# CLUSTER_COLOR <- c("#c85e82", "#efc85a", "#df9147","#6e9b4a", "#606aa9", "#126580")
-# CLUSTER_NUM <- c(1, 2, 3, 4, 5, 6)
-# names(CLUSTER_NUM) <- CLUSTER_COLOR
-# 
-# ts_cluster <- table1_wfeature %>%
-# ggplot(aes(x = Salinity, y = Temperature, fill = CLUSTER))
-# 
-# TS <- ggTS(sal = ts$Salinity, pot.temp = ts$Temperature,
-# reference.p = 0, col.par = ts$Depth, col.name = "Depth (m)")
-# TS
+water_mass %>% 
+  ggplot() +
+  geom_rect(data = water_mass, aes(xmin = SAL_MIN, xmax = SAL_MAX, ymin = TEMP_MIN, ymax = TEMP_MAX,
+                                   fill = Watermass, color = Watermass),
+            alpha = 0.1, linetype = "dashed") +
+  theme_minimal()
 ```
+## Plot K-means T-S plot
 
-
-```{r}
-ts <- table_supp %>% ungroup() %>% select(Temperature, Salinity)
-# ts
-minT <- min(ts$Temperature)
-maxT <- max(ts$Temperature)
-minS <- min(ts$Salinity)
-maxS <- min(ts$Salinity)
-
-set.seed(1234)
-salC <- seq(from=minS,to=maxS,length.out = 156)
-tempC <- seq(from=minT,to=maxT,length.out = 156)
-```
-
-```{r, fig.width=7, fig.height=6}
+```{r, fig.width=5, fig.height=6}
 # head(table1_wfeature)
 CLUSTER_COLOR <- c("#c85e82", "#efc85a", "#df9147","#6e9b4a", "#606aa9", "#126580")
 CLUSTER_NUM <- c(1, 2, 3, 4, 5, 6)
 names(CLUSTER_NUM) <- CLUSTER_COLOR
 
 ts_cluster <- table_supp %>% 
-  ggplot(aes(x = Salinity, y = Temperature, fill = CLUSTER)) +
-  # geom_point(stat = "identity", shape = 21, color = "black") +
-  geom_jitter(stroke = 0.6, size = 2.5, width = 0.2, stat = "identity", shape = 21, color = "black") +
-  scale_fill_manual(values =CLUSTER_COLOR) +
+  mutate(cluster_order = factor(CLUSTER, levels = (CLUSTER_NUM)))
+
+ggplot() +
+  geom_rect(data = water_mass, aes(xmin = SAL_MIN, xmax = SAL_MAX, ymin = TEMP_MIN, ymax = TEMP_MAX, color = Watermass),
+            linetype = "solid", fill = NA) +
+  geom_jitter(data = ts_cluster, aes(x = Salinity, y = Temperature, fill = cluster_order), stroke = 0.6, size = 2.5, width = 0.2, stat = "identity", shape = 21, color = "black") +
+  scale_fill_manual(values = CLUSTER_COLOR) +
   theme_bw() +
   theme(axis.text = element_text(color="black", size=12),
         legend.title = element_blank(),
@@ -553,7 +546,7 @@ ts_cluster <- table_supp %>%
     color = "black", 
     size = 5))) +
   labs(x = "Salinity (ppt)", y = "Temperature (°C)")
-ts_cluster
+# ts_cluster
 ```
 
 ### Combine pca and diversity
@@ -713,7 +706,7 @@ names(CLUSTER_NUM) <- CLUSTER_COLOR
 
 KMEANS <- dendro_annotation %>% 
   # Factoring
-  mutate(cluster_order = factor(CLUSTER, levels = rev(CLUSTER_NUM))) %>%
+  mutate(cluster_order = factor(CLUSTER, levels = (CLUSTER_NUM))) %>%
   ggplot(aes(y = label_order, x = 1, fill = cluster_order)) +
     geom_point(shape = 22, color = "black", size = 4) +
   scale_fill_manual(values = CLUSTER_COLOR) +
@@ -1069,6 +1062,7 @@ tax_simplified_list <- as.character(rev(sort(unique(asv_long_avg_wtax_clean $Sup
 tax_simplified_list
 names(tax_color) <- tax_simplified_list
 names(tax_simplified_list) <- tax_color
+# view(tax_simplified_list)
 ```
 
 Low taxonomic resolution should be at DIVISION level. Then to SUPERGROUP_CLASS level.
@@ -1183,7 +1177,23 @@ TAX_TOP_FOUR <- asv_long_avg_wtax_clean %>%
 TAX_TOP_FOUR
 
 ```
+### Dashboard data: sequence abundance
 
+```{r}
+supergroup_relabun <- asv_long_avg_wtax_clean %>%
+  left_join(table_wstn_wdepth) %>%
+  group_by(Station, DEPTH_BIN, Supergroup, Supergroup_simplified) %>%
+  summarise(SUM_SEQ = sum(MEAN_REPS_seq),
+            ASV_COUNT = n()) %>%
+  filter(Supergroup_simplified != "Eukaryota") %>% 
+  filter(Supergroup_simplified != "TSAR-NA") %>% 
+  filter(Supergroup_simplified != "Obazoa-Metazoa") 
+# write.csv(supergroup_relabun, file = "dashboard-data/supergroup_relabun.csv")
+```
+
+```{r}
+unique(supergroup_relabun$Supergroup_simplified)
+```
 
 
 
@@ -1219,6 +1229,98 @@ asv_long_avg_wtax_clean %>%
   labs(x = "Sequence Relative Abundace", y = "Depth (m)")
 ```
 
+### NASEM plot
+
+```{r}
+unique(asv_long_avg_wtax_clean$Supergroup_simplified)
+```
+% of data used
+```{r}
+tax_nasem <- c("TSAR-Dinoflagellata", "TSAR-Ciliophora", "TSAR-Gyrista", "TSAR-Radiolaria", "Haptista")
+tmp_n <- asv_long_avg_wtax_clean %>%
+  filter(Supergroup_simplified %in% tax_nasem)
+(length(unique(tmp_n$FeatureID)) / length(unique(asv_long_avg_wtax_clean$FeatureID)))
+# 82% of the data.
+head(table_wstn_wdepth)
+```
+
+
+```{r, fig.width=5, fig.height=6}
+tax_nasem <- c("TSAR-Dinoflagellata", "TSAR-Ciliophora", "TSAR-Gyrista", "TSAR-Radiolaria", "Haptista")
+labels_nasem <- c("Dinoflagellates", "Ciliates", "Gyrista", "Radiolaria", "Haptista")
+colors_nasem <- c("#d11141", "#00aedb", "#f37735", "#00b159", "#ffc425")
+asv_long_avg_wtax_clean %>%
+  left_join(table_wstn_wdepth) %>%
+  filter(Station <= 5) %>% 
+  # Filter for diatoms, dinoflagellates, ciliates, haptophytes.
+  filter(Supergroup_simplified %in% tax_nasem) %>% 
+  mutate(Taxon = factor(Supergroup_simplified, levels = tax_nasem, labels = labels_nasem)) %>% 
+  group_by(Station, DEPTH_BIN, Taxon) %>%
+  summarise(SUM_SEQ = sum(MEAN_REPS_seq),
+            ASV_COUNT = n()) %>%
+   mutate(depth_bin_order = factor(DEPTH_BIN, levels = rev(depth_bin))) |> 
+  ggplot(aes(y = depth_bin_order, x = SUM_SEQ, fill = Taxon)) +
+  geom_bar(stat = "identity", position = "fill", color = "black", width = 0.8) +
+  scale_fill_manual(values = colors_nasem) +
+  scale_x_continuous(expand = c(0,0)) +
+  # facet_wrap(vars(Station)) +
+  facet_grid(rows = vars(Station), scales = "free_y", space = "free", axis.labels = "all_x") +
+  theme_classic() + theme(
+    legend.position = "right",
+    legend.title = element_blank(),
+    legend.text = element_text(color = "black", face = "bold"),
+    strip.background = element_blank(),
+    strip.text.y = element_text(angle = 0, color = "black", face = "bold"),
+    axis.title = element_text(color = "black", face = "bold"),
+    axis.text.y = element_text(color = "black", face = "bold"),
+    axis.text.x = element_text(color = "black", face = "bold")) +
+  guides(fill = guide_legend(reverse = TRUE, ncol = 1)) +
+  labs(x = "Sequence Relative Abundace", y = "Depth (m)")
+# ggsave("figures/nasem_barplot.svg", width = 5, height = 6, device = "svg", limitsize = FALSE)
+```
+```{r}
+
+```
+
+
+```{r, fig.width=5, fig.height=6}
+tax_nasem <- c("Syndiniales","TSAR-Dinoflagellata", "TSAR-Ciliophora", "TSAR-Gyrista", "TSAR-Radiolaria", "Haptista")
+labels_nasem <- c("Syndiniales","Dinoflagellates", "Ciliates", "Gyrista", "Radiolaria", "Haptista")
+colors_nasem <- c("#d998a8","#d11141", "#00aedb", "#f37735", "#00b159", "#ffc425")
+asv_long_avg_wtax_clean %>%
+  left_join(table_wstn_wdepth) %>%
+  filter(Station <= 5) %>% 
+  # Filter for diatoms, dinoflagellates, ciliates, haptophytes.
+  filter(Supergroup_simplified %in% tax_nasem) %>% 
+  # include parasitsm
+  mutate(TAX = case_when(
+    Class == "Syndiniales" ~ "Syndiniales",
+    TRUE ~ Supergroup_simplified
+  )) %>% 
+  mutate(Taxon = factor(TAX, levels = tax_nasem, labels = labels_nasem)) %>% 
+  group_by(Station, DEPTH_BIN, Taxon) %>%
+  summarise(SUM_SEQ = sum(MEAN_REPS_seq),
+            ASV_COUNT = n()) %>%
+   mutate(depth_bin_order = factor(DEPTH_BIN, levels = rev(depth_bin))) |> 
+  ggplot(aes(y = depth_bin_order, x = SUM_SEQ, fill = Taxon)) +
+  geom_bar(stat = "identity", position = "fill", color = "black", width = 0.8) +
+  scale_fill_manual(values = colors_nasem) +
+  scale_x_continuous(expand = c(0,0)) +
+  # facet_wrap(vars(Station)) +
+  facet_grid(rows = vars(Station), scales = "free_y", space = "free", axis.labels = "all_x") +
+  theme_classic() + theme(
+    legend.position = "right",
+    legend.title = element_blank(),
+    legend.text = element_text(color = "black", face = "bold"),
+    strip.background = element_blank(),
+    strip.text.y = element_text(angle = 0, color = "black", face = "bold"),
+    axis.title = element_text(color = "black", face = "bold"),
+    axis.text.y = element_text(color = "black", face = "bold"),
+    axis.text.x = element_text(color = "black", face = "bold")) +
+  guides(fill = guide_legend(reverse = TRUE, ncol = 1)) +
+  labs(x = "Sequence Relative Abundace", y = "Depth (m)")
+# ggsave("figures/nasem_barplot_parasites.svg", width = 5, height = 6, device = "svg", limitsize = FALSE)
+```
 
 ### Plot sequence relative abundance with depths
 
@@ -1289,6 +1391,9 @@ asv_long_avg_wtax_clean %>%
 # ggsave("figures/tax-dotplot.svg", width = 22, height = 5, device = "svg", limitsize = FALSE)
 ```
 
+
+
+
 # Plot Dendrogram compilation
 
 ```{r, fig.height=13, fig.width=45}
@@ -1307,6 +1412,151 @@ gom_dendro_plot + DEPTH + STN + KMEANS + PROFILES +
                          1, 1, 1))
 # ggsave("figures/dendrogram-compiled.svg", width = 45, height = 13, device = "svg", limitsize = FALSE)
 ```
+
+# Kmeans supplementary
+
+> Add water masses too.
+
+Get order of kmeans clusters 1 to 6, with station niskin order.
+```{r}
+table_kmeans_order <- table_supp %>% 
+  mutate(cluster_order = factor(CLUSTER, levels = (CLUSTER_NUM))) %>% 
+  select(cluster_order, CLUSTER, STN_NISKIN) %>% distinct() %>% 
+  arrange(cluster_order)
+stn_bykmeans <- rev(as.character(table_kmeans_order$STN_NISKIN))
+```
+
+
+```{r, fig.height=12, fig.width=3}
+CLUSTER_COLOR <- c("#c85e82", "#efc85a", "#df9147","#6e9b4a", "#606aa9", "#126580")
+CLUSTER_NUM <- c(1, 2, 3, 4, 5, 6)
+names(CLUSTER_NUM) <- CLUSTER_COLOR
+
+bykmeans_cluster <- table_supp %>% 
+  # Factoring
+  mutate(cluster_order = factor(CLUSTER, levels = (CLUSTER_NUM))) %>%
+  mutate(stn_order = factor(STN_NISKIN, levels = (stn_bykmeans))) %>%
+  ggplot(aes(y = stn_order, x = 1, fill = cluster_order)) +
+    geom_point(shape = 22, color = "black", size = 4) +
+  scale_fill_manual(values = CLUSTER_COLOR) +
+  scale_y_discrete(position = "left") +
+  theme_void() + theme(
+    legend.position = "left",
+    legend.title = element_blank(),
+    legend.text = element_text(color = "black"),
+    strip.background = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title = element_text(color = "black"),
+    axis.text.y = element_text(color = "black", size = 6),
+    axis.text.x = element_blank()) +
+  guides(fill = guide_legend(reverse = TRUE, ncol = 1)) +
+  labs(x = "", y = "")
+# bykmeans_cluster
+```
+
+```{r, fig.height=12, fig.width=3}
+blues <- c("#dde4f0","#b7cae8","#96b3e3",
+           "#6b94d6","#3473d9", "#0b4fbd",
+           "#0b429c", "#07214a", "#081730")
+
+names(blues) <- depth_bin
+
+bykmeans_depth <- table_supp %>% 
+  # Factoring
+  mutate(cluster_order = factor(CLUSTER, levels = (CLUSTER_NUM))) %>%
+  mutate(stn_order = factor(STN_NISKIN, levels = (stn_bykmeans))) %>%
+  mutate(depth_order = factor(DEPTH_BIN, levels = rev(depth_bin))) %>% 
+  ggplot(aes(y = stn_order, x = 1, fill = depth_order)) +
+    geom_point(shape = 22, color = "black", size = 4) +
+  scale_fill_manual(values = blues) +
+  scale_y_discrete(position = "right") +
+  theme_void() + theme(
+    legend.position = "right",
+    legend.title = element_blank(),
+    legend.text = element_text(color = "black"),
+    strip.background = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title = element_text(color = "black"),
+    axis.text.y = element_text(color = "black", size = 6),
+    axis.text.x = element_blank()) +
+  guides(fill = guide_legend(reverse = TRUE, ncol = 1)) +
+  labs(x = "", y = "")
+```
+```{r}
+head(table_supp)
+```
+
+
+```{r}
+bykmeans_dist <- table_supp %>% 
+  # Factoring
+  mutate(cluster_order = factor(CLUSTER, levels = (CLUSTER_NUM))) %>%
+  mutate(stn_order = factor(STN_NISKIN, levels = (stn_bykmeans))) %>%
+  mutate(dist_outflow = DIST_OUTFLOW/1000) %>% 
+  ggplot(aes(y = stn_order, x = 1, fill = dist_outflow)) +
+    geom_point(shape = 22, color = "black", size = 4) +
+  # scale_fill_continuous(option = "magma") +
+  scale_fill_viridis_c(option = "magma", direction = -1) +
+    # scale_fill_stepsn(colors = blues, breaks = c(50, 100, 300, 500, 1000, 1500, 2000)) +
+  scale_y_discrete(position = "right") +
+  theme_void() + theme(
+    legend.position = "right",
+    legend.title = element_blank(),
+    legend.text = element_text(color = "black"),
+    strip.background = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title = element_text(color = "black"),
+    axis.text.y = element_text(color = "black", size = 6),
+    axis.text.x = element_blank()) +
+  guides(fill = guide_legend(reverse = TRUE, ncol = 1)) +
+  labs(x = "x10^3 km", y = "")
+
+```
+
+
+```{r, fig.height=12, fig.width=3}
+# Sum by taxonomic groups
+bykmeans_tax <- asv_long_avg_wtax_clean %>%
+  left_join(table_wstn_wdepth) %>%
+  filter(Supergroup_simplified != "Eukaryota") %>% 
+  filter(Supergroup_simplified != "TSAR-NA") %>% 
+  filter(Supergroup_simplified != "Obazoa-Metazoa") %>% 
+  group_by(STN_NISKIN, Station, Niskin, 
+           Depth, DEPTH_BIN, Supergroup_simplified) |> 
+  summarise(SUM_SEQ = sum(MEAN_REPS_seq),
+            ASV_COUNT = n()) %>%
+  # Factoring and ordering
+  mutate(stn_order = factor(STN_NISKIN, levels = (stn_bykmeans)),
+         tax_order = factor(Supergroup_simplified, levels = (tax_simplified_list))) %>% 
+  # mutate(label_order = str_remove(label_order, "_")) |> 
+  ggplot(aes(y = (stn_order), x = SUM_SEQ, fill = tax_order)) +
+    geom_bar(stat = "identity", position = "fill", 
+             color = "grey20", width = 0.7, linewidth = 0.3) +
+  scale_fill_manual(values = tax_color) +
+  # scale_y_discrete(position = "right") +
+    scale_y_discrete(position = "right") +
+  scale_x_continuous(expand = c(0,0)) +
+  theme_classic() + theme(
+    legend.position = "right",
+    legend.title = element_blank(),
+    legend.text = element_text(color = "black"),
+    strip.background = element_blank(),
+    # axis.ticks = element_blank(),
+    axis.title = element_text(color = "black", size = 8),
+    axis.text.y = element_text(color = "black", vjust = 0.5, hjust = 0, size = 5),
+    panel.grid.major = element_line(color = "grey70", linetype = "dashed")) +
+  guides(fill = guide_legend(reverse = TRUE, ncol = 1)) +
+    labs(x = "Relative Abundance", y = "")
+# bykmeans_tax
+
+```
+Combined kmeans
+```{r, fig.width=12, fig.height=12}
+bykmeans_cluster + bykmeans_depth + bykmeans_dist + bykmeans_tax +
+  plot_layout(nrow = 1)
+# ggsave("figures/bykeamsn_dendrogram-compiled.svg", width = 12, height = 12, device = "svg", limitsize = FALSE)
+```
+
 
 # CLR targets & plots
 
@@ -2922,9 +3172,14 @@ head(table_supp)
 Isolate categorical vs. numeric metadata. For numeric data, create a normalized scale. 
 
 ```{r}
+head(table_wstn_wdepth)
+```
+
+
+```{r}
 # Make categorical data table from metadata (Table 1)
 categorical <- table_wstn_wdepth %>% 
-  select(STN_NISKIN, STN_ORDER, TRANSECT, OilRig_Count, DAY_NIGHT, HR_OF_DAY, ends_with("_THRESHOLD")) %>% distinct() %>% 
+  select(STN_NISKIN, CLUSTER, STN_ORDER, TRANSECT, OilRig_Count, DAY_NIGHT, HR_OF_DAY, ends_with("_THRESHOLD")) %>% distinct() %>% 
   arrange(STN_NISKIN)
 
 # Generate a matrix of numerical data from metadata
@@ -3025,12 +3280,12 @@ run_rda <- function(mod_metadata, mod_asv_long,
   # mod_asv_long <- surf_asv
   if (features == "include") {
     categorical <- mod_metadata %>% 
-             select(STN_NISKIN, STN_ORDER, TRANSECT, 
+             select(STN_NISKIN, STN_ORDER, CLUSTER, TRANSECT, 
                     OilRig_Count, DAY_NIGHT, ends_with("_THRESHOLD")) %>% 
       distinct()
     } else {
       categorical <- mod_metadata %>% 
-             select(STN_NISKIN, STN_ORDER, TRANSECT, 
+             select(STN_NISKIN, STN_ORDER, CLUSTER, TRANSECT, 
                     OilRig_Count, DAY_NIGHT) %>% distinct()}
   #
   # Isolate numerical data as matrix
@@ -3194,7 +3449,7 @@ Isolate the top taxa noted before performing Indicator Species analysis.
 indic_input <- asv_long_avg_wtax_clean %>%
   left_join(table_supp) %>% 
   # filter(Supergroup_simplified != "TSAR-NA") %>% 
-  filter(Supergroup_simplified %in% list_top) %>% 
+  # filter(Supergroup_simplified %in% list_top) %>% 
   filter(!grepl("_X", Supergroup_simplified)) %>%
    # Add additional bins
   mutate(SAL_BIN = case_when(
@@ -3219,7 +3474,7 @@ indic_input <- asv_long_avg_wtax_clean %>%
   mutate(OIL_BIN = case_when(
       OilRig_Count > 0 ~ "Oil Rig",
       TRUE ~ "No oil rig"
-    )) %>% select(STN_NISKIN, Station, DEPTH_BIN, ends_with("_THRESHOLD"), 
+    )) %>% select(STN_NISKIN, Station, CLUSTER, DEPTH_BIN, ends_with("_THRESHOLD"), 
          SAL_BIN, TEMP_BIN, NO3_BIN, OIL_BIN, OilRig_Count, O2_BIN, 
          MEAN_REPS_seq, FeatureID) %>%
   distinct() %>%
@@ -3298,11 +3553,12 @@ abun <- indic_input %>%
 All depths and stations
 ```{r}
 # depth_indic_bin <- summary_fxn_indic_spp((indic_input$DEPTH_BIN), abun, "Depth")
+cluster_indic_bin <- summary_fxn_indic_spp((indic_input$CLUSTER), abun, "Cluster")
 # dcm_bin <- summary_fxn_indic_spp((indic_input$DCM_THRESHOLD), abun, "DCM")
 # mld_bin <- summary_fxn_indic_spp((indic_input$MLD_THRESHOLD), abun, "MLD")
 # o2min_bin <- summary_fxn_indic_spp((indic_input$O2_THRESHOLD), abun, "O2_MIN")
 # o2_bin <- summary_fxn_indic_spp((indic_input$O2_BIN), abun, "O2")
-# no3_bin <- summary_fxn_indic_spp((indic_input$NO3_BIN), abun, "NO3")
+# # no3_bin <- summary_fxn_indic_spp((indic_input$NO3_BIN), abun, "NO3")
 # temp_bin <- summary_fxn_indic_spp((indic_input$TEMP_BIN), abun, "TEMP")
 # sal_bin <- summary_fxn_indic_spp((indic_input$SAL_BIN), abun, "SAL")
 # stn_bin <- summary_fxn_indic_spp((indic_input$Station), abun, "Station")
@@ -3337,17 +3593,49 @@ tax_annot <- asv_long_avg_wtax_clean %>%
 ```
 
 
+## Cluster-specific indicator results
+```{r}
+head(cluster_indic_bin)
+
+cluster_indic_bin %>% 
+  left_join(tax_annot) %>%
+  group_by(Supergroup_simplified, Indicative_of, PARAM_INDV) %>%
+    summarise(COUNT = n()) %>%
+  mutate(indic_cluster = str_replace_all(Indicative_of,"s\\.", "")) %>% 
+  mutate(cluster_order = factor(indic_cluster, levels = rev(CLUSTER_NUM))) %>%
+  mutate(tax_order = factor(Supergroup_simplified, levels = (tax_simplified_list))) %>% 
+  ggplot(aes(y = (cluster_order), x = COUNT, fill = tax_order)) +
+    geom_bar(stat = "identity", position = "dodge", 
+             color = "grey20", width = 0.9, linewidth = 0.3) +
+  scale_fill_manual(values = tax_color) +
+  # scale_y_discrete(position = "right") +
+    scale_y_discrete(position = "left") +
+  scale_x_continuous(expand = c(0,0), limits = c(0,300)) +
+  theme_classic() + theme(
+    legend.position = "right",
+    legend.title = element_blank(),
+    legend.text = element_text(color = "black"),
+    strip.background = element_blank(),
+    # axis.ticks = element_blank(),
+    axis.title = element_text(color = "black", size = 8),
+    axis.text.y = element_text(color = "black", vjust = 0.5, hjust = 0, size = 8),
+    panel.grid.major = element_line(color = "grey70", linetype = "dashed")) +
+  guides(fill = guide_legend(reverse = TRUE, ncol = 1)) +
+    labs(x = "Number of indicator ASVs", y = "k-means cluster")
+```
+
+
 ### All indicator spp results
 ```{r}
-# results_indic_summary <- rbind(depth_indic_bin, dcm_bin, mld_bin, o2min_bin, o2_bin, no3_bin, temp_bin, sal_bin,stn_bin) %>% 
-#   left_join(tax_annot) %>% 
-#   group_by(Supergroup_simplified, SUPERGROUP_CLASS, Indicative_of, PARAM_INDV) %>% 
-#     summarise(COUNT = n()) %>% 
-#   mutate(INDIC = str_replace_all(Indicative_of, "s\\.", paste("Indicator_", PARAM_INDV, "_", sep = ""))) %>% ungroup() %>% 
-#   select(-Indicative_of) %>% 
+# results_indic_summary <- rbind(depth_indic_bin, cluster_indic_bin, dcm_bin, mld_bin, o2min_bin, o2_bin, temp_bin, sal_bin,stn_bin) %>%
+#   left_join(tax_annot) %>%
+#   group_by(Supergroup_simplified, SUPERGROUP_CLASS, Indicative_of, PARAM_INDV) %>%
+#     summarise(COUNT = n()) %>%
+#   mutate(INDIC = str_replace_all(Indicative_of, "s\\.", paste("Indicator_", PARAM_INDV, "_", sep = ""))) %>% ungroup() %>%
+#   select(-Indicative_of) %>%
 #   pivot_wider(names_from = INDIC, values_from = COUNT)
 # 
-# # View(results_indic_summary)
+# View(results_indic_summary)
 # results_indic_full <- rbind(depth_indic_bin, dcm_bin, mld_bin, o2min_bin, o2_bin, no3_bin, temp_bin, sal_bin,stn_bin) %>%
 #   left_join(tax_annot) %>%
 #   group_by(Supergroup_simplified, SUPERGROUP_CLASS, FeatureID, Taxon, Indicative_of, PARAM_INDV) %>%
@@ -3355,234 +3643,11 @@ tax_annot <- asv_long_avg_wtax_clean %>%
 #   mutate(INDIC = str_replace_all(Indicative_of, "s\\.", paste("Indicator_", PARAM_INDV, "_", sep = ""))) %>%
 #   select(-Indicative_of) %>%
 #   pivot_wider(names_from = INDIC, values_from = COUNT)
-
+# 
 # write.csv(results_indic_summary, file = "output-tables/summary-indic-spp.csv")
 # write.csv(results_indic_full, file = "output-tables/fulllist-indic-spp.csv")
 ```
 
-#### questions regarding indicator spp.
-
-Diatoms
-```{r}
-# glimpse(results_indic_full)
-# View(results_indic_full %>%
-#        filter((Indicative_of == "s.2") |(Indicative_of == "s.1")))
-       # filter(grepl("Hemiaulales", Taxon)))
-      # filter(grepl("Rhizosoleniaceae", Taxon)))
-# filter(grepl("Pseudo-nitzschia", Taxon)))
-
-```
-
-
-Specific stations
-```{r}
-# glimpse(results_indic_aboveDCM_full)
-# glimpse(results_indic_full)
-# View(results_indic_full %>%
-# # Oil spill
-# filter(!is.na(Indicator_Station_9)))
-       # eddy center
-       # filter(!is.na(Indicator_Station_7)))
-       # eddy edge effect
-        # filter(!is.na(Indicator_Station_3)))
-        # filter(!is.na(Indicator_Station_1)))
-
-# View(results_indic_aboveDCM_full %>%
-       # filter(!is.na(Indicator_Station_8)))
-```
-
-```{r}
-# View(asv_long_avg_wtax %>% 
-#        filter(grepl("Acanthochiasma", Taxon)))
-```
-
-
-
-```{r}
-# formatted_indic_table <- results_indic_summary %>% 
-#   gt(rowname_col = "TAXA",
-#      groupname_col = "Supergroup_simplified") %>% 
-#   tab_spanner(label = "DCM",
-#               columns = c("Indicator of Above DCM", "Indicator of Below DCM")) %>% 
-#   tab_spanner(label = "Oxygen minimum",
-#               columns = c("Indicator of Above oxygen minimum", "Indicator of Below oxygen minimum")) %>%
-#   tab_spanner(label = "Temperature °C",
-#               columns = c("Indicator of < 8", "Indicator of 8-15", 
-#                           "Indicator of 15-20", "Indicator of 20-25", "Indicator of > 25")) %>% 
-#   tab_spanner(label = "Depth",
-#               columns = c("Indicator of < 5m","Indicator of 5-25m","Indicator of 25-60m",
-#                           "Indicator of 60-270m","Indicator of 270-400m","Indicator of 400-800m",
-#                           "Indicator of 800-1200m","Indicator of 1200-2000m","Indicator of 2000-3000m")) %>% 
-#   tab_spanner(label = "Nitrate µmol/L", 
-#               columns = c("Indicator of < 10", "Indicator of 10-20", "Indicator of > 20")) %>% 
-#   sub_missing(
-#     columns = everything(),
-#     rows = everything(),
-#     missing_text = "---")
-# 
-# formatted_indic_table
-# gtsave(formatted_indic_table, filename = "output-tables/sppindicator-gt-table.html")
-# gtsave(formatted_indic_table, filename = "output-tables/sppindicator-gt-table.docx")
-```
-
-```{r}
-# results_indic_full %>% ungroup() %>% 
-#   filter(!is.na(Supergroup_simplified)) %>% 
-#   select(Supergroup_simplified, FeatureID, starts_with("Indicator_DCM"), starts_with("Indicator_O2")) %>% 
-#   pivot_longer(cols = starts_with("Indicator_"), names_to = "indicator_list", values_to = "asv_count") %>% 
-#   filter(!is.na(asv_count)) %>% distinct() %>% 
-#   group_by(Supergroup_simplified, FeatureID, indicator_list) %>% 
-#     summarise(SUM = sum(asv_count)) %>% 
-#   ungroup() %>% 
-#   group_by(Supergroup_simplified, FeatureID) %>% 
-#   summarise(INDICATOR_CATEGORY = list(indicator_list)) %>% 
-#   ggplot(aes(x = INDICATOR_CATEGORY)) +
-#   geom_bar(aes(fill = Supergroup_simplified)) +
-#   scale_x_upset(n_intersections = 25)
-  
-```
-
-```{r}
-# colnames(results_indic_full)
-# results_indic_full %>% ungroup() %>% 
-#   filter(!is.na(Supergroup_simplified)) %>% 
-#   select(Supergroup_simplified, FeatureID, starts_with("Indicator_TEMP"), starts_with("Indicator_NO3"), `Indicator_O2_> 3`, `Indicator_O2_< 3`) %>% 
-#   pivot_longer(cols = starts_with("Indicator_"), names_to = "indicator_list", values_to = "asv_count") %>% 
-#   filter(!is.na(asv_count)) %>% distinct() %>% 
-#   group_by(Supergroup_simplified, FeatureID, indicator_list) %>% 
-#     summarise(SUM = sum(asv_count)) %>% 
-#   ungroup() %>% 
-#   group_by(Supergroup_simplified, FeatureID) %>% 
-#   summarise(INDICATOR_CATEGORY = list(indicator_list)) %>% 
-#   ggplot(aes(x = INDICATOR_CATEGORY)) +
-#   geom_bar(aes(fill = Supergroup_simplified)) +
-#   scale_x_upset(n_intersections = 25)
-```
-
-
-```{r}
-# results_indic_full %>% ungroup() %>% 
-#   filter(!is.na(Supergroup_simplified)) %>% 
-#   select(Supergroup_simplified, FeatureID, starts_with("Indicator_NO3"), starts_with("Indicator_Station")) %>% 
-#   pivot_longer(cols = starts_with("Indicator_"), names_to = "indicator_list", values_to = "asv_count") %>% 
-#   filter(!is.na(asv_count)) %>% distinct() %>% 
-#   group_by(Supergroup_simplified, FeatureID, indicator_list) %>% 
-#     summarise(SUM = sum(asv_count)) %>% 
-#   ungroup() %>% 
-#   group_by(Supergroup_simplified, FeatureID) %>% 
-#   summarise(INDICATOR_CATEGORY = list(indicator_list)) %>% 
-#   ggplot(aes(x = INDICATOR_CATEGORY)) +
-#   geom_bar(aes(fill = Supergroup_simplified)) +
-#   scale_x_upset(n_intersections = 25)
-```
-
-```{r}
-# results_indic_full %>% ungroup() %>% 
-#   filter(!is.na(Supergroup_simplified)) %>% 
-#   select(Supergroup_simplified, FeatureID, starts_with("Indicator_NO3"), starts_with("Indicator_Depth")) %>% 
-#   pivot_longer(cols = starts_with("Indicator_"), names_to = "indicator_list", values_to = "asv_count") %>% 
-#   filter(!is.na(asv_count)) %>% distinct() %>% 
-#   group_by(Supergroup_simplified, FeatureID, indicator_list) %>% 
-#     summarise(SUM = sum(asv_count)) %>% 
-#   ungroup() %>% 
-#   group_by(Supergroup_simplified, FeatureID) %>% 
-#   summarise(INDICATOR_CATEGORY = list(indicator_list)) %>% 
-#   ggplot(aes(x = INDICATOR_CATEGORY)) +
-#   geom_bar(aes(fill = Supergroup_simplified)) +
-#   scale_x_upset(n_intersections = 25)
-```
-
-```{r}
-# results_indic_full %>% ungroup() %>% 
-#   filter(!is.na(Supergroup_simplified)) %>% 
-#   select(Supergroup_simplified, FeatureID, starts_with("Indicator_NO3"), starts_with("Indicator_MLD")) %>% 
-#   pivot_longer(cols = starts_with("Indicator_"), names_to = "indicator_list", values_to = "asv_count") %>% 
-#   filter(!is.na(asv_count)) %>% distinct() %>% 
-#   group_by(Supergroup_simplified, FeatureID, indicator_list) %>% 
-#     summarise(SUM = sum(asv_count)) %>% 
-#   ungroup() %>% 
-#   group_by(Supergroup_simplified, FeatureID) %>% 
-#   summarise(INDICATOR_CATEGORY = list(indicator_list)) %>% 
-#   ggplot(aes(x = INDICATOR_CATEGORY)) +
-#   geom_bar(aes(fill = Supergroup_simplified)) +
-#   scale_x_upset(n_intersections = 25)
-```
-
-
-### Above DCM indicator spp results
-```{r}
-# results_indic_aboveDCM_summary <- rbind(abovedcm_depth_indic_bin, abovedcm_sal_bin,abovedcm_no3_bin, abovedcm_temp_bin, abovedcm_stn_bin) %>% 
-#   left_join(tax_key_annot) %>%  
-#   group_by(Supergroup_simplified, Indicative_of, PARAM_INDV) %>% 
-#     summarise(COUNT = n()) %>% 
-#   mutate(INDIC = str_replace_all(Indicative_of, "s\\.", paste("Indicator_", PARAM_INDV, "_", sep = ""))) %>% 
-#   select(-Indicative_of) %>% 
-#   pivot_wider(names_from = INDIC, values_from = COUNT)
-# # View(results_indic_aboveDCM_summary)
-# 
-# results_indic_aboveDCM_full <- rbind(abovedcm_depth_indic_bin, abovedcm_sal_bin,abovedcm_no3_bin, abovedcm_temp_bin, abovedcm_stn_bin) %>% 
-#   left_join(tax_key_annot) %>%   
-#   group_by(Supergroup_simplified, FeatureID, Taxon, Indicative_of, PARAM_INDV) %>% 
-#     summarise(COUNT = n()) %>% 
-#   mutate(INDIC = str_replace_all(Indicative_of, "s\\.", paste("Indicator_", PARAM_INDV, "_", sep = ""))) %>%  
-#   select(-Indicative_of) %>% ungroup() %>% 
-#   pivot_wider(names_from = INDIC, values_from = COUNT)
-# View(results_indic_aboveDCM_full)
-```
-
-```{r}
-# head(results_indic_aboveDCM_full)
-```
-
-
-```{r}
-# results_indic_aboveDCM_full %>% ungroup() %>% 
-#   filter(!is.na(Supergroup_simplified)) %>% 
-#   select(Supergroup_simplified, FeatureID, starts_with("Indicator_NO3"), starts_with("Indicator_TEMP")) %>% 
-#   pivot_longer(cols = starts_with("Indicator_"), names_to = "indicator_list", values_to = "asv_count") %>% 
-#   filter(!is.na(asv_count)) %>% distinct() %>% 
-#   group_by(Supergroup_simplified, FeatureID, indicator_list) %>% 
-#     summarise(SUM = sum(asv_count)) %>% 
-#   ungroup() %>% 
-#   group_by(Supergroup_simplified, FeatureID) %>% 
-#   summarise(INDICATOR_CATEGORY = list(indicator_list)) %>% 
-#   ggplot(aes(x = INDICATOR_CATEGORY)) +
-#   geom_bar(aes(fill = Supergroup_simplified)) +
-#   scale_x_upset(n_intersections = 25)
-```
-
-
-```{r}
-# results_indic_aboveDCM_full %>% ungroup() %>% 
-#   filter(!is.na(Supergroup_simplified)) %>% 
-#   select(Supergroup_simplified, FeatureID, starts_with("Indicator_SAL"), starts_with("Indicator_Station")) %>% 
-#   pivot_longer(cols = starts_with("Indicator_"), names_to = "indicator_list", values_to = "asv_count") %>% 
-#   filter(!is.na(asv_count)) %>% distinct() %>% 
-#   group_by(Supergroup_simplified, FeatureID, indicator_list) %>% 
-#     summarise(SUM = sum(asv_count)) %>% 
-#   ungroup() %>% 
-#   group_by(Supergroup_simplified, FeatureID) %>% 
-#   summarise(INDICATOR_CATEGORY = list(indicator_list)) %>% 
-#   ggplot(aes(x = INDICATOR_CATEGORY)) +
-#   geom_bar(aes(fill = Supergroup_simplified)) +
-#   scale_x_upset(n_intersections = 25)
-```
-
-```{r}
-# results_indic_aboveDCM_full %>% ungroup() %>% 
-#   filter(!is.na(Supergroup_simplified)) %>% 
-#   select(Supergroup_simplified, FeatureID, starts_with("Indicator_SAL"), starts_with("Indicator_NO3")) %>% 
-#   pivot_longer(cols = starts_with("Indicator_"), names_to = "indicator_list", values_to = "asv_count") %>% 
-#   filter(!is.na(asv_count)) %>% distinct() %>% 
-#   group_by(Supergroup_simplified, FeatureID, indicator_list) %>% 
-#     summarise(SUM = sum(asv_count)) %>% 
-#   ungroup() %>% 
-#   group_by(Supergroup_simplified, FeatureID) %>% 
-#   summarise(INDICATOR_CATEGORY = list(indicator_list)) %>% 
-#   ggplot(aes(x = INDICATOR_CATEGORY)) +
-#   geom_bar(aes(fill = Supergroup_simplified)) +
-#   scale_x_upset(n_intersections = 25)
-```
 
 # Dinoflagellate & ciliate functional traits
 
@@ -3812,20 +3877,20 @@ ciliate_morpho <- trait_asv %>%
 ## Get stats on functional trait profiles
 
 ```{r}
-# head(trait_asv)
+head(trait_asv)
 ```
 
 
 ### Vertical profiles for dinoflagellates.
 ```{r}
-# head(dino_trait_asv)
-# depth_bin <- c("< 5m","5-25m","25-60m",
-#                           "60-270m","270-400m","400-800m",
-#                           "800-1200m","1200-2000m","2000-3000m")
-# # depth_bin
-# # Dinophyceae;Gymnodiniales
-# # Dinophyceae;Gonyaulacales
-# head(dino_trait_asv)
+head(dino_trait_asv)
+depth_bin <- c("< 5m","5-25m","25-60m",
+                          "60-270m","270-400m","400-800m",
+                          "800-1200m","1200-2000m","2000-3000m")
+# depth_bin
+# Dinophyceae;Gymnodiniales
+# Dinophyceae;Gonyaulacales
+head(dino_trait_asv)
 
 ```
 

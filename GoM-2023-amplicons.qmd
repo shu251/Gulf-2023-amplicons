@@ -267,7 +267,7 @@ sample_count <- asv_wtax_long_062025 %>%
 samples_too_low <- setdiff((unique(asv_wtax_long_062025$SAMPLES)), (unique(sample_count$SAMPLES)))
 
 samples_too_low
-
+# head(asv_wtax_long_062025)
 ctrl_samples <- unique((env_info %>% filter(Sample_Ctrl == "Control"))$SAMPLES)
 
 ```
@@ -615,6 +615,8 @@ asv_long_avg_wtax <- asv_long_wtax %>%
            STN_NISKIN) %>%
   summarise(MEAN_REPS_seq = mean(SEQUENCE_COUNT)) %>%
   ungroup()
+length(unique(asv_long_avg_wtax$FeatureID))
+# sum(asv_long_avg_wtax$MEAN_REPS_seq)
 ```
 
 

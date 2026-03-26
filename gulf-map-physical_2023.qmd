@@ -247,10 +247,11 @@ head(asv_long_avg_wtax_clean)
 
 Surface lat/long
 ```{r}
-surface_asv_odv <- asv_long_avg_wtax_clean %>% 
+surface_asv_odv <- asv_long_avg_wtax_clean %>% ungroup() %>% 
   left_join(metadata_seqsamples) %>%
   # Isolate surface & average across replicates
   filter(Depth < 5) %>%
+  select(FeatureID, Station, Latitude, Longitude, TRANSECT, Depth) %>% distinct() %>% 
   ungroup() %>%
   group_by(Station, Latitude, Longitude, TRANSECT) %>%
     summarise(ASV_COUNT = n())
@@ -259,12 +260,6 @@ surface_asv_odv <- asv_long_avg_wtax_clean %>%
 Interpolate function for ASVs:
 
 ```{r}
-## Testing
-# df <- surface_asv_odv
-# PARAM <- "ASV_COUNT"
-# TITLE <- "Total ASVs"
-# ?mba.surf
-surf_labels
 # Put PARAM in quotes
 interpolate_lat_long_asv <- function(df, PARAM, min, max, TITLE){
   # Interpolate
@@ -316,7 +311,7 @@ head(envs_interpol)
 ### Total ASVs
 
 ```{r, fig.height=4, fig.width=4, warning=FALSE}
-surf_all_asv <- interpolate_lat_long_asv(surface_asv_odv, "ASV_COUNT", 500, 3000, "Total ASVs")
+surf_all_asv <- interpolate_lat_long_asv(surface_asv_odv, "ASV_COUNT", 300, 2000, "Total ASVs")
 surf_all_asv
 ```
 
@@ -327,6 +322,7 @@ bytaxa_surface_asvs <- asv_long_avg_wtax_clean %>%
   left_join(metadata_seqsamples) %>%
   # Isolate surface & average across replicates
   filter(Depth < 5) %>%
+    select(SUPERGROUP_CLASS, FeatureID, Station, Latitude, Longitude, TRANSECT, Depth) %>% distinct() %>% 
   ungroup() %>%
   group_by(SUPERGROUP_CLASS, Station, Latitude, Longitude, TRANSECT) %>%
     summarise(ASV_COUNT = n())
