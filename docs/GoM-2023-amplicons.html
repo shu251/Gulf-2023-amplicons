@@ -134,15 +134,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="./gulf-data-analysis_2023.html"> 
-<span class="menu-text">ASV analysis</span></a>
-  </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./Fxn_trait_classification.html"> 
-<span class="menu-text">Assign functional traits</span></a>
+<span class="menu-text">Data analysis</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="./GOM23_OilHW_Analysis.html"> 
 <span class="menu-text">Oil Rig analysis</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./Gulf-setting-visuals.html"> 
+<span class="menu-text">Northern Gulf physical oceanography</span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -451,7 +451,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>samples_too_low <span class="ot">&lt;-</span> <span class="fu">setdiff</span>((<span class="fu">unique</span>(asv_wtax_long_062025<span class="sc">$</span>SAMPLES)), (<span class="fu">unique</span>(sample_count<span class="sc">$</span>SAMPLES)))</span>
 <span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>samples_too_low</span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="co"># head(asv_wtax_long_062025)</span></span>
 <span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>ctrl_samples <span class="ot">&lt;-</span> <span class="fu">unique</span>((env_info <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Sample_Ctrl <span class="sc">==</span> <span class="st">"Control"</span>))<span class="sc">$</span>SAMPLES)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Remove control samples and samples with too few sequences.</p>
@@ -771,7 +771,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>           Supergroup, Division, Subdivision, Class, Order, Family, Genus, Species,</span>
 <span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>           STN_NISKIN) <span class="sc">%&gt;%</span></span>
 <span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">MEAN_REPS_seq =</span> <span class="fu">mean</span>(SEQUENCE_COUNT)) <span class="sc">%&gt;%</span></span>
-<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(asv_long_avg_wtax<span class="sc">$</span>FeatureID))</span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a><span class="co"># sum(asv_long_avg_wtax$MEAN_REPS_seq)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="remove-asvs-with-too-low-sequences" class="level3" data-number="5.1.1">
 <h3 data-number="5.1.1" class="anchored" data-anchor-id="remove-asvs-with-too-low-sequences"><span class="header-section-number">5.1.1</span> Remove ASVs with too low sequences</h3>
