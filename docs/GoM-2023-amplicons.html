@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Processing metabarcoding results – Diversity of microeukaryotes in the Gulf</title>
+<title>Processing metabarcoding results – Protistan biodiversity in the Northern Gulf</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -115,7 +115,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">Diversity of microeukaryotes in the Gulf</span>
+    <span class="navbar-title">Protistan biodiversity in the Northern Gulf</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -129,20 +129,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">Sequence analysis &amp; data curation</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./gulf-map-physical_2023.html"> 
-<span class="menu-text">Spatial analysis</span></a>
-  </li>  
-  <li class="nav-item">
     <a class="nav-link" href="./gulf-data-analysis_2023.html"> 
 <span class="menu-text">Data analysis</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./GOM23_OilHW_Analysis.html"> 
-<span class="menu-text">Oil Rig analysis</span></a>
+    <a class="nav-link" href="./gulf-map-physical_2023.html"> 
+<span class="menu-text">Spatial analysis</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="./Gulf-setting-visuals.html"> 
-<span class="menu-text">Northern Gulf physical oceanography</span></a>
+<span class="menu-text">Physical oceanography animations</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./GOM23_OilHW_Analysis.html"> 
+<span class="menu-text">Oil rig map</span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -302,7 +302,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | eval: false</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>seq_info <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"input-data/seq-metadata-dict.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>seq_info <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"input-data/seq-metadata-dict.csv"</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co"># head(seq_info)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="sequence-quality-control" class="level2" data-number="2.1">
 <h2 data-number="2.1" class="anchored" data-anchor-id="sequence-quality-control"><span class="header-section-number">2.1</span> Sequence quality control</h2>
@@ -451,8 +452,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>samples_too_low <span class="ot">&lt;-</span> <span class="fu">setdiff</span>((<span class="fu">unique</span>(asv_wtax_long_062025<span class="sc">$</span>SAMPLES)), (<span class="fu">unique</span>(sample_count<span class="sc">$</span>SAMPLES)))</span>
 <span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>samples_too_low</span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="co"># head(asv_wtax_long_062025)</span></span>
-<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>ctrl_samples <span class="ot">&lt;-</span> <span class="fu">unique</span>((env_info <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Sample_Ctrl <span class="sc">==</span> <span class="st">"Control"</span>))<span class="sc">$</span>SAMPLES)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(asv_wtax_long_062025)</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>ctrl_samples <span class="ot">&lt;-</span> <span class="fu">unique</span>((seq_info <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Sample_Ctrl <span class="sc">==</span> <span class="st">"Control"</span>))<span class="sc">$</span>SAMPLES)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Remove control samples and samples with too few sequences.</p>
 <div class="cell">
@@ -520,14 +521,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>master_metadata <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"input-data/Grad23_MasterSpreadsheet_01-21-26.xlsx - Master.csv"</span>, </span>
 <span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>                            <span class="at">header =</span> <span class="cn">TRUE</span>,</span>
 <span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>                            <span class="at">check.names =</span> <span class="cn">TRUE</span>, <span class="at">na.strings =</span> <span class="st">"--"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="fu">starts_with</span>(<span class="st">"X"</span>), <span class="sc">-</span>Notes)</span>
-<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a><span class="co"># head(master_metadata)</span></span>
-<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>cellcounts <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"input-data/cellcounts-sept22.csv"</span>)</span>
-<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>features <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"input-data/depth-features-02042026.csv"</span>)</span>
-<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>manual_stn_info <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"input-data/manual_stn_classification.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="fu">starts_with</span>(<span class="st">"X"</span>), <span class="sc">-</span>Notes) <span class="sc">%&gt;%</span> </span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate_longer_delim</span>(<span class="fu">c</span>(<span class="st">`</span><span class="at">NO...µmol.L.</span><span class="st">`</span>, <span class="st">`</span><span class="at">PO...µmol.L.</span><span class="st">`</span>, <span class="st">`</span><span class="at">SIL..µmol.L.</span><span class="st">`</span>, <span class="st">`</span><span class="at">NO...µmol.L..1</span><span class="st">`</span>, <span class="st">`</span><span class="at">NH...µmol.L.</span><span class="st">`</span>), <span class="at">delim =</span> <span class="st">" / "</span>)</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a><span class="co"># View(master_metadata)</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>cellcounts <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"input-data/cellcounts-sept22.csv"</span>)</span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>features <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"input-data/depth-features-02042026.csv"</span>)</span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>manual_stn_info <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"input-data/manual_stn_classification.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Add station ordering</p>
 <div class="cell">
@@ -638,8 +640,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>metadata_seqsamples <span class="ot">&lt;-</span> metadata_allsamples <span class="sc">%&gt;%</span> </span>
 <span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">STN_NISKIN =</span> <span class="fu">paste</span>(<span class="st">"S"</span>, Station, <span class="st">"_N"</span>, Niskin, <span class="at">sep =</span> <span class="st">""</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(STN_NISKIN <span class="sc">%in%</span> stn_niskin_seqs) <span class="sc">%&gt;%</span> </span>
-<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(STN_NISKIN <span class="sc">!=</span> <span class="st">"S12_N10"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(STN_NISKIN <span class="sc">%in%</span> stn_niskin_seqs) <span class="sc">%&gt;%</span></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(STN_NISKIN <span class="sc">!=</span> <span class="st">"S12_N10"</span>)</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>metadata_allsamples <span class="ot">&lt;-</span> metadata_allsamples <span class="sc">%&gt;%</span> </span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">STN_NISKIN =</span> <span class="fu">paste</span>(<span class="st">"S"</span>, Station, <span class="st">"_N"</span>, Niskin, <span class="at">sep =</span> <span class="st">""</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(STN_NISKIN <span class="sc">!=</span> <span class="st">"S12_N10"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Station information.</p>
 <div class="cell">
@@ -664,10 +671,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">Niskin =</span> <span class="fu">as.integer</span>(<span class="fu">str_remove</span>(NISKIN, <span class="st">"N"</span>))) <span class="sc">%&gt;%</span></span>
 <span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unite</span>(STN_NISKIN, STATION, NISKIN, <span class="at">sep =</span> <span class="st">"_"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(STN_NISKIN <span class="sc">!=</span> <span class="st">"S12_N10"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>gom, <span class="sc">-</span>extra) <span class="sc">%&gt;%</span> </span>
-<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">stn =</span> <span class="fu">paste</span>(<span class="st">"S"</span>, Station, <span class="at">sep =</span> <span class="st">""</span>)) </span>
-<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(asv_long_cleaned_mod)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(STN_NISKIN <span class="sc">!=</span> <span class="st">"S0_N0"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>gom, <span class="sc">-</span>extra) <span class="sc">%&gt;%</span> </span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">stn =</span> <span class="fu">paste</span>(<span class="st">"S"</span>, Station, <span class="at">sep =</span> <span class="st">""</span>)) </span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(asv_long_cleaned_mod)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="depth-profiles-across-transects" class="level2" data-number="4.1">
 <h2 data-number="4.1" class="anchored" data-anchor-id="depth-profiles-across-transects"><span class="header-section-number">4.1</span> Depth profiles across transects</h2>
@@ -740,7 +748,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb41-23"><a href="#cb41-23" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span> <span class="sc">~</span> Supergroup</span>
 <span id="cb41-24"><a href="#cb41-24" aria-hidden="true" tabindex="-1"></a>  ))</span>
 <span id="cb41-25"><a href="#cb41-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-26"><a href="#cb41-26" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(asv_long_wtax)</span>
+<span id="cb41-26"><a href="#cb41-26" aria-hidden="true" tabindex="-1"></a><span class="co"># head(asv_long_wtax)</span></span>
 <span id="cb41-27"><a href="#cb41-27" aria-hidden="true" tabindex="-1"></a>tax_key <span class="ot">&lt;-</span> asv_long_wtax <span class="sc">%&gt;%</span></span>
 <span id="cb41-28"><a href="#cb41-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(FeatureID, Taxon, Supergroup, Division, Subdivision, Class, Order, Family, Genus, Species) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -773,7 +781,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">MEAN_REPS_seq =</span> <span class="fu">mean</span>(SEQUENCE_COUNT)) <span class="sc">%&gt;%</span></span>
 <span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
 <span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(asv_long_avg_wtax<span class="sc">$</span>FeatureID))</span>
-<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a><span class="co"># sum(asv_long_avg_wtax$MEAN_REPS_seq)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a><span class="co"># sum(asv_long_avg_wtax$MEAN_REPS_seq)</span></span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a><span class="co"># unique(asv_long_avg_wtax$STN_NISKIN)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="remove-asvs-with-too-low-sequences" class="level3" data-number="5.1.1">
 <h3 data-number="5.1.1" class="anchored" data-anchor-id="remove-asvs-with-too-low-sequences"><span class="header-section-number">5.1.1</span> Remove ASVs with too low sequences</h3>

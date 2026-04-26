@@ -48,35 +48,7 @@ metadata_allsamples_mod <- metadata_allsamples %>%
   left_join(tmp_lat_long)
 ```
 
-
-# Temperature-Salinity plots
- Try this: https://hafezahmad.medium.com/making-temperature-salinity-diagrams-called-the-t-s-diagram-with-python-and-r-programming-5deec6378a29
- 
-> T-S plot with all stations, and depths above the DCM? above the O2 min layer?
-
-```{r}
-# master_metadata %>% 
-#   select(Station, Niskin, DEPTH = `CTD Recorded Depth (m)`, TEMP = `CTD Temperature`, SALINITY = `Corrected CTD Salinity`, PRESSURE = `CTD Pressure (db)`,
-#          LONG = `NMEA Longitude`, LAT = `NMEA Latitude`)
-```
-
-
-# Brunt-Väisälä frequency
-
-Measure of stability within a sampled vertical profile. Use the formula `N = √(g/`ρ`) (∂ρ/∂z)`
-`g` = gravity 9.8 m/s^2
-`ρ` = density
-`z` = depth
-
-> Calculate MLD, would add this to my parameters for DCM and more.
-
-```{r}
-# install.packages("gsw")
-# library(gsw)
-# ?gsw_Nsquared()
-```
-
-# Water masses
+## Factoring
 
 ```{r}
 offshore_on_shore_order <- c("S1", "S2", "S3", "S4", "S5",
@@ -94,13 +66,7 @@ watercol_shape <- c(21, 23, 24, 22)
 names(watercol_shape) <- watercol_features_label
 ```
 
-
-> Goal: what water masses are influencing key stations where I see diversity-based edge effects? specific taxa? 
-
-
 # Map
-
-## Extract lat long from data
 
 #### Fxn for ther surface params, lat, long
 
@@ -295,7 +261,7 @@ head(envs_interpol)
     labs(y = "Latitude (°N)", x = "Longitude (°W)", fill = TITLE) +
   scale_x_reverse(n.breaks = 4) +
   theme_classic() +
-  theme(axis.text = element_text(size = 10, colour="black"),
+  theme(axis.text = element_text(size = 12, face = "bold", colour="black"),
         panel.background = element_rect(fill = "#B4C7D9"),
         panel.border = element_rect(fill = NA),
         aspect.ratio = 1,
@@ -331,7 +297,7 @@ bytaxa_surface_asvs <- asv_long_avg_wtax_clean %>%
 
 ```{r, fig.height=4, fig.width=4, warning=FALSE}
 # Dinoflagellata-Syndiniales
-interpolate_lat_long_asv((bytaxa_surface_asvs %>% 
+syndiniales_asvs <- interpolate_lat_long_asv((bytaxa_surface_asvs %>% 
   filter(SUPERGROUP_CLASS == "Dinoflagellata-Syndiniales")), "ASV_COUNT", 100, 1000, "Syndiniales ASVs")
 ```
 
@@ -339,11 +305,11 @@ interpolate_lat_long_asv((bytaxa_surface_asvs %>%
 ```{r, fig.height=4, fig.width=4, warning=FALSE}
 # unique(bytaxa_surface_asvs$SUPERGROUP_CLASS)
 # Dinoflagellata-Syndiniales
-interpolate_lat_long_asv((bytaxa_surface_asvs %>% 
+Bacillario <- interpolate_lat_long_asv((bytaxa_surface_asvs %>% 
   filter(SUPERGROUP_CLASS == "Gyrista-Bacillariophyceae")), "ASV_COUNT", 5, 20,"Diatom ASVs")
 
 
-interpolate_lat_long_asv((bytaxa_surface_asvs %>% 
+Chrysophy<-interpolate_lat_long_asv((bytaxa_surface_asvs %>% 
   filter(SUPERGROUP_CLASS == "Gyrista-Chrysophyceae")), "ASV_COUNT", 4, 16,"Chrysophyte ASVs")
 
 
@@ -371,8 +337,13 @@ interpolate_lat_long_asv((bytaxa_surface_asvs %>%
 ## Depth ASV profiles
 
 ```{r}
+# head(asv_long_avg_wtax_clean)
+```
+
+
+```{r}
 depth_asv_odv <- asv_long_avg_wtax_clean %>% 
-  left_join(metadata_seqsamples) %>%
+  left_join((metadata_seqsamples %>% select(STN_NISKIN, Station, Latitude, Longitude, Depth, TRANSECT) %>% distinct())) %>%
   filter(!is.na(Latitude)) %>% 
   ungroup() %>%
   group_by(Station, Latitude, Longitude, Depth, TRANSECT) %>%
@@ -423,7 +394,7 @@ interpolate_depth_long_asv <- function(df_all, transect, PARAM, min, max, TITLE)
     labs(y = "Depth (m)", x = "Longitude (°W)", fill = TITLE) +
     scale_x_reverse(n.breaks = 4, expand = c(0,0)) + scale_y_reverse(position = "right") +
     theme_classic() +
-    theme(axis.text = element_text(size = 10, colour="black"),
+    theme(axis.text = element_text(size = 10, face = "bold", colour="black"),
           panel.border = element_blank(),
           aspect.ratio = 1,
           legend.background = element_blank(),
@@ -481,11 +452,37 @@ interpolate_depth_long_asv((depth_asv_odv %>% filter(Depth <= 200)), "transect1"
 # ggsave("figures/asv-map-all.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
 
 ```
+
+```{r, fig.height=5, fig.width=15, warning=FALSE}
+(interpolate_lat_long_asv(surface_asv_odv, "ASV_COUNT", 400, 2000, "Total ASVs") + theme(legend.position = "none")) |
+((interpolate_depth_long_asv(depth_asv_odv, "transect1","ASV_COUNT", 400, 2000,"Total ASVs") +
+  (interpolate_depth_long_asv(depth_asv_odv, "transect2","ASV_COUNT", 400, 2000, "Total ASVs") + theme(legend.position = "none")) +
+  (interpolate_depth_long_asv(depth_asv_odv, "transect3","ASV_COUNT", 400, 2000, "Total ASVs") + theme(legend.position = "none"))) /
+((interpolate_depth_long_asv((depth_asv_odv %>% filter(Depth <= 200)), "transect1","ASV_COUNT", 400, 2000,"Total ASVs") + geom_text(data = (shallow_stn %>% filter(TRANSECT == 1)), 
+              aes(x = Longitude, y = -3, label = (shallow_stn %>% filter(TRANSECT == 1))$Station), 
+              position = position_dodge(width = 0.1),
+              hjust = 0.5, vjust = 0, color= "black") +
+  scale_y_reverse(position = "right", limits = c(-3,200))) +
+  (interpolate_depth_long_asv((depth_asv_odv %>% filter(Depth <= 200)), "transect2","ASV_COUNT", 400, 2000, "Total ASVs") + geom_text(data = (shallow_stn %>% filter(TRANSECT == 2)), 
+              aes(x = Longitude, y = -3, label = (shallow_stn %>% filter(TRANSECT == 2))$Station), 
+              position = position_dodge(width = 0.1),
+              hjust = 0.5, vjust = 0, color= "black") +
+  scale_y_reverse(position = "right", limits = c(-3,200))) +
+  (interpolate_depth_long_asv((depth_asv_odv %>% filter(Depth <= 200)), "transect3","ASV_COUNT", 400, 2000, "Total ASVs") + geom_text(data = (shallow_stn %>% filter(TRANSECT == 3)), 
+              aes(x = Longitude, y = -3, label = (shallow_stn %>% filter(TRANSECT == 3))$Station), 
+              position = position_dodge(width = 0.1),
+              hjust = 0.5, vjust = 0, color= "black") +
+  scale_y_reverse(position = "right", limits = c(-3,200))))) +
+  plot_layout(guides = "collect", axis_titles = "collect") + plot_annotation(tag_levels = c("a"))
+# ggsave("figures/asv-map-all.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
+
+```
+
 ### Taxa by ASVs
 
 ```{r}
 bytaxa_depth_asvs <- asv_long_avg_wtax_clean %>% 
-  left_join(metadata_seqsamples) %>%
+  left_join((metadata_seqsamples %>% select(STN_NISKIN, Station, Latitude, Longitude, Depth, TRANSECT) %>% distinct())) %>%
   ungroup() %>%
   group_by(SUPERGROUP_CLASS, Station, Latitude, Longitude, Depth, TRANSECT) %>%
     summarise(ASV_COUNT = n())
@@ -500,6 +497,7 @@ interpolate_depth_long_asv((bytaxa_depth_asvs %>%
   "transect1", "ASV_COUNT",
   100, 1500, "Syndiniales ASVs")
 ```
+
 ## ASV profiles by taxa
 ```{r}
 # df_surf <- (bytaxa_surface_asvs %>% 
@@ -521,41 +519,41 @@ interpolate_depth_long_asv((bytaxa_depth_asvs %>%
   filter(SUPERGROUP_CLASS == SUBSET)), "transect2","ASV_COUNT", MIN, MAX, TITLE) +
   interpolate_depth_long_asv((bytaxa_depth_asvs %>% 
   filter(SUPERGROUP_CLASS == SUBSET)), "transect3","ASV_COUNT", MIN, MAX, TITLE) +
-  plot_layout(nrow = 1, guides = "collect") + plot_annotation(tag_levels = c("a"))
+  plot_layout(nrow = 1, guides = "collect")
 }
+
+# unique(bytaxa_surface_asvs$SUPERGROUP_CLASS)
 ```
+
+
 
 ## Dinoflagellate ASV profiles
 
-"Dinoflagellata-Syndiniales"          
-```{r, fig.height=5, fig.width=17, warning=FALSE}
-tax_whole_asv_profile("Dinoflagellata-Syndiniales", 100, 2000, "Dinoflagellata-Syndiniales")
-```
             
 "Dinoflagellata-Noctilucophyceae"      
 ```{r, fig.height=5, fig.width=17, warning=FALSE}
 # unique(bytaxa_surface_asvs$SUPERGROUP_CLASS)
-tax_whole_asv_profile("Dinoflagellata-Noctilucophyceae", 0, 10, "Dinoflagellata-Noctilucophyceae")
+# tax_whole_asv_profile("Dinoflagellata-Noctilucophyceae", 0, 10, "Dinoflagellata-Noctilucophyceae")
 ```
 
 "Dinoflagellata-Dinophyceae"
-```{r, fig.height=5, fig.width=17, warning=FALSE}
+```{r, fig.height=5, fig.width=15, warning=FALSE}
 # unique(bytaxa_surface_asvs$SUPERGROUP_CLASS)
-tax_whole_asv_profile("Dinoflagellata-Dinophyceae", 50, 500, "Dinoflagellata-Dinophyceae")
+tax_whole_asv_profile("Dinoflagellata-Dinophyceae", 50, 800, "Dinoflagellata-Dinophyceae")
+# ggsave("figures/dinophyceae.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
 ```
-"Dinoflagellata-Dinophyta_X"  
-```{r, fig.height=5, fig.width=17, warning=FALSE}
-# unique(bytaxa_surface_asvs$SUPERGROUP_CLASS)
-tax_whole_asv_profile("Dinoflagellata-Dinophyta_X", 0, 10, "Dinoflagellata-Dinophyta_X"  )
+"Dinoflagellata-Syndiniales"          
+```{r, fig.height=5, fig.width=15, warning=FALSE}
+tax_whole_asv_profile("Dinoflagellata-Syndiniales", 50, 800, "Dinoflagellata-Syndiniales")
+# ggsave("figures/syndiniales.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
 ```
-
 ## Radiolaria ASV profiles
 
 ```{r}
 # unique(bytaxa_surface_asvs$SUPERGROUP_CLASS)
 colnames(asv_long_avg_wtax_clean)
 asv_long_avg_wtax_clean %>% 
-  left_join(metadata_seqsamples) %>%
+  left_join((metadata_seqsamples %>% select(STN_NISKIN, Station, Latitude, Longitude, Depth, TRANSECT) %>% distinct())) %>%
   filter(grepl("Radiolaria", SUPERGROUP_CLASS)) %>% 
   ungroup() %>% 
   group_by(SUPERGROUP_CLASS) %>% 
@@ -564,20 +562,27 @@ asv_long_avg_wtax_clean %>%
 ```
 
 "Radiolaria-Polycystinea"
-```{r, fig.height=5, fig.width=17, warning=FALSE}
+```{r, fig.height=5, fig.width=15, warning=FALSE}
 tax_whole_asv_profile("Radiolaria-Polycystinea", 10, 200, "Radiolaria-Polycystinea")
+# ggsave("figures/rad-polycystinea.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
 ```
 "Radiolaria-Acantharea"
 ```{r, fig.height=5, fig.width=17, warning=FALSE}
-tax_whole_asv_profile("Radiolaria-Acantharea", 10, 200, "Radiolaria-Acantharea")
+tax_whole_asv_profile("Radiolaria-Acantharea", 10, 100, "Radiolaria-Acantharea")
+# ggsave("figures/rad-acantharia.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
 ```
 "Radiolaria-RAD-A"
 "Radiolaria-RAD-B"
 "Radiolaria-RAD-C"
 ```{r, fig.height=5, fig.width=17, warning=FALSE}
 tax_whole_asv_profile("Radiolaria-RAD-A", 10, 70, "Radiolaria-RAD-A")
+# ggsave("figures/rad-A.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
+
 tax_whole_asv_profile("Radiolaria-RAD-B", 10, 70, "Radiolaria-RAD-B")
+# ggsave("figures/rad-B.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
+
 tax_whole_asv_profile("Radiolaria-RAD-C", 10, 70, "Radiolaria-RAD-C")
+# ggsave("figures/rad-C.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
 ```
 
 ## Gyrista ASV profiles
@@ -591,29 +596,152 @@ asv_long_avg_wtax_clean %>%
   ungroup() %>% 
   group_by(SUPERGROUP_CLASS) %>% 
   summarise(ASV = n())
-  
+```
+
+
+"Gyrista-Bacillariophyceae"
+```{r, fig.height=5, fig.width=17, warning=FALSE}
+tax_whole_asv_profile("Gyrista-Bacillariophyceae", 0, 20, "Gyrista-Bacillariophyceae")
+ggsave("figures/gyrista-bacil.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
 ```
 
 "Gyrista-Chrysophyceae"
 ```{r, fig.height=5, fig.width=17, warning=FALSE}
 tax_whole_asv_profile("Gyrista-Chrysophyceae", 0, 20, "Gyrista-Chrysophyceae")
-```
-
-"Gyrista-Bacillariophyceae"
-```{r, fig.height=5, fig.width=17, warning=FALSE}
-tax_whole_asv_profile("Gyrista-Bacillariophyceae", 0, 20, "Gyrista-Bacillariophyceae")
-```
-
-"Gyrista-Coscinodiscophyceae"
-```{r, fig.height=5, fig.width=17, warning=FALSE}
-tax_whole_asv_profile("Gyrista-Coscinodiscophyceae", 0, 20, "Gyrista-Coscinodiscophyceae")
+# ggsave("figures/gyrista-chryso.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
 ```
 
 "Gyrista-Dictyochophyceae"
 ```{r, fig.height=5, fig.width=17, warning=FALSE}
 tax_whole_asv_profile("Gyrista-Dictyochophyceae", 0, 20, "Gyrista-Dictyochophyceae")
+# ggsave("figures/gyrista-dictyocho.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
 ```
 
+"Gyrista-Coscinodiscophyceae"
+```{r, fig.height=5, fig.width=17, warning=FALSE}
+tax_whole_asv_profile("Gyrista-Coscinodiscophyceae", 0, 20, "Gyrista-Coscinodiscophyceae")
+# ggsave("figures/gyrista-coscinod.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
+```
+"Gyrista-Mediophyceae"
+```{r, fig.height=5, fig.width=17, warning=FALSE}
+tax_whole_asv_profile("Gyrista-Mediophyceae", 0, 20, "Gyrista-Mediophyceae")
+# ggsave("figures/gyrista-medioph.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
+```
+"Ciliophora-CONThreeP"
+```{r, fig.height=5, fig.width=15, warning=FALSE}
+tax_whole_asv_profile("Ciliophora-CONThreeP", 5, 50, "Ciliophora-CONThreeP")
+# ggsave("figures/ciliate-con3p.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
+
+tax_whole_asv_profile("Ciliophora-Oligohymenophorea", 5, 50, "Ciliophora-Oligohymenophorea")
+# ggsave("figures/ciliate-oligo.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
+
+tax_whole_asv_profile("Ciliophora-Phyllopharyngea", 5, 50, "Ciliophora-Phyllopharyngea")
+# ggsave("figures/ciliate-phyllo.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
+
+tax_whole_asv_profile("Ciliophora-Spirotrichea", 5, 50, "Ciliophora-Spirotrichea")
+# ggsave("figures/ciliate-spirot.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
+```
+
+
+# K-means clustering on map
+
+```{r}
+load("input-data/kmeans-membership-seqs-5.RData", verbose = TRUE)
+head(kmeans_membership_5)
+```
+
+```{r}
+CLUSTER_COLOR <- c("#c85e82", "#efc85a", "#df9147","#6e9b4a", "#606aa9")
+CLUSTER_NUM <- c(1, 2, 3, 4, 5)
+names(CLUSTER_NUM) <- CLUSTER_COLOR
+```
+
+## Surface kmeans
+```{r}
+(metadata_seqsamples %>% 
+   filter(Depth < 6) %>% 
+   select(Station, Latitude, Longitude) %>% distinct())
+```
+
+
+```{r}
+surface_kmeans <- kmeans_membership_5 %>% 
+  separate(STN_NISKIN, into = c("STN", "NISKIN"), sep = "_", remove = FALSE) %>% 
+  mutate(Station = as.integer(str_remove(STN, "S"))) %>% 
+  select(Station, CLUSTER) %>% distinct() %>% 
+  right_join(metadata_seqsamples) %>% distinct() %>% 
+  filter(Depth < 6) %>% 
+   select(Station, CLUSTER, Latitude, Longitude) %>% distinct() %>% 
+  mutate(CLUSTER_ORDER = factor(CLUSTER, levels = CLUSTER_NUM))
+surface_kmeans
+```
+
+```{r, fig.width=7, fig.height=7}
+ggplot(data = world) +
+  geom_sf(color = "black", linewidth = 0.6, fill = "grey10", alpha = 0.8) +
+  # Set lat long region to show
+  coord_sf(xlim = c(-91, -85), ylim = c(27, 31), expand = FALSE) + # Larger region
+  # Add data points for stations
+  geom_point(data = surface_kmeans, aes(x = Longitude, y = Latitude, fill = CLUSTER_ORDER), size = 5, shape = 21, color = "grey20") +
+  scale_fill_manual(values = CLUSTER_COLOR) +
+  geom_text(data = surface_labels, aes(label = Station, x = Longitude, y = Latitude), size = 3) +
+  geom_rect(xmin = -90, xmax = -86.5, ymin = 27.5, ymax = 30, fill = NA, color = "grey10") + #inset
+  labs(y = "Latitude (°N)", x = "Longitude (°W)") +
+  scale_x_reverse() +
+  theme_classic() +
+  theme(legend.position = "none",
+    axis.text = element_text(size = 12, colour="black"),
+    axis.title = element_text(size = 12, colour="black"),
+        panel.background = element_rect(fill = "#B4C7D9"),
+    plot.background = element_blank(),
+        panel.border = element_rect(fill = NA))
+```
+## Depth k-means
+
+```{r}
+depth_kmeans <- kmeans_membership_5 %>% 
+  separate(STN_NISKIN, into = c("STN", "NISKIN"), sep = "_", remove = FALSE) %>% 
+  mutate(Station = as.integer(str_remove(STN, "S"))) %>%
+  mutate(Niskin = as.integer(str_remove(NISKIN, "N"))) %>% 
+  select(Station, Niskin, CLUSTER) %>% distinct() %>%
+  left_join((metadata_seqsamples %>% select(Station, Niskin, Depth, Latitude, Longitude, TRANSECT) %>% distinct())) %>% 
+  filter(!is.na(Latitude)) %>% 
+  mutate(CLUSTER_ORDER = factor(CLUSTER, levels = CLUSTER_NUM))
+
+depth_kmeans
+```
+
+```{r}
+vert_label <- depth_kmeans %>% filter(Depth < 6) %>% select(CLUSTER_ORDER, Station, Longitude, TRANSECT) %>% distinct()
+vert_label
+max(depth_kmeans$Depth)
+```
+
+
+```{r, fig.height=4, fig.width=9}
+depth_kmeans %>% 
+  ggplot() +
+  geom_segment(data = vert_label, linetype = "dashed", aes(x = Longitude, y = 3000, yend = 0, xend = Longitude)) +
+    # Add data points
+    geom_jitter(aes(x = Longitude, y = Depth, fill = CLUSTER_ORDER), size = 4, shape = 21, color = "grey20", width = 0.1) +
+  scale_fill_manual(values = CLUSTER_COLOR) +
+    geom_text(data = vert_label,
+              aes(x = Longitude, y = -60, label = Station),
+              hjust = 0.5, vjust = -0.5, color= "black") +
+    labs(y = "Depth (m)", x = "Longitude (°W)") +
+    scale_x_reverse(n.breaks = 4, expand = c(0.1,0.1)) + 
+  scale_y_reverse(position = "right", expand = c(0.1,0)) +
+    theme_classic() +
+  facet_grid(cols = vars(TRANSECT), scales = "free", space = "free") +
+    theme(axis.text = element_text(size = 10, colour="black"),
+          panel.border = element_blank(),
+          legend.background = element_blank(),
+        legend.text = element_text(size = 14, colour="black", face = "bold"),
+        legend.title = element_blank(),
+        axis.line = element_line(),
+        legend.ticks = element_line(color = "black"),
+        legend.position="left")
+```
 
 
 # Session Information

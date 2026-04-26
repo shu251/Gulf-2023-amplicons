@@ -12,19 +12,19 @@ execute:
   eval: true
 
 website:
-  title: "Diversity of microeukaryotes in the Gulf"
+  title: "Protistan biodiversity in the Northern Gulf"
   navbar:
     left:
       - href: GoM-2023-amplicons.qmd
         text: Sequence analysis & data curation
-      - href: gulf-map-physical_2023.qmd
-        text: Spatial analysis
       - href: gulf-data-analysis_2023.qmd
         text: Data analysis
-      - href: GOM23_OilHW_Analysis.Rmd
-        text: Oil Rig analysis
+      - href: gulf-map-physical_2023.qmd
+        text: Spatial analysis
       - href: Gulf-setting-visuals.qmd
-        text: Northern Gulf physical oceanography
+        text: Physical oceanography animations
+      - href: GOM23_OilHW_Analysis.Rmd
+        text: Oil rig map
 
 format:
   html:

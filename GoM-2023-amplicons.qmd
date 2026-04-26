@@ -103,6 +103,7 @@ library(plotly); library(viridis); library(vegan)
 ```{r}
 # | eval: false
 seq_info <- read.csv("input-data/seq-metadata-dict.csv")
+# head(seq_info)
 ```
 
 ## Sequence quality control
@@ -267,8 +268,8 @@ sample_count <- asv_wtax_long_062025 %>%
 samples_too_low <- setdiff((unique(asv_wtax_long_062025$SAMPLES)), (unique(sample_count$SAMPLES)))
 
 samples_too_low
-# head(asv_wtax_long_062025)
-ctrl_samples <- unique((env_info %>% filter(Sample_Ctrl == "Control"))$SAMPLES)
+head(asv_wtax_long_062025)
+ctrl_samples <- unique((seq_info %>% filter(Sample_Ctrl == "Control"))$SAMPLES)
 
 ```
 
@@ -344,8 +345,9 @@ seq_info <- read.csv("input-data/seq-metadata-dict.csv")
 master_metadata <- read.csv("input-data/Grad23_MasterSpreadsheet_01-21-26.xlsx - Master.csv", 
                             header = TRUE,
                             check.names = TRUE, na.strings = "--") %>% 
-  select(-starts_with("X"), -Notes)
-# head(master_metadata)
+  select(-starts_with("X"), -Notes) %>% 
+  separate_longer_delim(c(`NO...µmol.L.`, `PO...µmol.L.`, `SIL..µmol.L.`, `NO...µmol.L..1`, `NH...µmol.L.`), delim = " / ")
+# View(master_metadata)
 
 cellcounts <- read.csv("input-data/cellcounts-sept22.csv")
 
@@ -469,7 +471,12 @@ Where `HR_OF_DAY` 19 is at sunset and 6 is at sunrise for this study.
 
 metadata_seqsamples <- metadata_allsamples %>% 
   mutate(STN_NISKIN = paste("S", Station, "_N", Niskin, sep = "")) %>% 
-  filter(STN_NISKIN %in% stn_niskin_seqs) %>% 
+  filter(STN_NISKIN %in% stn_niskin_seqs) %>%
+  filter(STN_NISKIN != "S12_N10")
+
+
+metadata_allsamples <- metadata_allsamples %>% 
+  mutate(STN_NISKIN = paste("S", Station, "_N", Niskin, sep = "")) %>% 
   filter(STN_NISKIN != "S12_N10")
 ```
 
@@ -499,6 +506,7 @@ asv_long_cleaned_mod <- asv_long_cleaned %>%
          Niskin = as.integer(str_remove(NISKIN, "N"))) %>%
   unite(STN_NISKIN, STATION, NISKIN, sep = "_") %>%
   filter(STN_NISKIN != "S12_N10") %>%
+  filter(STN_NISKIN != "S0_N0") %>%
   select(-gom, -extra) %>% 
   mutate(stn = paste("S", Station, sep = "")) 
   
@@ -580,7 +588,7 @@ asv_long_wtax <- asv_long_cleaned_mod %>%
     TRUE ~ Supergroup
   ))
 
-head(asv_long_wtax)
+# head(asv_long_wtax)
 tax_key <- asv_long_wtax %>%
   select(FeatureID, Taxon, Supergroup, Division, Subdivision, Class, Order, Family, Genus, Species) %>% distinct()
 ```
@@ -617,6 +625,7 @@ asv_long_avg_wtax <- asv_long_wtax %>%
   ungroup()
 length(unique(asv_long_avg_wtax$FeatureID))
 # sum(asv_long_avg_wtax$MEAN_REPS_seq)
+# unique(asv_long_avg_wtax$STN_NISKIN)
 ```
 
 
