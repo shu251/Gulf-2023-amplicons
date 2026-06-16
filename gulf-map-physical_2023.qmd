@@ -292,6 +292,18 @@ bytaxa_surface_asvs <- asv_long_avg_wtax_clean %>%
   ungroup() %>%
   group_by(SUPERGROUP_CLASS, Station, Latitude, Longitude, TRANSECT) %>%
     summarise(ASV_COUNT = n())
+
+# unique(asv_long_avg_wtax_clean$Supergroup_simplified)
+select_four <- c("TSAR-Dinoflagellata", "TSAR-Radiolaria","TSAR-Gyrista", "TSAR-Ciliophora")
+bytaxa_surface_asvs_FOUR <- asv_long_avg_wtax_clean %>% 
+  left_join(metadata_seqsamples) %>%
+  # Isolate surface & average across replicates
+  filter(Depth < 5) %>%
+  filter(Supergroup_simplified %in% select_four) %>% 
+    select(Supergroup_simplified, FeatureID, Station, Latitude, Longitude, TRANSECT, Depth) %>% distinct() %>% 
+  ungroup() %>%
+  group_by(Supergroup_simplified, Station, Latitude, Longitude, TRANSECT) %>%
+    summarise(ASV_COUNT = n())
 ```
 
 
@@ -334,6 +346,28 @@ interpolate_lat_long_asv((bytaxa_surface_asvs %>%
 # interpolate_lat_long_asv((bytaxa_surface_asvs %>% 
   # filter(SUPERGROUP_CLASS == "Radiolaria-Radiolaria")), "ASV_COUNT", "Radiolaria ASVs")
 ```
+### Four main taxa- surface
+
+```{r}
+# select_four <- c("TSAR-Dinoflagellata", "TSAR-Radiolaria","TSAR-Gyrista", "TSAR-Ciliophora")
+head(bytaxa_surface_asvs_FOUR)
+```
+
+
+```{r, fig.height=10, fig.width=14}
+# | warning: false
+interpolate_lat_long_asv((bytaxa_surface_asvs_FOUR %>% 
+  filter(Supergroup_simplified == "TSAR-Dinoflagellata")), "ASV_COUNT", 0, 500, "Dinoflagellata") + interpolate_lat_long_asv((bytaxa_surface_asvs_FOUR %>% 
+  filter(Supergroup_simplified == "TSAR-Radiolaria")), "ASV_COUNT", 0, 500, "Radiolaria") + interpolate_lat_long_asv((bytaxa_surface_asvs_FOUR %>% 
+  filter(Supergroup_simplified == "TSAR-Gyrista")), "ASV_COUNT", 0, 100, "Gyrista") + interpolate_lat_long_asv((bytaxa_surface_asvs_FOUR %>% 
+  filter(Supergroup_simplified == "TSAR-Ciliophora")), "ASV_COUNT", 0, 100, "Ciliates") +
+  plot_layout(nrow = 1, ncol = 4)
+# ggsave("figures/surface-main-four.svg", width = 14, height = 10, device = "svg", limitsize = FALSE)
+```
+
+
+
+
 ## Depth ASV profiles
 
 ```{r}
@@ -646,13 +680,13 @@ tax_whole_asv_profile("Ciliophora-Spirotrichea", 5, 50, "Ciliophora-Spirotrichea
 # K-means clustering on map
 
 ```{r}
-load("input-data/kmeans-membership-seqs-5.RData", verbose = TRUE)
+load("input-data/kmeans-membership-seqs-9.RData", verbose = TRUE)
 head(kmeans_membership_5)
 ```
 
 ```{r}
-CLUSTER_COLOR <- c("#c85e82", "#efc85a", "#df9147","#6e9b4a", "#606aa9")
-CLUSTER_NUM <- c(1, 2, 3, 4, 5)
+CLUSTER_COLOR <- c("#bd2a2a","#c85e82", "#efc85a", "#df9147","#47c475","#8b94b5","#6e9b4a", "#606aa9", "#524740")
+CLUSTER_NUM <- c(1, 2, 3, 4, 5, 6, 7, 8, 9)
 names(CLUSTER_NUM) <- CLUSTER_COLOR
 ```
 
@@ -695,6 +729,7 @@ ggplot(data = world) +
         panel.background = element_rect(fill = "#B4C7D9"),
     plot.background = element_blank(),
         panel.border = element_rect(fill = NA))
+# ggsave("figures/kmeans-surface-stations.svg", width = 7, height = 7, device = "svg", limitsize = FALSE)
 ```
 ## Depth k-means
 
@@ -741,7 +776,9 @@ depth_kmeans %>%
         axis.line = element_line(),
         legend.ticks = element_line(color = "black"),
         legend.position="left")
+# ggsave("figures/kmeans-stations-bydepth.svg", width = 9, height = 4, device = "svg", limitsize = FALSE)
 ```
+
 
 
 # Session Information
