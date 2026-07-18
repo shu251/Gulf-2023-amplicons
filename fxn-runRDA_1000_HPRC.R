@@ -3,7 +3,7 @@ library(tidyverse)
 library(compositions)
 library(vegan)
 
-load(file = "/scratch/group/hu-lab/GoM-amplicon-analysis/GoM-r-outputs/RDA_Robjects_02072026.RData", verbose = TRUE)
+load(file = "/scratch/group/hu-lab/GoM-amplicon-analysis/GoM-r-outputs/RDA_Robjects_07012026.RData", verbose = TRUE)
 
 
 set.seed(10234)
@@ -16,18 +16,26 @@ run_rda <- function(mod_metadata, mod_asv_long,
   # mod_asv_long <- surf_asv
   if (features == "include") {
     categorical <- mod_metadata %>% 
-      select(STN_NISKIN, STN_ORDER, TRANSECT, 
-             OilRig_Count, DAY_NIGHT, ends_with("_THRESHOLD")) %>% 
+      select(STN_NISKIN, WATER_MASS, OilRig_Count, DAY_NIGHT, ends_with("_THRESHOLD")) %>% 
       distinct()
   } else {
     categorical <- mod_metadata %>% 
-      select(STN_NISKIN, STN_ORDER, TRANSECT, 
-             OilRig_Count, DAY_NIGHT) %>% distinct()}
+      select(STN_NISKIN, OilRig_Count, DAY_NIGHT) %>% distinct()}
   #
   # Isolate numerical data as matrix
   metadata_for_rda_0 <- mod_metadata %>% 
-    select(STN_NISKIN, Depth, DIST_OUTFLOW, NH4, NO2, NO3, Oxygen, PO4, SIL, Salinity, Temperature) %>% distinct() %>% 
+    # Ratios for consideration
+    mutate(SIL_NO3 = (SIL/NO3)) %>% 
+    mutate(T_S = (Temperature/Salinity)) %>%
+    mutate(DIC_TA = (DIC/TA)) %>% 
+    # mutate(across(where(is.numeric), ~na_if(abs(.), Inf))) %>% 
+    # select(STN_NISKIN, Depth, DIST_OUTFLOW, DIC, NH4, NO2, NO3, 
+    #        Oxygen_CTD, PO4, SIL, Salinity, TA, Temperature, pH, SIL_NO3, T_S) %>% 
+    select(STN_NISKIN, Depth, DIST_OUTFLOW, NH4, NO2, NO3, 
+           Oxygen_CTD, PO4, DIC_TA, Temperature, pH, SIL_NO3, T_S) %>%
+    distinct() %>% 
     pivot_longer(cols = -c(STN_NISKIN), names_to = "VARIABLES", values_to = "VALUE") %>% 
+    mutate(VALUE = na_if(abs(VALUE), Inf)) %>% 
     group_by(STN_NISKIN, VARIABLES) %>% 
     summarise(MEAN_VAL = mean(VALUE)) %>% 
     pivot_wider(names_from = VARIABLES, values_from = MEAN_VAL) %>% 
@@ -37,7 +45,8 @@ run_rda <- function(mod_metadata, mod_asv_long,
   standarize_metadata <- decostand(metadata_for_rda_0, MARGIN = 2, method = "standardize")
   # Combine normalized numerical data with categorical
   metadata_normalized <- categorical %>% 
-    right_join(as.data.frame(standarize_metadata) %>% rownames_to_column(var = "STN_NISKIN")) %>%
+    right_join(as.data.frame(standarize_metadata) %>% 
+                 rownames_to_column(var = "STN_NISKIN")) %>%
     arrange(STN_NISKIN) %>% 
     column_to_rownames(var = "STN_NISKIN")
   #
@@ -98,6 +107,7 @@ asvs_all_samples <- asv_long_avg_wtax_clean %>%
 all_rda <- run_rda(all_samples, asvs_all_samples,
                    "All samples", features = "include")
 # all_rda
+print("all_rda")
 ##
 # Above/Below DCM
 ##
@@ -108,6 +118,7 @@ surf_subset <- as.character(unique(surf_table$STN_NISKIN))
 surf_asv <- asv_long_avg_wtax_clean %>%
   filter(STN_NISKIN %in% surf_subset) %>% ungroup()
 above_dcm_rda <- run_rda(surf_table, surf_asv, "Above DCM", features = "exclude")
+print("above_dcm_rda")
 
 below_table <- table_supp %>% 
   filter(!(grepl("Above",DCM_THRESHOLD))) %>% 
@@ -117,7 +128,7 @@ below_asv <- asv_long_avg_wtax_clean %>%
   filter(STN_NISKIN %in% below_subset) %>% ungroup()
 below_dcm_rda <- run_rda(below_table, below_asv, "Below DCM", features = "exclude")
 # below_dcm_rda
-
+print("below_dcm_rda")
 ##
 # Above/Below O2 minimum
 below_02_table <- table_supp %>% 
@@ -128,6 +139,7 @@ below_02_asv <- asv_long_avg_wtax_clean %>%
   filter(STN_NISKIN %in% below_02_subset) %>% ungroup()
 below_02_rda <- run_rda(below_02_table, below_02_asv, "Below O2", features = "exclude")
 # below_02_rda
+print("below_02_rda")
 
 above_02_table <- table_supp %>% 
   filter((grepl("Above",DCM_THRESHOLD))) %>% 
@@ -137,26 +149,27 @@ above_02_asv <- asv_long_avg_wtax_clean %>%
   filter(STN_NISKIN %in% above_02_subset) %>% ungroup()
 above_02_rda <- run_rda(above_02_table, above_02_asv, "Above O2", features = "exclude")
 # above_02_rda
-
+print("above_02_rda")
 ##
 # Above/Below MLD
-below_MLD_table <- table_supp %>% 
-  filter(!(grepl("Above", MLD_THRESHOLD))) %>% 
+below_DCM_table <- table_supp %>%
+  filter(!(grepl("Above", DCM_THRESHOLD))) %>%
   ungroup()
-below_MLD_subset <- as.character(unique(below_MLD_table$STN_NISKIN))
-below_MLD_asv <- asv_long_avg_wtax_clean %>% 
-  filter(STN_NISKIN %in% below_MLD_subset) %>% ungroup()
-below_MLD_rda <- run_rda(below_MLD_table, below_MLD_asv, "Below MLD", features = "exclude")
-# below_MLD_rda
-
-above_MLD_table <- table_supp %>% 
-  filter((grepl("Above", MLD_THRESHOLD))) %>% 
+below_DCM_subset <- as.character(unique(below_DCM_table$STN_NISKIN))
+# below_MLD_asv <- asv_long_avg_wtax_clean %>% 
+#   filter(STN_NISKIN %in% below_MLD_subset) %>% ungroup()
+# below_MLD_rda <- run_rda(below_MLD_table, below_MLD_asv, "Below MLD", features = "exclude")
+# # below_MLD_rda
+# print("below_MLD_rda")
+# 
+above_DCM_table <- table_supp %>%
+  filter((grepl("Above", DCM_THRESHOLD))) %>%
   ungroup()
-above_MLD_subset <- as.character(unique(above_MLD_table$STN_NISKIN))
-above_MLD_asv <- asv_long_avg_wtax_clean %>% 
-  filter(STN_NISKIN %in% above_MLD_subset) %>% ungroup()
-above_MLD_rda <- run_rda(above_MLD_table, above_MLD_asv, "Above MLD", features = "exclude")
-# below_MLD_rda
+above_DCM_subset <- as.character(unique(above_DCM_table$STN_NISKIN))
+# above_MLD_asv <- asv_long_avg_wtax_clean %>% 
+#   filter(STN_NISKIN %in% above_MLD_subset) %>% ungroup()
+# above_MLD_rda <- run_rda(above_MLD_table, above_MLD_asv, "Above MLD", features = "exclude")
+# print("above_MLD_rda")
 
 ##
 # Dinoflagellates
@@ -168,14 +181,15 @@ dino_asv <- asv_long_avg_wtax_clean %>%
 dino_rda <- run_rda(table_supp, dino_asv, "All dinoflagellates (no Syn)", features = "include")
 # dino_rda
 
-aboveMLD_dino_asv <- dino_asv %>% 
-  filter(STN_NISKIN %in% above_MLD_subset) %>% ungroup()
-dino_rda_aboveMLD <- run_rda(above_MLD_table, aboveMLD_dino_asv, "Dinoflagellates (no Syn) above MLD", features = "exclude")
+aboveDCM_dino_asv <- dino_asv %>% 
+  filter(STN_NISKIN %in% above_DCM_subset) %>% ungroup()
+dino_rda_aboveDCM <- run_rda(above_DCM_table, aboveDCM_dino_asv, "Dinoflagellates (no Syn) above DCM", features = "exclude")
 
-belowMLD_dino_asv <- dino_asv %>% 
-  filter(STN_NISKIN %in% below_MLD_subset) %>% ungroup()
-dino_rda_belowMLD <- run_rda(below_MLD_table, belowMLD_dino_asv, "Dinoflagellates (no Syn) below MLD", features = "exclude")
+belowDCM_dino_asv <- dino_asv %>% 
+  filter(STN_NISKIN %in% below_DCM_subset) %>% ungroup()
+dino_rda_belowDCM <- run_rda(below_DCM_table, belowDCM_dino_asv, "Dinoflagellates (no Syn) below DCM", features = "exclude")
 
+print("Dinos done.")
 
 ## 
 # Syndiniales
@@ -185,13 +199,15 @@ syn_asv <- asv_long_avg_wtax_clean %>%
 
 syndiniales_rda <- run_rda(table_supp, syn_asv, "Syndiniales", features = "include")
 
-aboveMLD_syn_asv <- syn_asv %>% 
-  filter(STN_NISKIN %in% above_MLD_subset) %>% ungroup()
-syn_rda_aboveMLD <- run_rda(above_MLD_table, aboveMLD_syn_asv, "Syndiniales above MLD", features = "exclude")
+aboveDCM_syn_asv <- syn_asv %>% 
+  filter(STN_NISKIN %in% above_DCM_subset) %>% ungroup()
+syn_rda_aboveDCM <- run_rda(above_DCM_table, aboveDCM_syn_asv, "Syndiniales above DCM", features = "exclude")
 
-belowMLD_syn_asv <- syn_asv %>% 
-  filter(STN_NISKIN %in% below_MLD_subset) %>% ungroup()
-syn_rda_belowMLD <- run_rda(below_MLD_table, belowMLD_syn_asv, "Syndiniales below MLD", features = "exclude")
+belowDCM_syn_asv <- syn_asv %>% 
+  filter(STN_NISKIN %in% below_DCM_subset) %>% ungroup()
+syn_rda_belowDCM <- run_rda(below_DCM_table, belowDCM_syn_asv, "Syndiniales below DCM", features = "exclude")
+
+print("Syndiniales done.")
 
 ##
 # Radiolaria
@@ -201,13 +217,15 @@ rad_asv <- asv_long_avg_wtax_clean %>%
 
 rad_rda <- run_rda(table_supp, rad_asv, "Radiolaria", features = "include")
 
-aboveMLD_rad_asv <- rad_asv %>% 
-  filter(STN_NISKIN %in% above_MLD_subset) %>% ungroup()
-rad_rda_aboveMLD <- run_rda(above_MLD_table, aboveMLD_rad_asv, "Radiolaria above MLD", features = "exclude")
+aboveDCM_rad_asv <- rad_asv %>% 
+  filter(STN_NISKIN %in% above_DCM_subset) %>% ungroup()
+rad_rda_aboveDCM <- run_rda(above_DCM_table, aboveDCM_rad_asv, "Radiolaria above DCM", features = "exclude")
 
-belowMLD_rad_asv <- rad_asv %>% 
-  filter(STN_NISKIN %in% below_MLD_subset) %>% ungroup()
-rad_rda_belowMLD <- run_rda(below_MLD_table, belowMLD_rad_asv, "Radiolaria below MLD", features = "exclude")
+belowDCM_rad_asv <- rad_asv %>% 
+  filter(STN_NISKIN %in% below_DCM_subset) %>% ungroup()
+rad_rda_belowDCM <- run_rda(below_DCM_table, belowDCM_rad_asv, "Radiolaria below DCM", features = "exclude")
+
+print("Radiolaria done.")
 
 ##
 # Ciliate
@@ -217,13 +235,14 @@ ungroup()
 
 cil_rda <- run_rda(table_supp, cil_asv, "Ciliate", features = "include")
 
-aboveMLD_cil_asv <- cil_asv %>% 
-  filter(STN_NISKIN %in% above_MLD_subset) %>% ungroup()
-cil_rda_aboveMLD <- run_rda(above_MLD_table, aboveMLD_cil_asv, "Ciliate above MLD", features = "exclude")
+aboveDCM_cil_asv <- cil_asv %>% 
+  filter(STN_NISKIN %in% above_DCM_subset) %>% ungroup()
+cil_rda_aboveDCM <- run_rda(above_DCM_table, aboveDCM_cil_asv, "Ciliate above DCM", features = "exclude")
 
-belowMLD_cil_asv <- cil_asv %>% 
-  filter(STN_NISKIN %in% below_MLD_subset) %>% ungroup()
-cil_rda_belowMLD <- run_rda(below_MLD_table, belowMLD_cil_asv, "Ciliate below MLD", features = "exclude")
+belowDCM_cil_asv <- cil_asv %>% 
+  filter(STN_NISKIN %in% below_DCM_subset) %>% ungroup()
+cil_rda_belowDCM <- run_rda(below_DCM_table, belowDCM_cil_asv, "Ciliate below DCM", features = "exclude")
+print("Ciliates done.")
 
 # Gyrista:
 gyr_asv <- asv_long_avg_wtax_clean %>%
@@ -232,16 +251,16 @@ gyr_asv <- asv_long_avg_wtax_clean %>%
 
 gyr_rda <- run_rda(table_supp, gyr_asv, "Gyrista", features = "include")
 
-aboveMLD_gyr_asv <- gyr_asv %>% 
-  filter(STN_NISKIN %in% above_MLD_subset) %>% ungroup()
-gyr_rda_aboveMLD <- run_rda(above_MLD_table, aboveMLD_gyr_asv, "Gyrista above MLD", features = "exclude")
+aboveDCM_gyr_asv <- gyr_asv %>% 
+  filter(STN_NISKIN %in% above_DCM_subset) %>% ungroup()
+gyr_rda_aboveDCM <- run_rda(above_DCM_table, aboveDCM_gyr_asv, "Gyrista above DCM", features = "exclude")
 
-belowMLD_gyr_asv <- gyr_asv %>% 
-  filter(STN_NISKIN %in% below_MLD_subset) %>% ungroup()
-gyr_rda_belowMLD <- run_rda(below_MLD_table, belowMLD_gyr_asv, "Gyrista below MLD", features = "exclude")
+belowDCM_gyr_asv <- gyr_asv %>% 
+  filter(STN_NISKIN %in% below_DCM_subset) %>% ungroup()
+gyr_rda_belowDCM <- run_rda(below_DCM_table, belowDCM_gyr_asv, "Gyrista below DCM", features = "exclude")
 # Class == "Mediophyceae"
 # Class == "Bacillariophyceae"
-
+print("Gyrista done.")
 #
 # Bigyra:
 bigy_asv <- asv_long_avg_wtax_clean %>%
@@ -249,14 +268,14 @@ bigy_asv <- asv_long_avg_wtax_clean %>%
   ungroup()
 big_rda <- run_rda(table_supp, bigy_asv, "Bigyra", features = "include")
 
-aboveMLD_big_asv <- bigy_asv %>% 
-  filter(STN_NISKIN %in% above_MLD_subset) %>% ungroup()
-big_rda_aboveMLD <- run_rda(above_MLD_table, aboveMLD_big_asv, "Bigyra above MLD", features = "exclude")
+aboveDCM_big_asv <- bigy_asv %>% 
+  filter(STN_NISKIN %in% above_DCM_subset) %>% ungroup()
+big_rda_aboveDCM <- run_rda(above_DCM_table, aboveDCM_big_asv, "Bigyra above DCM", features = "exclude")
 
-belowMLD_big_asv <- bigy_asv %>% 
-  filter(STN_NISKIN %in% below_MLD_subset) %>% ungroup()
-big_rda_belowMLD <- run_rda(below_MLD_table, belowMLD_big_asv, "Bigyra below MLD", features = "exclude")
-
+belowDCM_big_asv <- bigy_asv %>% 
+  filter(STN_NISKIN %in% below_DCM_subset) %>% ungroup()
+big_rda_belowDCM <- run_rda(below_DCM_table, belowDCM_big_asv, "Bigyra below DCM", features = "exclude")
+print("Bigyra done.")
 # 
 # Haptista
 hap_asv <- asv_long_avg_wtax_clean %>%
@@ -267,31 +286,34 @@ hap_table <- table_supp %>%
   filter(STN_NISKIN %in% hap_subset)
 hap_rda <- run_rda(hap_table, hap_asv, "Haptista", features = "include")
 
-aboveMLD_hap_asv <- hap_asv %>% 
-  filter(STN_NISKIN %in% above_MLD_subset) %>% ungroup()
-hap_subset <- as.character(unique(aboveMLD_hap_asv$STN_NISKIN))
+aboveDCM_hap_asv <- hap_asv %>% 
+  filter(STN_NISKIN %in% above_DCM_subset) %>% ungroup()
+hap_subset <- as.character(unique(aboveDCM_hap_asv$STN_NISKIN))
 hap_table <- table_supp %>% 
   filter(STN_NISKIN %in% hap_subset)
-hap_rda_aboveMLD <- run_rda(hap_table, aboveMLD_hap_asv, "Haptista above MLD", features = "exclude")
+hap_rda_aboveDCM <- run_rda(hap_table, aboveDCM_hap_asv, "Haptista above DCM", features = "exclude")
 
-belowMLD_hap_asv <- hap_asv %>% 
-  filter(STN_NISKIN %in% below_MLD_subset) %>% ungroup()
-hap_subset <- as.character(unique(belowMLD_hap_asv$STN_NISKIN))
+belowDCM_hap_asv <- hap_asv %>% 
+  filter(STN_NISKIN %in% below_DCM_subset) %>% ungroup()
+hap_subset <- as.character(unique(belowDCM_hap_asv$STN_NISKIN))
 hap_table <- table_supp %>% 
   filter(STN_NISKIN %in% hap_subset)
-hap_rda_belowMLD <- run_rda(hap_table, belowMLD_hap_asv, "Haptista below MLD", features = "exclude")
+hap_rda_belowDCM <- run_rda(hap_table, belowDCM_hap_asv, "Haptista below DCM", features = "exclude")
+
+print("Haptista done.")
 
 # Compile all
 
 df_rda_results <- rbind(all_rda, above_dcm_rda, below_dcm_rda, 
-                        above_02_rda, below_02_rda, above_MLD_rda, below_MLD_rda, 
-                        dino_rda, dino_rda_aboveMLD, dino_rda_belowMLD,
-                        syndiniales_rda, syn_rda_aboveMLD, syn_rda_belowMLD, 
-                        rad_rda, rad_rda_aboveMLD, rad_rda_belowMLD, 
-                        cil_rda, cil_rda_aboveMLD, cil_rda_belowMLD, 
-                        gyr_rda, gyr_rda_aboveMLD, gyr_rda_belowMLD,
-                        big_rda, big_rda_aboveMLD, big_rda_belowMLD,
-                        hap_rda, hap_rda_aboveMLD, hap_rda_belowMLD) %>% 
+                        above_02_rda, below_02_rda, 
+                        # above_MLD_rda, below_MLD_rda, 
+                        dino_rda, dino_rda_aboveDCM, dino_rda_belowDCM,
+                        syndiniales_rda, syn_rda_aboveDCM, syn_rda_belowDCM, 
+                        rad_rda, rad_rda_aboveDCM, rad_rda_belowDCM, 
+                        cil_rda, cil_rda_aboveDCM, cil_rda_belowDCM, 
+                        gyr_rda, gyr_rda_aboveDCM, gyr_rda_belowDCM,
+                        big_rda, big_rda_aboveDCM, big_rda_belowDCM,
+                        hap_rda, hap_rda_aboveDCM, hap_rda_belowDCM) %>% 
   pivot_wider(names_from = VARIABLES, values_from = P_VALUE, values_fill = NA)
 
-save(df_rda_results, file = "/scratch/group/hu-lab/GoM-amplicon-analysis/GoM-r-outputs/df_rda_output_0207202.RData")
+save(df_rda_results, file = "/scratch/group/hu-lab/GoM-amplicon-analysis/GoM-r-outputs/df_rda_output_06162026.RData")

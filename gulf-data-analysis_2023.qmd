@@ -283,6 +283,10 @@ table_wstn_wdepth <- table_wfeature %>%
 table(table_wstn_wdepth$WATER_MASS)
 ```
 
+```{r}
+head(table_wstn_wdepth)
+```
+
 
 ### Create Table S1
 
@@ -318,6 +322,12 @@ table_supp1 <- table_wfeature %>%
 
 # write.csv(table_supp1, file = "output-tables/supp-table-allsampleinfo.csv")
 ```
+
+```{r}
+head(table_supp1)
+unique(table_supp1$Sequence_files)
+```
+
 
 # Sample comparison & taxonomic classification
 
@@ -2103,7 +2113,11 @@ categorical <- table_wstn_wdepth %>%
 
 # Generate a matrix of numerical data from metadata
 metadata_for_rda_0 <- table_supp %>% 
-  select(STN_NISKIN, Depth, DIST_OUTFLOW, DIC, NH4, NO2, NO3, Oxygen_CTD, PO4, SIL, Salinity, TA, Temperature, pH) %>% distinct() %>% 
+  # Ratios for consideration
+  mutate(SIL_NO3 = (SIL/NO3)) %>% 
+  mutate(T_S = (Temperature/Salinity)) %>% 
+  select(STN_NISKIN, Depth, DIST_OUTFLOW, DIC, NH4, NO2, NO3, Oxygen_CTD, PO4, SIL, Salinity, TA, Temperature, pH, SIL_NO3, T_S) %>% distinct() %>% 
+  mutate_if(is.numeric, list(~na_if(., Inf))) %>% 
   arrange(STN_NISKIN) %>% 
   column_to_rownames(var = "STN_NISKIN") %>%
   as.matrix
@@ -2120,7 +2134,7 @@ metadata_normalized <- categorical %>%
   right_join(as.data.frame(standarize_metadata) %>% rownames_to_column(var = "STN_NISKIN")) %>%
   arrange(STN_NISKIN) %>% 
   column_to_rownames(var = "STN_NISKIN")
-# head(metadata_normalized)
+head(metadata_normalized)
 
 # Output from here should be the same rownames for ASV table below.
 rownames(metadata_normalized) 
@@ -2189,107 +2203,33 @@ asv_list <- colnames(asv_wide_avg_reps_matrix)
 # asv_list
 meta_list <- rownames(metadata_normalized)
 clr_list <- rownames(clr_asv_matrix)
-# save(table_supp, table_wstn_wdepth, metadata_normalized, asv_long_avg_wtax_clean, file = "RDA_Robjects_06132026.RData")
+save(table_supp, table_wstn_wdepth, metadata_normalized, asv_long_avg_wtax_clean, file = "RDA_Robjects_07012026.RData")
 ```
 
 ```{r}
-# How to use:
-## Modify and subset table1 or asv_long_avg_wtax completely before use.
-## Check to make sure the same STN_NISKIN IDs are present in both.
-run_rda <- function(mod_metadata, mod_asv_long, 
-                    DATASET, features = c("include", "exclude")){
-  # Select categorical data
-  # mod_metadata <- surf_table
-  # mod_asv_long <- surf_asv
-  if (features == "include") {
-    categorical <- mod_metadata %>% 
-             select(STN_NISKIN, STN_ORDER, CLUSTER, TRANSECT, 
-                    OilRig_Count, DAY_NIGHT, ends_with("_THRESHOLD")) %>% 
-      distinct()
-    } else {
-      categorical <- mod_metadata %>% 
-             select(STN_NISKIN, STN_ORDER, CLUSTER, TRANSECT, 
-                    OilRig_Count, DAY_NIGHT) %>% distinct()}
-  #
-  # Isolate numerical data as matrix
-  metadata_for_rda_0 <- mod_metadata %>% 
-    select(STN_NISKIN, Depth, DIST_OUTFLOW, NH4, NO2, NO3, Oxygen_CTD, PO4, SIL, Salinity, Temperature) %>% distinct() %>% 
-    pivot_longer(cols = -c(STN_NISKIN), names_to = "VARIABLES", values_to = "VALUE") %>% 
-    group_by(STN_NISKIN, VARIABLES) %>% 
-      summarise(MEAN_VAL = mean(VALUE)) %>% 
-    pivot_wider(names_from = VARIABLES, values_from = MEAN_VAL) %>% 
-    arrange(STN_NISKIN) %>% 
-    column_to_rownames(var = "STN_NISKIN") %>% as.matrix
-  # Normalize
-  standarize_metadata <- decostand(metadata_for_rda_0, MARGIN = 2, method = "standardize")
-  # Combine normalized numerical data with categorical
-  metadata_normalized <- categorical %>% 
-    right_join(as.data.frame(standarize_metadata) %>% rownames_to_column(var = "STN_NISKIN")) %>%
-    arrange(STN_NISKIN) %>% 
-    column_to_rownames(var = "STN_NISKIN")
-  #
-  ## Prepare ASV data
-  asv_wide_avg_reps_matrix <- mod_asv_long %>% 
-    ungroup() %>%  
-  select(FeatureID, STN_NISKIN, MEAN_REPS_seq) %>% 
-  pivot_wider(names_from = STN_NISKIN, values_from = MEAN_REPS_seq, values_fn = mean, values_fill = 0) %>% 
-  column_to_rownames(var = "FeatureID") %>% 
-  as.matrix()
-  # Transform
-  asv_wide_avg_rda_0 <- data.frame(t(asv_wide_avg_reps_matrix)) %>% 
-  rownames_to_column(var = "STN_NISKIN") %>% 
-  arrange(STN_NISKIN) %>% 
-  column_to_rownames(var = "STN_NISKIN") %>% 
-  as.matrix
-  #
-  # CLR normalization
-  clr_asv_matrix <- data.frame(compositions::clr(asv_wide_avg_rda_0))
-  #
-  # setdiff(rownames(metadata_normalized), (rownames(clr_asv_matrix)))
-  # RDA step
-  rda_output <- rda(clr_asv_matrix ~ ., data = metadata_normalized, na.action = na.exclude)
-  # rda_output
-  #
-  # R-squared value
-  adj_rda_out <- RsquareAdj(rda_output)$adj.r.squared #adj_rda_out
-  # Run ANOVA
-  anova_out <- anova.cca(rda_output, step = 100, by = "term")
-  #
-  # Get stats
-  ## Percentage constrained
-  total_amount <- (rda_output$tot.chi)
-  constrained <- (rda_output$CCA$tot.chi)
-  perc_constratained <- constrained/total_amount
-  # Formula
-  formula <- as.character(rda_output$call)[2]
-  # Create data frame output for RDAs run
-  rda_results_df <- data.frame(scores(anova_out)) %>% 
-    rownames_to_column(var = "VARIABLES") %>% 
-    select(VARIABLES, P_VALUE = `Pr..F.`) %>% 
-    add_column(TEST = DATASET,
-               PERC_CONSTRAINED = perc_constratained,
-               ADJ_R_SQUARED = adj_rda_out,
-               FORMULA = formula)
-  #
-  return(rda_results_df)
-}
-# class(as.character(rda_output$call)[2])
+head(metadata_normalized)
 ```
 
+
+
 ```{r}
-# All
-all_samples <- table_supp
-  # Filter low abundance ASVs
-  # filter(DCM != "Above DCM") %>% ungroup()
-all_samples_list <- as.character(unique(table_supp$STN_NISKIN))
-
-asvs_all_samples <- asv_long_avg_wtax_clean %>%
-  filter(STN_NISKIN %in% all_samples_list) %>% ungroup()
-
+# all_samples <- table_supp %>% ungroup()
+# all_samples_list <- as.character(unique(table_supp$STN_NISKIN))
+# asvs_all_samples <- asv_long_avg_wtax_clean %>%
+#   filter(STN_NISKIN %in% all_samples_list) %>% ungroup()
+# 
 # all_rda <- run_rda(all_samples, asvs_all_samples,
-                   # "All samples", features = "include")
-# all_rda
+#                    "All samples", features = "include")
+
+# surf_table <- table_supp %>% 
+#   filter(grepl("Above",DCM_THRESHOLD)) %>% 
+#   ungroup()
+# surf_subset <- as.character(unique(surf_table$STN_NISKIN))
+# surf_asv <- asv_long_avg_wtax_clean %>%
+#   filter(STN_NISKIN %in% surf_subset) %>% ungroup()
+# above_dcm_rda <- run_rda(surf_table, surf_asv, "Above DCM", features = "exclude")
 ```
+
 
 ## RDA compile from HPRC
 
@@ -2316,8 +2256,9 @@ rda_summary_table <- gt(df_rda_results %>%
             `MLD` = MLD_THRESHOLD, `DCM` = DCM_THRESHOLD, 
             `Salinity maximum` = SAL_THRESHOLD, 
             `Oxygen minimum depth` = O2_THRESHOLD, 
-            Station = STN_ORDER, `Depth (m)` = Depth,
-            Salinity, Temperature, DIC, TA, pH, NH4, NO2, NO3, Oxygen_CTD, PO4, SIL)) %>% 
+            `Depth (m)` = Depth, 
+            `Distance to shore` = DIST_OUTFLOW,
+            `Water mass` = WATER_MASS, `Oil Rigs` = OilRig_Count, `Time of day` = DAY_NIGHT, `Dissolved oxygen` = Oxygen_CTD, `DIC:TA` = DIC_TA, Temperature, `Temp:salinity` = T_S, `Silicate:nitrate` = SIL_NO3, NH4, NO2, NO3, PO4, pH)) %>% 
             # `Day vs. night` = DAY_NIGHT,
             # `Number of oil rigs` = OilRig_Count)) %>% 
   data_color(columns = -c(`Input data`, `Percent constrained`, `Adjusted R-squared`),
@@ -2332,8 +2273,8 @@ rda_summary_table
 ```
 
 ```{r}
-# gtsave(rda_summary_table, filename = "output-tables/RDA-gt-table.html")
-# gtsave(rda_summary_table, filename = "output-tables/RDA-gt-table.docx")
+gtsave(rda_summary_table, filename = "output-tables/RDA-gt-table.html")
+gtsave(rda_summary_table, filename = "output-tables/RDA-gt-table.docx")
 ```
 
 # Indicator Species
@@ -2645,6 +2586,31 @@ trait_asv %>%
   labs(x = "Total ASVs", y = "Depth")
   
 ```
+
+
+```{r, fig.width=5, fig.height=4}
+trait_asv %>% 
+  left_join(table_wstn_wdepth) %>%
+  mutate(TAX_CLASS = case_when(
+    Class == "Syndiniales" ~ "Syndiniales",
+    TRUE ~ Subdivision
+  )) %>% 
+  group_by(TAX_CLASS, MORPHOTYPE, DEPTH_BIN) %>% 
+  summarise(ASV_TOTAL = n()) %>% 
+  drop_na() %>% 
+  filter(TAX_CLASS == "Ciliophora") %>% 
+  mutate(depth_order = factor(DEPTH_BIN, levels = rev(depth_bin))) %>% 
+  ggplot(aes(y = depth_order, x = ASV_TOTAL, fill = MORPHOTYPE)) + 
+  geom_bar(stat = "identity", position = "dodge", color = "grey20") +
+  scale_fill_manual(values = c("#F6CD86","#93CBF9", "#6F9A49", "#C97E28", "#808D7E")) +
+  scale_x_continuous(position = "top", expand = c(0,0)) +
+  # facet_grid(cols = vars(TAX_CLASS), scales = "free") +
+  theme_classic() +
+  theme(panel.grid.major = element_line(color = "grey80")) +
+  labs(x = "Total ASVs", y = "Depth")
+  
+```
+
 ## Explore specific traits within list
 ```{r}
 head(trait_asv)
@@ -2677,7 +2643,7 @@ prey_types_df %>%
           axis.text.y = element_text(color = "black", size = 8),
           plot.title = element_text(color = "black", size = 8, face = "bold"),
           legend.position = "right") +
-    labs(x = "", y = "")
+    labs(x = "Prey", y = "Predator")
 ```
 
 ```{r}
@@ -2697,13 +2663,9 @@ prey_types_df %>%
     labs(x = "", y = "")
 ```
 ```{r}
-mixos <- c("Plastid bearing Specialist Non-Constitutive Mixotroph")
-# head(trait_asv)
-# unique(trait_asv$MORPHOTYPE)
-trait_asv %>% 
-  filter(MORPHOTYPE %in% mixos)
-# ("Noctilucales", "Peridiniales")
+head(trait_asv)
 ```
+
 
 
 # Network analysis

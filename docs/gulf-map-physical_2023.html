@@ -1482,17 +1482,164 @@ Adding another scale for y, which will replace the existing scale.</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb154"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb154-1"><a href="#cb154-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ggsave("figures/ciliate-spirot.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<p>Haptophytes</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb155"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb155-1"><a href="#cb155-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(asv_long_avg_wtax_clean<span class="sc">$</span>SUPERGROUP_CLASS)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  [1] "Radiolaria-Acantharea"                  
+  [2] "Dinoflagellata-Syndiniales"             
+  [3] "Bigyra-Opalozoa"                        
+  [4] "Radiolaria-Polycystinea"                
+  [5] "Gyrista-Bacillariophyceae"              
+  [6] "Dinoflagellata-Dinophyceae"             
+  [7] "Gyrista-Chrysophyceae"                  
+  [8] "Ciliophora-Oligohymenophorea"           
+  [9] "TSAR-Unannotated"                       
+ [10] "Ciliophora-Phyllopharyngea"             
+ [11] "Haptophyta_X-Unannotated"               
+ [12] "Metazoa-Arthropoda"                     
+ [13] "Choanoflagellata-Choanoflagellatea"     
+ [14] "Dinoflagellata-Dinophyta_X"             
+ [15] "Ciliophora-Spirotrichea"                
+ [16] "Cercozoa-Cercozoa_X"                    
+ [17] "Radiolaria-RAD-A"                       
+ [18] "Gyrista-Mediophyceae"                   
+ [19] "Haptophyta_X-Prymnesiophyceae"          
+ [20] "Bigyra-Sagenista"                       
+ [21] "Gyrista-Gyrista_X"                      
+ [22] "Metazoa-Annelida"                       
+ [23] "Radiolaria-RAD-B"                       
+ [24] "Metazoa-Cnidaria"                       
+ [25] "Dinoflagellata-Unannotated"             
+ [26] "Gyrista-Dictyochophyceae"               
+ [27] "Chlorophyta_X-Pyramimonadophyceae"      
+ [28] "Ciliophora-Ciliophora_X"                
+ [29] "Fungi-Basidiomycota"                    
+ [30] "Telonemia_X-Telonemia_XX"               
+ [31] "Radiolaria-Radiolaria_X"                
+ [32] "Gyrista-Pirsoniales"                    
+ [33] "Metazoa-Craniata"                       
+ [34] "Gyrista-MOCH-3"                         
+ [35] "Cercozoa-Filosa-Thecofilosea"           
+ [36] "Gyrista-MOCH-5"                         
+ [37] "Stramenopiles_X-Stramenopiles_XX"       
+ [38] "Cryptophyta_X-Cryptophyceae"            
+ [39] "Chlorophyta_X-Chlorophyceae"            
+ [40] "Centroplasthelida_X-Pterocystida"       
+ [41] "Opisthokonta_X-Opisthokonta_XX"         
+ [42] "Picozoa_X-Picozoa_XX"                   
+ [43] "Chlorophyta_X-Chlorodendrophyceae"      
+ [44] "Cercozoa-Filosa-Granofilosea"           
+ [45] "Gyrista-Coscinodiscophyceae"            
+ [46] "Chlorophyta_X-Chlorophyta_XX"           
+ [47] "Cercozoa-Filosa-Imbricatea"             
+ [48] "Kathablepharida-Kathablepharidea"       
+ [49] "Gyrista-Eustigmatophyceae"              
+ [50] "Metazoa-Echinodermata"                  
+ [51] "Streptophyta_X-Embryophyceae"           
+ [52] "Gyrista-Peronosporomycetes"             
+ [53] "Chlorophyta_X-Prasino-Clade-9"          
+ [54] "Bigyra-Bicoecea"                        
+ [55] "Ciliophora-CONThreeP"                   
+ [56] "Metazoa-Urochordata"                    
+ [57] "Chlorophyta_X-Chloropicophyceae"        
+ [58] "Euglenozoa-Diplonemea"                  
+ [59] "Radiolaria-RAD-C"                       
+ [60] "Metazoa-Hemichordata"                   
+ [61] "Metazoa-Porifera"                       
+ [62] "Metazoa-Unannotated"                    
+ [63] "Perkinsea-Perkinsida"                   
+ [64] "Prasinodermophyta_X-Prasinodermophyceae"
+ [65] "Ciliophora-Litostomatea"                
+ [66] "Chlorophyta_X-Mamiellophyceae"          
+ [67] "Metazoa-Mollusca"                       
+ [68] "Metazoa-Chaetognatha"                   
+ [69] "Cercozoa-Phaeodarea"                    
+ [70] "Cercozoa-Endomyxa"                      
+ [71] "Fungi-Chytridiomycota"                  
+ [72] "Cercozoa-Chlorarachniophyceae"          
+ [73] "Streptophyta_X-Streptophyta_XX"         
+ [74] "Haptophyta_X-Haptophyta_Clade_HAP4"     
+ [75] "Gyrista-Unannotated"                    
+ [76] "Fungi-Rozellomycota"                    
+ [77] "Haptophyta_X-Haptophyta_Clade_HAP3"     
+ [78] "Chlorophyta_X-Ulvophyceae"              
+ [79] "Cercozoa-Unannotated"                   
+ [80] "Gyrista-Bolidophyceae"                  
+ [81] "Gyrista-MOCH-4"                         
+ [82] "Gyrista-Hyphochytriomyceta"             
+ [83] "Gyrista-Pelagophyceae"                  
+ [84] "Ciliophora-CONTH_6"                     
+ [85] "Tubulinea_X-Echinamoebida"              
+ [86] "Haptophyta_X-Pavlovophyceae"            
+ [87] "Ciliophora-Heterotrichea"               
+ [88] "Gyrista-MOCH-2"                         
+ [89] "Metazoa-Ctenophora"                     
+ [90] "Metazoa-Gastrotricha"                   
+ [91] "Gyrista-Pinguiophyceae"                 
+ [92] "Fungi-Ascomycota"                       
+ [93] "Alveolata_X-Ellobiopsidae"              
+ [94] "Metazoa-Nemertea"                       
+ [95] "Ciliophora-Unannotated"                 
+ [96] "Metazoa-Bryozoa"                        
+ [97] "Cercozoa-Filosa-Sarcomonadea"           
+ [98] "Alveolata_X-Alveolata_XX"               
+ [99] "Nebulidia_X-Nebulidea"                  
+[100] "Fungi-Fungi_X"                          
+[101] "Chlorophyta_X-Trebouxiophyceae"         
+[102] "Prasinodermophyta_X-Palmophyllophyceae" 
+[103] "Fungi-Unannotated"                      
+[104] "Bigyra-Unannotated"                     
+[105] "Cercozoa-Endomyxa-Phytomyxea"           
+[106] "Ichthyosporea-Ichthyophonida"           
+[107] "Rhodophyta_X-Porphyridiophyceae"        
+[108] "Ancyromonadida_X-Ancyromonadida_XX"     
+[109] "Chlorophyta_X-Nephroselmidophyceae"     
+[110] "Ciliophora-Prostomatea"                 
+[111] "Ciliophora-Prostomatea_1"               
+[112] "Ciliophora-CONTH_8"                     
+[113] "Metazoa-Platyhelminthes"                
+[114] "Chlorophyta_X-Unannotated"              
+[115] "Metazoa-Nematoda"                       
+[116] "Apicomplexa-Apicomplexa_X"              
+[117] "Apicomplexa-Coccidiomorphea"            
+[118] "Chrompodellids-Colpodellidea"           
+[119] "Apicomplexa-Gregarinomorphea"           
+[120] "Dinoflagellata-Noctilucophyceae"        
+[121] "Chlorophyta_X-Pedinophyceae"            
+[122] "Stramenopiles_X-Unannotated"            
+[123] "Gyrista-Raphidophyceae"                 
+[124] "Metazoa-Rotifera"                       
+[125] "Apusomonada_X-Apusomonadidae"           
+[126] "Stramenopiles_X-Stramenopiles_X-Group-6"
+[127] "Ciliophora-Colpodea"                    </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb157"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb157-1"><a href="#cb157-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tax_whole_asv_profile</span>(<span class="st">"Haptophyta_X-Prymnesiophyceae"</span>, <span class="dv">0</span>, <span class="dv">250</span>, <span class="st">"Haptophyta_X-Prymnesiophyceae"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="gulf-map-physical_2023_files/figure-html/unnamed-chunk-51-1.png" class="img-fluid figure-img" width="1632"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb158"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb158-1"><a href="#cb158-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ggsave("figures/gyrista-dictyocho.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb159"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb159-1"><a href="#cb159-1" aria-hidden="true" tabindex="-1"></a><span class="fu">view</span>(asv_long_avg_wtax_clean)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 </section>
 </section>
 <section id="k-means-clustering-on-map" class="level1" data-number="4">
 <h1 data-number="4"><span class="header-section-number">4</span> K-means clustering on map</h1>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb155"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb155-1"><a href="#cb155-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">"input-data/kmeans-membership-seqs-9.RData"</span>, <span class="at">verbose =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb160"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb160-1"><a href="#cb160-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">"input-data/kmeans-membership-seqs-9.RData"</span>, <span class="at">verbose =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Loading objects:
   kmeans_membership_5</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb157"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb157-1"><a href="#cb157-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(kmeans_membership_5)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb162"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb162-1"><a href="#cb162-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(kmeans_membership_5)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  STN_NISKIN CLUSTER
 1     S11_N7       2
@@ -1504,16 +1651,16 @@ Adding another scale for y, which will replace the existing scale.</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb159"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb159-1"><a href="#cb159-1" aria-hidden="true" tabindex="-1"></a>CLUSTER_COLOR <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"#bd2a2a"</span>,<span class="st">"#c85e82"</span>, <span class="st">"#efc85a"</span>, <span class="st">"#df9147"</span>,<span class="st">"#47c475"</span>,<span class="st">"#8b94b5"</span>,<span class="st">"#6e9b4a"</span>, <span class="st">"#606aa9"</span>, <span class="st">"#524740"</span>)</span>
-<span id="cb159-2"><a href="#cb159-2" aria-hidden="true" tabindex="-1"></a>CLUSTER_NUM <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>, <span class="dv">7</span>, <span class="dv">8</span>, <span class="dv">9</span>)</span>
-<span id="cb159-3"><a href="#cb159-3" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(CLUSTER_NUM) <span class="ot">&lt;-</span> CLUSTER_COLOR</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb164"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb164-1"><a href="#cb164-1" aria-hidden="true" tabindex="-1"></a>CLUSTER_COLOR <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"#bd2a2a"</span>,<span class="st">"#c85e82"</span>, <span class="st">"#efc85a"</span>, <span class="st">"#df9147"</span>,<span class="st">"#47c475"</span>,<span class="st">"#8b94b5"</span>,<span class="st">"#6e9b4a"</span>, <span class="st">"#606aa9"</span>, <span class="st">"#524740"</span>)</span>
+<span id="cb164-2"><a href="#cb164-2" aria-hidden="true" tabindex="-1"></a>CLUSTER_NUM <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>, <span class="dv">7</span>, <span class="dv">8</span>, <span class="dv">9</span>)</span>
+<span id="cb164-3"><a href="#cb164-3" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(CLUSTER_NUM) <span class="ot">&lt;-</span> CLUSTER_COLOR</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="surface-kmeans" class="level2" data-number="4.1">
 <h2 data-number="4.1" class="anchored" data-anchor-id="surface-kmeans"><span class="header-section-number">4.1</span> Surface kmeans</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb160"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb160-1"><a href="#cb160-1" aria-hidden="true" tabindex="-1"></a>(metadata_seqsamples <span class="sc">%&gt;%</span> </span>
-<span id="cb160-2"><a href="#cb160-2" aria-hidden="true" tabindex="-1"></a>   <span class="fu">filter</span>(Depth <span class="sc">&lt;</span> <span class="dv">6</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb160-3"><a href="#cb160-3" aria-hidden="true" tabindex="-1"></a>   <span class="fu">select</span>(Station, Latitude, Longitude) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb165"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb165-1"><a href="#cb165-1" aria-hidden="true" tabindex="-1"></a>(metadata_seqsamples <span class="sc">%&gt;%</span> </span>
+<span id="cb165-2"><a href="#cb165-2" aria-hidden="true" tabindex="-1"></a>   <span class="fu">filter</span>(Depth <span class="sc">&lt;</span> <span class="dv">6</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb165-3"><a href="#cb165-3" aria-hidden="true" tabindex="-1"></a>   <span class="fu">select</span>(Station, Latitude, Longitude) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 12 × 3
    Station Latitude Longitude
@@ -1533,14 +1680,14 @@ Adding another scale for y, which will replace the existing scale.</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb162"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb162-1"><a href="#cb162-1" aria-hidden="true" tabindex="-1"></a>surface_kmeans <span class="ot">&lt;-</span> kmeans_membership_5 <span class="sc">%&gt;%</span> </span>
-<span id="cb162-2"><a href="#cb162-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(STN_NISKIN, <span class="at">into =</span> <span class="fu">c</span>(<span class="st">"STN"</span>, <span class="st">"NISKIN"</span>), <span class="at">sep =</span> <span class="st">"_"</span>, <span class="at">remove =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb162-3"><a href="#cb162-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Station =</span> <span class="fu">as.integer</span>(<span class="fu">str_remove</span>(STN, <span class="st">"S"</span>))) <span class="sc">%&gt;%</span> </span>
-<span id="cb162-4"><a href="#cb162-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Station, CLUSTER) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb162-5"><a href="#cb162-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">right_join</span>(metadata_seqsamples) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb162-6"><a href="#cb162-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Depth <span class="sc">&lt;</span> <span class="dv">6</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb162-7"><a href="#cb162-7" aria-hidden="true" tabindex="-1"></a>   <span class="fu">select</span>(Station, CLUSTER, Latitude, Longitude) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb162-8"><a href="#cb162-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">CLUSTER_ORDER =</span> <span class="fu">factor</span>(CLUSTER, <span class="at">levels =</span> CLUSTER_NUM))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb167"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb167-1"><a href="#cb167-1" aria-hidden="true" tabindex="-1"></a>surface_kmeans <span class="ot">&lt;-</span> kmeans_membership_5 <span class="sc">%&gt;%</span> </span>
+<span id="cb167-2"><a href="#cb167-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(STN_NISKIN, <span class="at">into =</span> <span class="fu">c</span>(<span class="st">"STN"</span>, <span class="st">"NISKIN"</span>), <span class="at">sep =</span> <span class="st">"_"</span>, <span class="at">remove =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb167-3"><a href="#cb167-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Station =</span> <span class="fu">as.integer</span>(<span class="fu">str_remove</span>(STN, <span class="st">"S"</span>))) <span class="sc">%&gt;%</span> </span>
+<span id="cb167-4"><a href="#cb167-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Station, CLUSTER) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb167-5"><a href="#cb167-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">right_join</span>(metadata_seqsamples) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb167-6"><a href="#cb167-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Depth <span class="sc">&lt;</span> <span class="dv">6</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb167-7"><a href="#cb167-7" aria-hidden="true" tabindex="-1"></a>   <span class="fu">select</span>(Station, CLUSTER, Latitude, Longitude) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb167-8"><a href="#cb167-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">CLUSTER_ORDER =</span> <span class="fu">factor</span>(CLUSTER, <span class="at">levels =</span> CLUSTER_NUM))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Joining with `by = join_by(Station)`</code></pre>
 </div>
@@ -1551,7 +1698,7 @@ Adding another scale for y, which will replace the existing scale.</code></pre>
 ℹ If a many-to-many relationship is expected, set `relationship =
   "many-to-many"` to silence this warning.</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb165"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb165-1"><a href="#cb165-1" aria-hidden="true" tabindex="-1"></a>surface_kmeans</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb170"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb170-1"><a href="#cb170-1" aria-hidden="true" tabindex="-1"></a>surface_kmeans</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   Station CLUSTER Latitude Longitude CLUSTER_ORDER
 1       11       2   28.710    88.285             2
@@ -1617,49 +1764,49 @@ Adding another scale for y, which will replace the existing scale.</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb167"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb167-1"><a href="#cb167-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> world) <span class="sc">+</span></span>
-<span id="cb167-2"><a href="#cb167-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">color =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="fl">0.6</span>, <span class="at">fill =</span> <span class="st">"grey10"</span>, <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
-<span id="cb167-3"><a href="#cb167-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Set lat long region to show</span></span>
-<span id="cb167-4"><a href="#cb167-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_sf</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">91</span>, <span class="sc">-</span><span class="dv">85</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">27</span>, <span class="dv">31</span>), <span class="at">expand =</span> <span class="cn">FALSE</span>) <span class="sc">+</span> <span class="co"># Larger region</span></span>
-<span id="cb167-5"><a href="#cb167-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Add data points for stations</span></span>
-<span id="cb167-6"><a href="#cb167-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> surface_kmeans, <span class="fu">aes</span>(<span class="at">x =</span> Longitude, <span class="at">y =</span> Latitude, <span class="at">fill =</span> CLUSTER_ORDER), <span class="at">size =</span> <span class="dv">5</span>, <span class="at">shape =</span> <span class="dv">21</span>, <span class="at">color =</span> <span class="st">"grey20"</span>) <span class="sc">+</span></span>
-<span id="cb167-7"><a href="#cb167-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> CLUSTER_COLOR) <span class="sc">+</span></span>
-<span id="cb167-8"><a href="#cb167-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="at">data =</span> surface_labels, <span class="fu">aes</span>(<span class="at">label =</span> Station, <span class="at">x =</span> Longitude, <span class="at">y =</span> Latitude), <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb167-9"><a href="#cb167-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_rect</span>(<span class="at">xmin =</span> <span class="sc">-</span><span class="dv">90</span>, <span class="at">xmax =</span> <span class="sc">-</span><span class="fl">86.5</span>, <span class="at">ymin =</span> <span class="fl">27.5</span>, <span class="at">ymax =</span> <span class="dv">30</span>, <span class="at">fill =</span> <span class="cn">NA</span>, <span class="at">color =</span> <span class="st">"grey10"</span>) <span class="sc">+</span> <span class="co">#inset</span></span>
-<span id="cb167-10"><a href="#cb167-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Latitude (°N)"</span>, <span class="at">x =</span> <span class="st">"Longitude (°W)"</span>) <span class="sc">+</span></span>
-<span id="cb167-11"><a href="#cb167-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_reverse</span>() <span class="sc">+</span></span>
-<span id="cb167-12"><a href="#cb167-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
-<span id="cb167-13"><a href="#cb167-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>,</span>
-<span id="cb167-14"><a href="#cb167-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>, <span class="at">colour=</span><span class="st">"black"</span>),</span>
-<span id="cb167-15"><a href="#cb167-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>, <span class="at">colour=</span><span class="st">"black"</span>),</span>
-<span id="cb167-16"><a href="#cb167-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#B4C7D9"</span>),</span>
-<span id="cb167-17"><a href="#cb167-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.background =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb167-18"><a href="#cb167-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.border =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="cn">NA</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb172"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb172-1"><a href="#cb172-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> world) <span class="sc">+</span></span>
+<span id="cb172-2"><a href="#cb172-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">color =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="fl">0.6</span>, <span class="at">fill =</span> <span class="st">"grey10"</span>, <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb172-3"><a href="#cb172-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Set lat long region to show</span></span>
+<span id="cb172-4"><a href="#cb172-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_sf</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">91</span>, <span class="sc">-</span><span class="dv">85</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">27</span>, <span class="dv">31</span>), <span class="at">expand =</span> <span class="cn">FALSE</span>) <span class="sc">+</span> <span class="co"># Larger region</span></span>
+<span id="cb172-5"><a href="#cb172-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Add data points for stations</span></span>
+<span id="cb172-6"><a href="#cb172-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> surface_kmeans, <span class="fu">aes</span>(<span class="at">x =</span> Longitude, <span class="at">y =</span> Latitude, <span class="at">fill =</span> CLUSTER_ORDER), <span class="at">size =</span> <span class="dv">5</span>, <span class="at">shape =</span> <span class="dv">21</span>, <span class="at">color =</span> <span class="st">"grey20"</span>) <span class="sc">+</span></span>
+<span id="cb172-7"><a href="#cb172-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> CLUSTER_COLOR) <span class="sc">+</span></span>
+<span id="cb172-8"><a href="#cb172-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="at">data =</span> surface_labels, <span class="fu">aes</span>(<span class="at">label =</span> Station, <span class="at">x =</span> Longitude, <span class="at">y =</span> Latitude), <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb172-9"><a href="#cb172-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_rect</span>(<span class="at">xmin =</span> <span class="sc">-</span><span class="dv">90</span>, <span class="at">xmax =</span> <span class="sc">-</span><span class="fl">86.5</span>, <span class="at">ymin =</span> <span class="fl">27.5</span>, <span class="at">ymax =</span> <span class="dv">30</span>, <span class="at">fill =</span> <span class="cn">NA</span>, <span class="at">color =</span> <span class="st">"grey10"</span>) <span class="sc">+</span> <span class="co">#inset</span></span>
+<span id="cb172-10"><a href="#cb172-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Latitude (°N)"</span>, <span class="at">x =</span> <span class="st">"Longitude (°W)"</span>) <span class="sc">+</span></span>
+<span id="cb172-11"><a href="#cb172-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_reverse</span>() <span class="sc">+</span></span>
+<span id="cb172-12"><a href="#cb172-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb172-13"><a href="#cb172-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>,</span>
+<span id="cb172-14"><a href="#cb172-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>, <span class="at">colour=</span><span class="st">"black"</span>),</span>
+<span id="cb172-15"><a href="#cb172-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>, <span class="at">colour=</span><span class="st">"black"</span>),</span>
+<span id="cb172-16"><a href="#cb172-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#B4C7D9"</span>),</span>
+<span id="cb172-17"><a href="#cb172-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.background =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb172-18"><a href="#cb172-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.border =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="cn">NA</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="gulf-map-physical_2023_files/figure-html/unnamed-chunk-54-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="gulf-map-physical_2023_files/figure-html/unnamed-chunk-57-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb168"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb168-1"><a href="#cb168-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ggsave("figures/kmeans-surface-stations.svg", width = 7, height = 7, device = "svg", limitsize = FALSE)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb173"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb173-1"><a href="#cb173-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ggsave("figures/kmeans-surface-stations.svg", width = 7, height = 7, device = "svg", limitsize = FALSE)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="depth-k-means" class="level2" data-number="4.2">
 <h2 data-number="4.2" class="anchored" data-anchor-id="depth-k-means"><span class="header-section-number">4.2</span> Depth k-means</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb169"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb169-1"><a href="#cb169-1" aria-hidden="true" tabindex="-1"></a>depth_kmeans <span class="ot">&lt;-</span> kmeans_membership_5 <span class="sc">%&gt;%</span> </span>
-<span id="cb169-2"><a href="#cb169-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(STN_NISKIN, <span class="at">into =</span> <span class="fu">c</span>(<span class="st">"STN"</span>, <span class="st">"NISKIN"</span>), <span class="at">sep =</span> <span class="st">"_"</span>, <span class="at">remove =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb169-3"><a href="#cb169-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Station =</span> <span class="fu">as.integer</span>(<span class="fu">str_remove</span>(STN, <span class="st">"S"</span>))) <span class="sc">%&gt;%</span></span>
-<span id="cb169-4"><a href="#cb169-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Niskin =</span> <span class="fu">as.integer</span>(<span class="fu">str_remove</span>(NISKIN, <span class="st">"N"</span>))) <span class="sc">%&gt;%</span> </span>
-<span id="cb169-5"><a href="#cb169-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Station, Niskin, CLUSTER) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb169-6"><a href="#cb169-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>((metadata_seqsamples <span class="sc">%&gt;%</span> <span class="fu">select</span>(Station, Niskin, Depth, Latitude, Longitude, TRANSECT) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>())) <span class="sc">%&gt;%</span> </span>
-<span id="cb169-7"><a href="#cb169-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(Latitude)) <span class="sc">%&gt;%</span> </span>
-<span id="cb169-8"><a href="#cb169-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">CLUSTER_ORDER =</span> <span class="fu">factor</span>(CLUSTER, <span class="at">levels =</span> CLUSTER_NUM))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb174"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb174-1"><a href="#cb174-1" aria-hidden="true" tabindex="-1"></a>depth_kmeans <span class="ot">&lt;-</span> kmeans_membership_5 <span class="sc">%&gt;%</span> </span>
+<span id="cb174-2"><a href="#cb174-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(STN_NISKIN, <span class="at">into =</span> <span class="fu">c</span>(<span class="st">"STN"</span>, <span class="st">"NISKIN"</span>), <span class="at">sep =</span> <span class="st">"_"</span>, <span class="at">remove =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb174-3"><a href="#cb174-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Station =</span> <span class="fu">as.integer</span>(<span class="fu">str_remove</span>(STN, <span class="st">"S"</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb174-4"><a href="#cb174-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Niskin =</span> <span class="fu">as.integer</span>(<span class="fu">str_remove</span>(NISKIN, <span class="st">"N"</span>))) <span class="sc">%&gt;%</span> </span>
+<span id="cb174-5"><a href="#cb174-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Station, Niskin, CLUSTER) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb174-6"><a href="#cb174-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>((metadata_seqsamples <span class="sc">%&gt;%</span> <span class="fu">select</span>(Station, Niskin, Depth, Latitude, Longitude, TRANSECT) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>())) <span class="sc">%&gt;%</span> </span>
+<span id="cb174-7"><a href="#cb174-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(Latitude)) <span class="sc">%&gt;%</span> </span>
+<span id="cb174-8"><a href="#cb174-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">CLUSTER_ORDER =</span> <span class="fu">factor</span>(CLUSTER, <span class="at">levels =</span> CLUSTER_NUM))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Joining with `by = join_by(Station, Niskin)`</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb171"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb171-1"><a href="#cb171-1" aria-hidden="true" tabindex="-1"></a>depth_kmeans</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb176"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb176-1"><a href="#cb176-1" aria-hidden="true" tabindex="-1"></a>depth_kmeans</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   Station Niskin CLUSTER    Depth Latitude Longitude  TRANSECT CLUSTER_ORDER
 1       11      7       2  350.578   28.710    88.285 transect3             2
@@ -1755,8 +1902,8 @@ Adding another scale for y, which will replace the existing scale.</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb173"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb173-1"><a href="#cb173-1" aria-hidden="true" tabindex="-1"></a>vert_label <span class="ot">&lt;-</span> depth_kmeans <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Depth <span class="sc">&lt;</span> <span class="dv">6</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(CLUSTER_ORDER, Station, Longitude, TRANSECT) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>()</span>
-<span id="cb173-2"><a href="#cb173-2" aria-hidden="true" tabindex="-1"></a>vert_label</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb178"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb178-1"><a href="#cb178-1" aria-hidden="true" tabindex="-1"></a>vert_label <span class="ot">&lt;-</span> depth_kmeans <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Depth <span class="sc">&lt;</span> <span class="dv">6</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(CLUSTER_ORDER, Station, Longitude, TRANSECT) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>()</span>
+<span id="cb178-2"><a href="#cb178-2" aria-hidden="true" tabindex="-1"></a>vert_label</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   CLUSTER_ORDER Station Longitude  TRANSECT
 1              8      14    87.361 transect3
@@ -1772,49 +1919,49 @@ Adding another scale for y, which will replace the existing scale.</code></pre>
 11             5      11    88.285 transect3
 12             2       1    89.460 transect1</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb175"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb175-1"><a href="#cb175-1" aria-hidden="true" tabindex="-1"></a><span class="fu">max</span>(depth_kmeans<span class="sc">$</span>Depth)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb180"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb180-1"><a href="#cb180-1" aria-hidden="true" tabindex="-1"></a><span class="fu">max</span>(depth_kmeans<span class="sc">$</span>Depth)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 2826.978</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb177"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb177-1"><a href="#cb177-1" aria-hidden="true" tabindex="-1"></a>depth_kmeans <span class="sc">%&gt;%</span> </span>
-<span id="cb177-2"><a href="#cb177-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb177-3"><a href="#cb177-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="at">data =</span> vert_label, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="fu">aes</span>(<span class="at">x =</span> Longitude, <span class="at">y =</span> <span class="dv">3000</span>, <span class="at">yend =</span> <span class="dv">0</span>, <span class="at">xend =</span> Longitude)) <span class="sc">+</span></span>
-<span id="cb177-4"><a href="#cb177-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Add data points</span></span>
-<span id="cb177-5"><a href="#cb177-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_jitter</span>(<span class="fu">aes</span>(<span class="at">x =</span> Longitude, <span class="at">y =</span> Depth, <span class="at">fill =</span> CLUSTER_ORDER), <span class="at">size =</span> <span class="dv">4</span>, <span class="at">shape =</span> <span class="dv">21</span>, <span class="at">color =</span> <span class="st">"grey20"</span>, <span class="at">width =</span> <span class="fl">0.1</span>) <span class="sc">+</span></span>
-<span id="cb177-6"><a href="#cb177-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> CLUSTER_COLOR) <span class="sc">+</span></span>
-<span id="cb177-7"><a href="#cb177-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="at">data =</span> vert_label,</span>
-<span id="cb177-8"><a href="#cb177-8" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">x =</span> Longitude, <span class="at">y =</span> <span class="sc">-</span><span class="dv">60</span>, <span class="at">label =</span> Station),</span>
-<span id="cb177-9"><a href="#cb177-9" aria-hidden="true" tabindex="-1"></a>              <span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">vjust =</span> <span class="sc">-</span><span class="fl">0.5</span>, <span class="at">color=</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
-<span id="cb177-10"><a href="#cb177-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Depth (m)"</span>, <span class="at">x =</span> <span class="st">"Longitude (°W)"</span>) <span class="sc">+</span></span>
-<span id="cb177-11"><a href="#cb177-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_reverse</span>(<span class="at">n.breaks =</span> <span class="dv">4</span>, <span class="at">expand =</span> <span class="fu">c</span>(<span class="fl">0.1</span>,<span class="fl">0.1</span>)) <span class="sc">+</span> </span>
-<span id="cb177-12"><a href="#cb177-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_reverse</span>(<span class="at">position =</span> <span class="st">"right"</span>, <span class="at">expand =</span> <span class="fu">c</span>(<span class="fl">0.1</span>,<span class="dv">0</span>)) <span class="sc">+</span></span>
-<span id="cb177-13"><a href="#cb177-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
-<span id="cb177-14"><a href="#cb177-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_grid</span>(<span class="at">cols =</span> <span class="fu">vars</span>(TRANSECT), <span class="at">scales =</span> <span class="st">"free"</span>, <span class="at">space =</span> <span class="st">"free"</span>) <span class="sc">+</span></span>
-<span id="cb177-15"><a href="#cb177-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>, <span class="at">colour=</span><span class="st">"black"</span>),</span>
-<span id="cb177-16"><a href="#cb177-16" aria-hidden="true" tabindex="-1"></a>          <span class="at">panel.border =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb177-17"><a href="#cb177-17" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend.background =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb177-18"><a href="#cb177-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>, <span class="at">colour=</span><span class="st">"black"</span>, <span class="at">face =</span> <span class="st">"bold"</span>),</span>
-<span id="cb177-19"><a href="#cb177-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.title =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb177-20"><a href="#cb177-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_line</span>(),</span>
-<span id="cb177-21"><a href="#cb177-21" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.ticks =</span> <span class="fu">element_line</span>(<span class="at">color =</span> <span class="st">"black"</span>),</span>
-<span id="cb177-22"><a href="#cb177-22" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position=</span><span class="st">"left"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb182"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb182-1"><a href="#cb182-1" aria-hidden="true" tabindex="-1"></a>depth_kmeans <span class="sc">%&gt;%</span> </span>
+<span id="cb182-2"><a href="#cb182-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb182-3"><a href="#cb182-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="at">data =</span> vert_label, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="fu">aes</span>(<span class="at">x =</span> Longitude, <span class="at">y =</span> <span class="dv">3000</span>, <span class="at">yend =</span> <span class="dv">0</span>, <span class="at">xend =</span> Longitude)) <span class="sc">+</span></span>
+<span id="cb182-4"><a href="#cb182-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Add data points</span></span>
+<span id="cb182-5"><a href="#cb182-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_jitter</span>(<span class="fu">aes</span>(<span class="at">x =</span> Longitude, <span class="at">y =</span> Depth, <span class="at">fill =</span> CLUSTER_ORDER), <span class="at">size =</span> <span class="dv">4</span>, <span class="at">shape =</span> <span class="dv">21</span>, <span class="at">color =</span> <span class="st">"grey20"</span>, <span class="at">width =</span> <span class="fl">0.1</span>) <span class="sc">+</span></span>
+<span id="cb182-6"><a href="#cb182-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> CLUSTER_COLOR) <span class="sc">+</span></span>
+<span id="cb182-7"><a href="#cb182-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="at">data =</span> vert_label,</span>
+<span id="cb182-8"><a href="#cb182-8" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">x =</span> Longitude, <span class="at">y =</span> <span class="sc">-</span><span class="dv">60</span>, <span class="at">label =</span> Station),</span>
+<span id="cb182-9"><a href="#cb182-9" aria-hidden="true" tabindex="-1"></a>              <span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">vjust =</span> <span class="sc">-</span><span class="fl">0.5</span>, <span class="at">color=</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb182-10"><a href="#cb182-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Depth (m)"</span>, <span class="at">x =</span> <span class="st">"Longitude (°W)"</span>) <span class="sc">+</span></span>
+<span id="cb182-11"><a href="#cb182-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_reverse</span>(<span class="at">n.breaks =</span> <span class="dv">4</span>, <span class="at">expand =</span> <span class="fu">c</span>(<span class="fl">0.1</span>,<span class="fl">0.1</span>)) <span class="sc">+</span> </span>
+<span id="cb182-12"><a href="#cb182-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_reverse</span>(<span class="at">position =</span> <span class="st">"right"</span>, <span class="at">expand =</span> <span class="fu">c</span>(<span class="fl">0.1</span>,<span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb182-13"><a href="#cb182-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb182-14"><a href="#cb182-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_grid</span>(<span class="at">cols =</span> <span class="fu">vars</span>(TRANSECT), <span class="at">scales =</span> <span class="st">"free"</span>, <span class="at">space =</span> <span class="st">"free"</span>) <span class="sc">+</span></span>
+<span id="cb182-15"><a href="#cb182-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>, <span class="at">colour=</span><span class="st">"black"</span>),</span>
+<span id="cb182-16"><a href="#cb182-16" aria-hidden="true" tabindex="-1"></a>          <span class="at">panel.border =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb182-17"><a href="#cb182-17" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend.background =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb182-18"><a href="#cb182-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>, <span class="at">colour=</span><span class="st">"black"</span>, <span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb182-19"><a href="#cb182-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb182-20"><a href="#cb182-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_line</span>(),</span>
+<span id="cb182-21"><a href="#cb182-21" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.ticks =</span> <span class="fu">element_line</span>(<span class="at">color =</span> <span class="st">"black"</span>),</span>
+<span id="cb182-22"><a href="#cb182-22" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position=</span><span class="st">"left"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="gulf-map-physical_2023_files/figure-html/unnamed-chunk-57-1.png" class="img-fluid figure-img" width="864"></p>
+<p><img src="gulf-map-physical_2023_files/figure-html/unnamed-chunk-60-1.png" class="img-fluid figure-img" width="864"></p>
 </figure>
 </div>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb178"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb178-1"><a href="#cb178-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ggsave("figures/kmeans-stations-bydepth.svg", width = 9, height = 4, device = "svg", limitsize = FALSE)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb183"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb183-1"><a href="#cb183-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ggsave("figures/kmeans-stations-bydepth.svg", width = 9, height = 4, device = "svg", limitsize = FALSE)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 </section>
 <section id="session-information" class="level1" data-number="5">
 <h1 data-number="5"><span class="header-section-number">5</span> Session Information</h1>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb179"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb179-1"><a href="#cb179-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb184"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb184-1"><a href="#cb184-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>R version 4.6.0 (2026-04-24)
 Platform: aarch64-apple-darwin23
@@ -1827,7 +1974,7 @@ LAPACK: /Library/Frameworks/R.framework/Versions/4.6/Resources/lib/libRlapack.dy
 locale:
 [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
 
-time zone: America/New_York
+time zone: America/Los_Angeles
 tzcode source: internal
 
 attached base packages:

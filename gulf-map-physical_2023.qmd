@@ -676,6 +676,20 @@ tax_whole_asv_profile("Ciliophora-Spirotrichea", 5, 50, "Ciliophora-Spirotrichea
 # ggsave("figures/ciliate-spirot.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
 ```
 
+Haptophytes 
+
+```{r}
+unique(asv_long_avg_wtax_clean$SUPERGROUP_CLASS)
+```
+
+```{r, fig.height=5, fig.width=17, warning=FALSE}
+tax_whole_asv_profile("Haptophyta_X-Prymnesiophyceae", 0, 250, "Haptophyta_X-Prymnesiophyceae")
+# ggsave("figures/gyrista-dictyocho.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
+```
+```{r}
+view(asv_long_avg_wtax_clean)
+```
+
 
 # K-means clustering on map
 
