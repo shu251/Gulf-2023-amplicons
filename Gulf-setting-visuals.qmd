@@ -1,0 +1,253 @@
+---
+title: "Northern Gulf Setting"
+editor: source
+format: 
+  html:
+    theme: flatly
+    toc: true
+    toc-location: left
+    number-sections: true
+    number-depth: 4
+---
+
+_Generated and rendered by Chrissy Wiederwohl and Maggie Ellis._
+
+
+```{r, eval=FALSE, echo=FALSE}
+# install.packages("magick")
+library(magick)
+image_SSH <- image_read("figures/SSH_CW.gif")
+trimmed_ssh <- image_trim(image_SSH)
+ssh_trim_scale <- image_scale(trimmed_ssh, "60%")
+# ssh_trim_scale
+image_write(ssh_trim_scale, "figures/SSH_CW_resized.gif")
+
+image_SSHa <- image_read("figures/SSHa_CW.gif")
+trimmed_ssha <- image_trim(image_SSHa)
+ssha_trim_scale <- image_scale(trimmed_ssha, "60%")
+# ssha_trim_scale
+image_write(ssh_trim_scale, "figures/SSH_CW_resized.gif")
+```
+
+
+
+:::::: {.content-visible when-format="html"}
+## Sea surface height
+
+::: {#fig}
+```{=html}
+<div align="left">
+<iframe width="900" height="600" 
+src="figures/SSH_CW_resized.gif" style="border: none;"></iframe>
+</div>
+```
+
+Animation of Northern Gulf Sea Surface Height (SSH; m).
+:::
+
+## Sea surface height anomaly
+
+::: {}
+```{=html}
+<div align="left">
+<iframe width="900" height="600" src="figures/SSH_CW_resized.gif" style="border: none;"></iframe>
+</div>
+```
+
+Animation of Northern Gulf Sea Surface Height anomaly (SSHa; m).
+:::
+
+## Sea surface temperature
+
+::: {}
+```{=html}
+<div align="left">
+<iframe width="750" height="550" src="figures/SST without T4.gif"></iframe>
+</div>
+```
+
+Animation of Northern Gulf Sea Surface Temperature (SST; °C).
+:::
+::::::
+
+
+```         
+% SSH Gif
+
+% Loading smaller Gulf region data
+load('HYCOM_SSH_data.mat');
+data = HYCOM_reg1_latest2d;
+    clear HYCOM_reg1_latest2d
+
+% Lat is 126x1, lon is 76x1
+data.longitude(data.longitude > 180) = data.longitude(data.longitude > 180) - 360; 
+    % Converts to 180 to -180 format
+[data.lonm, data.latm] = meshgrid(data.longitude, data.latitude);
+
+% data.ssh = reshape(data.surf_el, length(data.time), length(data.latitude), ...
+%     length(data.longitude));
+
+% Converting time
+junk = (data.time / 86400); % Seconds to days
+n = datenum(1970,1,1); 
+data.ndate = n + junk;
+data.date = datevec(data.ndate);
+data.yr = data.date(:,1);
+data.month = data.date(:,2);
+data.day = data.date(:,3);
+
+% data.time is in seconds since 1970-01-01 00:00:00 UTC
+data.DateTime = datetime(1970,1,1,0,0,0) + seconds(data.time);
+data.DateTime.TimeZone = 'UTC';  % ensures it’s in UTC
+
+clear n junk
+
+%% Loading full Gulf of Mexico data
+
+load('HYCOM_fullGulf.mat');
+data2 = HYCOM_reg1_latest2d;
+    clear HYCOM_reg1_latest2d
+
+% Lat is 126x1, lon is 76x1
+data2.longitude(data2.longitude > 180) = data2.longitude(data2.longitude > 180) - 360; 
+    % Converts to 180 to -180 format
+[data2.lonm, data2.latm] = meshgrid(data2.longitude, data2.latitude);
+
+% data.ssh = reshape(data.surf_el, length(data.time), length(data.latitude), ...
+%     length(data.longitude));
+
+% Converting time
+junk = (data2.time / 86400); % Seconds to days
+n = datenum(1970,1,1); 
+data2.ndate = n + junk;
+data2.date = datevec(data2.ndate);
+data2.yr = data2.date(:,1);
+data2.month = data2.date(:,2);
+data2.day = data2.date(:,3);
+
+% data.time is in seconds since 1970-01-01 00:00:00 UTC
+data2.DateTime = datetime(1970,1,1,0,0,0) + seconds(data2.time);
+data2.DateTime.TimeZone = 'UTC';  % ensures it’s in UTC
+
+clear n junk
+
+
+%% Station Information
+
+station = readtable("Grad23_coords_date.xlsx");
+
+station.Time_UTC = datetime(station.Time_UTC, 'ConvertFrom','excel');
+station.Time_UTC.Format = 'HH:mm:ss'; % Keeps UTC format from excel
+
+% Combining calendar date and UTC time into one column
+station.DateTimeUTC = datetime(station.Date) + timeofday(datetime(station.Time_UTC, 'Format','HH:mm:ss'));
+station.DateTimeUTC.TimeZone = 'UTC';   % keep UTC
+
+station = sortrows(station, 'DateTimeUTC');
+
+% Fix longitudes to match -180 to 180
+%station.NMEA_Lon(station.NMEA_Lon > 180) = station.NMEA_Lon(station.NMEA_Lon > 180) - 360;
+
+station.NMEA_Lon = -station.NMEA_Lon; % So now it knows it's W, not E
+
+%% Test GIF (check for which data using 1/2)
+
+filename = '4-9-26 SSH.gif'; 
+
+cutoffTime = datetime('02-Aug-2023 22:55:00', 'TimeZone', station.DateTimeUTC.TimeZone);
+    % For all transects except 4 included
+
+for ii = 1:length(data2.time)
+    
+    sqzdata = squeeze(data2.surf_el(ii,:,:)); % SSH
+    
+    figure(1); clf
+    %m_proj('mercator', 'lon',[min(data.longitude) max(data.longitude)], 'lat',[min(data.latitude) max(data.latitude)]);
+        % m_proj('mercator', ...
+        % 'lon',[-97 -83], ... 
+        % 'lat',[19.5 30])
+
+        % Full Gulf is lon(-97 -83), lat(19.5 30)
+
+% ------ Sarah-asked coordinate zoom in
+    % Should be from 30°N to 26-27°N & 90-91 W to 87 W
+    m_proj('mercator', 'lon',[-91 -86], 'lat',[26 30])
+% ------
+
+    m_pcolor(data2.lonm, data2.latm, sqzdata); shading interp;
+    m_gshhs_i('patch',[0.6 0.6 0.6]);
+    m_grid('box','fancy','tickdir','in')
+
+    hold on % Must be after m_pcolor or it breaks the map
+
+    colormap(m_colmap('diverging',256))
+    clim([-0.75 0.75]) % Minval = -0.534, maxval = 0.468
+    colorbar
+    ylabel(colorbar,'SSH (m)');
+    
+    %title(datestr(data.DateTime(ii), 'dd-mmm-yyyy HH:mm:ss'))
+    title(string(data2.DateTime(ii), 'dd-MMM-yyyy HH:mm:ss'))
+
+        % Plots stations on the same day as SST anom data, not being overridden by time
+        %finished = dateshift(station.DateTimeUTC,'start','day') <= dateshift(data.DateTime(ii),'start','day');
+    %finished = station.DateTimeUTC <= data2.DateTime(ii);
+
+% ----------- Cutting out last transect (S18 and after)
+    finished = station.DateTimeUTC <= data2.DateTime(ii) & ...
+           station.DateTimeUTC < cutoffTime;
+% -----------
+
+    % Black/yellow
+    m_plot(station.NMEA_Lon(finished), station.NMEA_Lat(finished), 'Color', 'k', 'LineWidth', 0.5); 
+    m_plot(station.NMEA_Lon(finished), station.NMEA_Lat(finished), 'p', 'MarkerFaceColor','y',...
+        'MarkerEdgeColor', 'k', 'MarkerSize', 2);
+
+    % idx = find(finished);
+    % for k = 1:length(idx)
+    % m_text(station.NMEA_Lon(idx(k)) + 0.1, ... % small offset
+    %        station.NMEA_Lat(idx(k)), ...
+    %        string(station.Station(idx(k))), ...
+    %        'fontsize',2, ...
+    %        'color',[0.1 0.1 0.1], ...
+    %        'fontweight','bold');
+    % end
+
+    % Get frame
+    frame = getframe(gcf);
+    [imind, cm] = rgb2ind(frame.cdata, 256);
+    %imwrite(frame.cdata, sprintf('SSH_frame_%03d.png', ii)); 
+        % Saves every frame as picture
+
+    if ii == 1
+        % First frame creates the GIF
+        imwrite(imind, cm, filename, 'gif', 'Loopcount', Inf, 'DelayTime', 0.5);
+    else
+        % Subsequent frames append
+        imwrite(imind, cm, filename, 'gif', 'WriteMode', 'append', 'DelayTime', 0.5);
+    end
+end
+
+clear imind idx k
+
+%% Finding max and min SSH values for colorbar limits
+
+minVal = min(sqzdata(:));
+maxVal = max(sqzdata(:));
+
+%% Frame snapshots
+
+% Number of frame in gif is 30 (entire gif must be ran to know)
+    % info = imfinfo('3-30-26 zoomed SSH.gif');
+    % length(info) % Total of 220 frames
+
+% Brings up a specific frame
+[img, cmap] = imread('4-9-26 SSH.gif', 'Index', 117); % Last number is the frame
+imshow(img, cmap)
+
+% Frame 50 is July 23, 2023 0000
+% Frame 98 is July 29, 2023 0000
+% Frame 122 is Aug 1, 2023 0000
+% Frame 200 has all 3 transects (Aug 10, 2023, 1800)
+
+% 117 used for Hu paper snapshots!
+```
