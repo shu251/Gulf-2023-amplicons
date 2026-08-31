@@ -687,7 +687,7 @@ tax_whole_asv_profile("Haptophyta_X-Prymnesiophyceae", 0, 250, "Haptophyta_X-Pry
 # ggsave("figures/gyrista-dictyocho.svg", width = 15, height = 5, device = "svg", limitsize = FALSE)
 ```
 ```{r}
-view(asv_long_avg_wtax_clean)
+# view(asv_long_avg_wtax_clean)
 ```
 
 
@@ -790,7 +790,7 @@ depth_kmeans %>%
         axis.line = element_line(),
         legend.ticks = element_line(color = "black"),
         legend.position="left")
-# ggsave("figures/kmeans-stations-bydepth.svg", width = 9, height = 4, device = "svg", limitsize = FALSE)
+ggsave("figures/kmeans-stations-bydepth.svg", width = 9, height = 4, device = "svg", limitsize = FALSE)
 ```
 
 

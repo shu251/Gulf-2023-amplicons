@@ -305,7 +305,7 @@ table_supp <- table_wfeature %>%
   left_join(tmp_seq_stats)
 
 glimpse(table_supp)
-# save(table_supp, file = "output-tables/table_supp.RData")
+
 ```
 
 Repeat and format for supplementary table
@@ -318,14 +318,18 @@ table_supp1 <- table_wfeature %>%
   select(Station, Niskin, STN_NISKIN, Depth, DEPTH_BIN, Latitude, Longitude, 
          Date, Time_UTC, DAY_NIGHT, TRANSECT, DIST_OUTFLOW, STN_CATEGORY_4, CLUSTER,
          OilRig_Count, MLD, SAL_MAX, O2_MIN, DCM, Temperature, Salinity, 
-         DIC, NH4, NO2, NO3, PO4, SIL, Oxygen_CTD, TA, pH, WATER_MASS, Prok_count, Sequence_files, Total_ASVs, Total_sequences)
+         DIC, NH4, NO2, NO3, PO4, SIL, Oxygen_CTD, TA, pH, WATER_MASS, Prok_count, Total_ASVs, Total_sequences)
 
-# write.csv(table_supp1, file = "output-tables/supp-table-allsampleinfo.csv")
+write.csv(table_supp1, file = "output-tables/supp-table-allsampleinfo.csv")
 ```
 
 ```{r}
 head(table_supp1)
 unique(table_supp1$Sequence_files)
+```
+
+```{r}
+# save(table_supp1, table_wstn_wdepth, table_supp, file = "output-tables/table_supp.RData")
 ```
 
 
@@ -2664,6 +2668,19 @@ prey_types_df %>%
 ```
 ```{r}
 head(trait_asv)
+```
+
+## Save Table S2
+```{r}
+colnames(trait_asv)
+table_s2 <- trait_asv |> 
+  select(FeatureID, Taxon, Supergroup_simplified, SUPERGROUP_CLASS, Feeding.Mode, Morphotype, MORPHOTYPE) |> 
+  distinct() |> 
+  group_by(Classification = Supergroup_simplified, Supergroup_class = SUPERGROUP_CLASS, Feeding_mode = Feeding.Mode, Morphotype, MORPHOTYPE) |> 
+  summarise(ASV_count = n(),
+            Collapsed_lineage = paste(unique(Taxon), collapse = ", "), .groups = "drop")
+
+write.csv(table_s2, file = "output-tables/ciliate_dino_summary_TableS2.csv")
 ```
 
 
